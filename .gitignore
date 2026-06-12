@@ -7,4 +7,4 @@ coverage/
 .env*
 !.env.example
 //Ignorar el archivo de agente
- src/AGENTS.md
+AGENTS.md

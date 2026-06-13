@@ -1,460 +1,667 @@
-import React, { useState } from "react";
-import { UserProfile, SkillGap, CareerMission } from "../types";
-import { 
-  Sparkles, Check, ArrowRight, ArrowLeft, GraduationCap, ChevronRight,
-  TrendingUp, User, Cpu, Award
+import React, { useCallback, useRef, useState } from "react";
+import { UserProfile, CvMeta } from "../types";
+import {
+  Sparkles,
+  Check,
+  ArrowRight,
+  ArrowLeft,
+  Upload,
+  FileText,
+  ChevronDown,
+  X,
+  Plus,
+  Target,
+  Brain,
+  Users,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { integrateRouteWithCourses } from "../utils/courseMatcher";
-import { UTP_CAREERS, CAREER_TYPICAL_SKILLS, CAREER_SUGGESTED_ROLES } from "../data";
+import {
+  extractTextFromPdf,
+  buildHarvardCvText,
+  extractProfileHintsFromCv,
+} from "../utils/cvParser";
+import {
+  CAREER_TYPICAL_SKILLS,
+  CAREER_SPECIALIZATION_TAGS,
+  GENERIC_SOFT_SKILLS,
+} from "../data";
 
 interface DiagnosticoWizardProps {
   currentProfile: UserProfile;
-  onAnalysisSuccess: (profile: UserProfile, gaps: SkillGap[], missions: CareerMission[]) => void;
+  onComplete: (profile: UserProfile, cvText: string, cvMeta: CvMeta) => void;
 }
 
-const EXPERIENCES = [
-  "Sin experiencia (Buscando mi primera práctica)",
-  "Proyectos personales o académicos de alta exigencia",
-  "Prácticas pre-profesionales iniciales",
-  "Experiencia laboral general fuera de mi carrera"
-];
+const TOTAL_STEPS = 4;
 
-const TYPICAL_SKILLS = CAREER_TYPICAL_SKILLS;
-const SUGGESTED_ROLES = CAREER_SUGGESTED_ROLES;
-const CAREERS = [...UTP_CAREERS];
+const EXPERIENCE_OPTIONS = [
+  {
+    id: "basico",
+    title: "Básico",
+    description: "Busco mis primeras prácticas pre-profesionales. Cero experiencia formal.",
+  },
+  {
+    id: "intermedio",
+    title: "Intermedio",
+    description: "Tengo experiencia en proyectos académicos aplicados o voluntariados.",
+  },
+  {
+    id: "avanzado",
+    title: "Avanzado",
+    description: "Ya he realizado prácticas o trabajo actualmente.",
+  },
+];
 
 export default function DiagnosticoWizard({
   currentProfile,
-  onAnalysisSuccess
+  onComplete,
 }: DiagnosticoWizardProps) {
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [errorStr, setErrorStr] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Form State
-  const [name, setName] = useState(currentProfile.name || "");
-  const [career, setCareer] = useState(currentProfile.career || "");
-  const [semester, setSemester] = useState<number>(currentProfile.semester || 1);
-  const [experienceLevel, setExperienceLevel] = useState(currentProfile.experienceLevel || "");
-  const [targetRole, setTargetRole] = useState(
-    currentProfile.targetRole ||
-      (currentProfile.career ? SUGGESTED_ROLES[currentProfile.career]?.[0] ?? "" : "")
-  );
-  const [selectedSkills, setSelectedSkills] = useState<string[]>(
-    currentProfile.currentSkills.length > 0
-      ? currentProfile.currentSkills
-      : currentProfile.career && TYPICAL_SKILLS[currentProfile.career]
-        ? TYPICAL_SKILLS[currentProfile.career].slice(0, 3)
-        : []
-  );
-  const [interestsText, setInterestsText] = useState(currentProfile.interests.join(", ") || "");
+  const name = currentProfile.name;
+  const career = currentProfile.career;
+  const semester = currentProfile.semester;
 
-  const handleToggleSkill = (skill: string) => {
-    if (selectedSkills.includes(skill)) {
-      setSelectedSkills(selectedSkills.filter(s => s !== skill));
-    } else {
-      setSelectedSkills([...selectedSkills, skill]);
+  const careerSkills = CAREER_TYPICAL_SKILLS[career] ?? [];
+  const specializationPool = CAREER_SPECIALIZATION_TAGS[career] ?? [];
+
+  // Paso 1 — CV
+  const [cvMode, setCvMode] = useState<"upload" | "harvard">("upload");
+  const [cvFileName, setCvFileName] = useState("");
+  const [cvText, setCvText] = useState("");
+  const [cvParsing, setCvParsing] = useState(false);
+  const [harvardOpen, setHarvardOpen] = useState({ resumen: true, formacion: false, proyectos: false });
+  const [harvardForm, setHarvardForm] = useState({ resumen: "", formacion: "", proyectos: "" });
+
+  // Paso 2 — Experiencia
+  const [experienceLevel, setExperienceLevel] = useState("");
+
+  // Paso 3 — Especialización (multi-select)
+  const [specializations, setSpecializations] = useState<string[]>([]);
+  const [specInput, setSpecInput] = useState("");
+
+  // Paso 4 — Habilidades
+  const [hardSkills, setHardSkills] = useState<string[]>([]);
+  const [softSkills, setSoftSkills] = useState<string[]>([]);
+  const [hardInput, setHardInput] = useState("");
+  const [softInput, setSoftInput] = useState("");
+
+  const resolveCvText = useCallback(() => {
+    if (cvMode === "harvard") {
+      return buildHarvardCvText({
+        ...harvardForm,
+        name,
+        career,
+      });
+    }
+    return cvText;
+  }, [cvMode, cvText, harvardForm, name, career]);
+
+  const applyCvHints = useCallback(
+    (text: string) => {
+      const hints = extractProfileHintsFromCv(
+        text,
+        career,
+        careerSkills,
+        specializationPool,
+        GENERIC_SOFT_SKILLS
+      );
+      setHardSkills(hints.hardSkills);
+      setSoftSkills(hints.softSkills);
+      setSpecializations(hints.specializations);
+    },
+    [career, careerSkills, specializationPool]
+  );
+
+  const handleCvFile = async (file: File) => {
+    if (file.type !== "application/pdf") {
+      setErrorStr("Solo se aceptan archivos PDF.");
+      return;
+    }
+    setCvParsing(true);
+    setErrorStr(null);
+    try {
+      const text = await extractTextFromPdf(file);
+      if (text.length < 20) {
+        throw new Error("No se pudo extraer texto del PDF. Verifica que no sea una imagen escaneada.");
+      }
+      setCvText(text);
+      setCvFileName(file.name);
+      setCvMode("upload");
+      applyCvHints(text);
+    } catch (err: unknown) {
+      setErrorStr(err instanceof Error ? err.message : "Error al leer el PDF.");
+    } finally {
+      setCvParsing(false);
     }
   };
 
-  const handleCareerSelect = (chosen: string) => {
-    setCareer(chosen);
-    const initialSkills = TYPICAL_SKILLS[chosen] ? TYPICAL_SKILLS[chosen].slice(0, 3) : [];
-    setSelectedSkills(initialSkills);
-    const initialRole = SUGGESTED_ROLES[chosen] ? SUGGESTED_ROLES[chosen][0] : "";
-    setTargetRole(initialRole);
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleCvFile(file);
   };
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    setErrorStr(null);
+  const toggleTag = (list: string[], setList: (v: string[]) => void, tag: string) => {
+    setList(list.includes(tag) ? list.filter((t) => t !== tag) : [...list, tag]);
+  };
 
-    const payload = {
-      name: name || "Estudiante UTP",
-      career,
-      semester,
-      experienceLevel,
-      targetRole,
-      currentSkills: selectedSkills,
-      interests: interestsText.split(",").map(i => i.trim()).filter(Boolean)
+  const addCustomTag = (
+    input: string,
+    setInput: (v: string) => void,
+    list: string[],
+    setList: (v: string[]) => void
+  ) => {
+    const trimmed = input.trim();
+    if (!trimmed || list.includes(trimmed)) return;
+    setList([...list, trimmed]);
+    setInput("");
+  };
+
+  const removeTag = (list: string[], setList: (v: string[]) => void, tag: string) => {
+    setList(list.filter((t) => t !== tag));
+  };
+
+  const validateStep = (current: number): boolean => {
+    if (current === 1) {
+      const text = resolveCvText();
+      if (text.length < 20) {
+        setErrorStr("Sube tu CV en PDF o completa la plantilla Harvard.");
+        return false;
+      }
+      if (cvMode === "harvard") applyCvHints(text);
+      return true;
+    }
+    if (current === 2 && !experienceLevel) {
+      setErrorStr("Selecciona tu nivel de experiencia.");
+      return false;
+    }
+    if (current === 3 && specializations.length === 0) {
+      setErrorStr("Selecciona al menos un área de especialización.");
+      return false;
+    }
+    if (current === 4 && (hardSkills.length === 0 || softSkills.length === 0)) {
+      setErrorStr("Confirma al menos una habilidad técnica y una blanda.");
+      return false;
+    }
+    return true;
+  };
+
+  const goNext = () => {
+    if (!validateStep(step)) return;
+    setErrorStr(null);
+    setStep((s) => s + 1);
+  };
+
+  const handleFinish = () => {
+    if (!validateStep(4)) return;
+    const finalCvText = resolveCvText();
+    const experienceLabel =
+      EXPERIENCE_OPTIONS.find((o) => o.id === experienceLevel)?.title ?? experienceLevel;
+
+    const updatedProfile: UserProfile = {
+      ...currentProfile,
+      experienceLevel: experienceLabel,
+      targetRole: specializations[0] ?? currentProfile.targetRole,
+      currentSkills: hardSkills,
+      softSkills,
+      interests: specializations,
+      employabilityScore: currentProfile.employabilityScore || 0,
     };
 
-    try {
-      const response = await fetch("/api/profile/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+    const cvMeta: CvMeta = {
+      fileName: cvMode === "upload" ? cvFileName || "CV_cargado.pdf" : "CV_Plantilla_Harvard.txt",
+      format: cvMode === "upload" ? "PDF" : "Plantilla Harvard",
+      source: "Diagnóstico Inicial",
+      status: "Pendiente de análisis",
+      targetRole: specializations.join(", ") || career,
+      analysisDate: new Date().toLocaleDateString("es-PE", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }),
+    };
 
-      if (!response.ok) {
-        throw new Error("Error en la conexión con el servidor");
-      }
-
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      const updatedProfile: UserProfile = {
-        name: name || "Estudiante UTP",
-        career,
-        semester,
-        experienceLevel,
-        targetRole,
-        currentSkills: selectedSkills,
-        interests: payload.interests,
-        employabilityScore: data.employabilityScore || 50,
-        xp: currentProfile.xp,
-        level: currentProfile.level,
-        progressToNextLevel: currentProfile.progressToNextLevel
-      };
-
-      const gaps: SkillGap[] = (data.skillGaps || []).map((sg: any) => ({
-        ...sg,
-        status: "pendiente"
-      }));
-
-      const rawMissions: CareerMission[] = (data.recommendedMissions || []).map((rm: any, idx: number) => ({
-        ...rm,
-        status: idx === 0 ? "disponible" : "bloqueado",
-        order: idx + 1
-      }));
-
-      const { gaps: enrichedGaps, missions } = integrateRouteWithCourses(gaps, rawMissions);
-
-      onAnalysisSuccess(updatedProfile, enrichedGaps, missions);
-    } catch (err: any) {
-      console.error(err);
-      setErrorStr(err.message || "Ocurrió un error inesperado al procesar con IA. Por favor, intenta de nuevo.");
-    } finally {
-      setLoading(false);
-    }
+    onComplete(updatedProfile, finalCvText, cvMeta);
   };
 
   return (
-    <div className="max-w-3xl mx-auto bg-white rounded-none border border-utp-border shadow-none overflow-hidden">
-      {/* Top Wizard Steps Tracker */}
-      <div className="bg-neutral-50 border-b border-utp-border px-8 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <GraduationCap className="h-5 w-5 text-[#B50E30]" />
-          <span className="font-extrabold text-black text-xs tracking-wider uppercase">DIAGNÓSTICO ACADÉMICO IA</span>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header fijo */}
+      <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-6 py-4">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
+          <div className="font-black text-sm tracking-tight">
+            <span className="text-black">SkillPath </span>
+            <span className="text-[#B50E30]">AI</span>
+          </div>
+          <div className="flex-1 max-w-xs mx-4">
+            <div className="flex items-center gap-1">
+              {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((n) => (
+                <div
+                  key={n}
+                  className={`h-1 flex-1 rounded-full transition-all ${
+                    step >= n ? (step === n ? "bg-[#B50E30]" : "bg-black") : "bg-gray-200"
+                  }`}
+                />
+              ))}
+            </div>
+            <p className="text-[10px] text-neutral-400 font-semibold text-center mt-1 uppercase tracking-wider">
+              Paso {step} de {TOTAL_STEPS}
+            </p>
+          </div>
+          <span className="text-xs font-semibold text-neutral-600 bg-gray-100 px-3 py-1.5 rounded-full">
+            Hola, {name.split(" ")[0]}
+          </span>
         </div>
-        <div className="flex items-center gap-1.5">
-          {[1, 2, 3, 4].map((stepIdx) => (
-            <div 
-              key={stepIdx} 
-              className={`h-1.5 transition-all duration-300 rounded-none ${
-                step >= stepIdx 
-                  ? stepIdx === step ? "w-8 bg-[#B50E30]" : "w-4 bg-black" 
-                  : "w-2 bg-neutral-250"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
+      </header>
 
-      <div className="p-8">
-        <AnimatePresence mode="wait">
-          {loading ? (
-            <motion.div 
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="py-16 text-center space-y-4"
-            >
-              <div className="relative h-16 w-16 mx-auto">
-                <div className="absolute inset-0 rounded-none border-2 border-neutral-100" />
-                <div className="absolute inset-0 rounded-none border-2 border-[#B50E30] border-t-transparent animate-spin" />
-                <Sparkles className="h-6 w-6 text-[#B50E30] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-sm font-black text-black uppercase tracking-wider">Analizando Compatibilidad con IA</h3>
-                <p className="text-neutral-500 text-xs max-w-sm mx-auto leading-relaxed font-semibold">
-                  Nuestro motor corporativo está evaluando tu perfil frente a las vacantes de empleabilidad real vigentes en el mercado nacional...
-                </p>
-              </div>
-            </motion.div>
-          ) : (
+      <main className="flex-1 flex items-start justify-center px-4 py-10">
+        <div className="w-full max-w-2xl">
+          <AnimatePresence mode="wait">
             <motion.div
               key={`step-${step}`}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6"
             >
-              {/* STEP 1: Datos Personales y Carrera */}
+              {/* PASO 1: CV */}
               {step === 1 && (
                 <div className="space-y-5">
-                  <div className="space-y-1.5">
-                    <h2 className="text-lg font-black text-black uppercase tracking-wider">Cuéntanos sobre ti</h2>
-                    <p className="text-xs text-neutral-500 font-semibold">¿Cuál es tu nombre y carrera universitaria en curso?</p>
+                  <div>
+                    <h2 className="text-xl font-black text-black">Tu currículum vitae</h2>
+                    <p className="text-sm text-neutral-500 mt-1">
+                      Sube tu CV en PDF. Si es tu primera búsqueda de empleo, usa la plantilla Harvard.
+                    </p>
                   </div>
 
-                  <div className="space-y-5">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-black flex items-center gap-1.5">
-                        <User className="h-4 w-4 text-[#B50E30]" />
-                        Nombre Completo o Iniciales
-                      </label>
-                      <input 
-                        type="text" 
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Ej. Valeria Alva"
-                        className="w-full px-4 py-3 bg-white rounded-none border border-utp-border outline-none focus:border-black text-xs font-semibold text-black transition"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-black">Selecciona tu carrera profesional</label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {CAREERS.map((c) => (
-                          <button
-                            key={c}
-                            type="button"
-                            onClick={() => handleCareerSelect(c)}
-                            className={`p-3.5 rounded-none border text-left text-xs font-bold uppercase tracking-tight transition ${
-                              career === c 
-                                ? "bg-black border-black text-white" 
-                                : "bg-white border-utp-border text-black hover:border-black"
-                            }`}
-                          >
-                            {c}
-                          </button>
-                        ))}
+                  {cvMode === "upload" && (
+                    <>
+                      <div
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={handleDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-2 border-dashed border-gray-200 hover:border-[#B50E30] rounded-2xl p-12 text-center cursor-pointer transition bg-gray-50"
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="application/pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleCvFile(file);
+                          }}
+                        />
+                        {cvParsing ? (
+                          <p className="text-sm text-neutral-500">Leyendo PDF...</p>
+                        ) : cvFileName ? (
+                          <div className="space-y-2">
+                            <FileText className="h-10 w-10 text-[#B50E30] mx-auto" />
+                            <p className="font-bold text-black">{cvFileName}</p>
+                            <p className="text-xs text-neutral-400">Clic para reemplazar</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <Upload className="h-10 w-10 text-neutral-300 mx-auto" />
+                            <p className="font-bold text-black">Sube tu CV actual en PDF</p>
+                            <p className="text-xs text-neutral-400">Arrastra y suelta o haz clic</p>
+                          </div>
+                        )}
                       </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-px bg-gray-200" />
+                        <span className="text-xs text-neutral-400">O si es tu primera vez buscando empleo...</span>
+                        <div className="flex-1 h-px bg-gray-200" />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setCvMode("harvard")}
+                        className="w-full py-3.5 bg-[#B50E30] text-white text-sm font-bold rounded-xl hover:bg-[#85061B] transition"
+                      >
+                        Crear mi primer CV (Formato Harvard)
+                      </button>
+                    </>
+                  )}
+
+                  {cvMode === "harvard" && (
+                    <div className="space-y-3">
+                      <button
+                        type="button"
+                        onClick={() => setCvMode("upload")}
+                        className="text-xs font-bold text-[#B50E30] hover:underline"
+                      >
+                        ← Volver a subir PDF
+                      </button>
+                      {(
+                        [
+                          { key: "resumen", label: "Resumen Profesional", ph: "Describe tu perfil y objetivo..." },
+                          { key: "formacion", label: "Formación Académica", ph: "Universidad, carrera, ciclo, logros..." },
+                          { key: "proyectos", label: "Proyectos Destacados", ph: "Proyectos, prácticas o voluntariados..." },
+                        ] as const
+                      ).map(({ key, label, ph }) => (
+                        <div key={key} className="border border-gray-200 rounded-xl overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => setHarvardOpen((p) => ({ ...p, [key]: !p[key] }))}
+                            className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 text-left"
+                          >
+                            <span className="text-sm font-bold text-black">{label}</span>
+                            <ChevronDown className={`h-4 w-4 transition ${harvardOpen[key] ? "rotate-180" : ""}`} />
+                          </button>
+                          {harvardOpen[key] && (
+                            <textarea
+                              value={harvardForm[key]}
+                              onChange={(e) =>
+                                setHarvardForm((p) => ({ ...p, [key]: e.target.value }))
+                              }
+                              placeholder={ph}
+                              rows={4}
+                              className="w-full px-4 py-3 text-sm outline-none resize-none border-t border-gray-200"
+                            />
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
 
-              {/* STEP 2: Ciclo y Experiencia */}
+              {/* PASO 2: Experiencia */}
               {step === 2 && (
                 <div className="space-y-5">
-                  <div className="space-y-1.5">
-                    <h2 className="text-lg font-black text-black uppercase tracking-wider">Etapa de estudios y ciclo</h2>
-                    <p className="text-xs text-neutral-500 font-semibold">Para calibrar las metas de tus primeras simulaciones de entrevista y vacantes recomendadas.</p>
+                  <div>
+                    <h2 className="text-xl font-black text-black">Nivel de experiencia</h2>
+                    <p className="text-sm text-neutral-500 mt-1">
+                      Considerando que estás en el{" "}
+                      <strong className="text-black">{semester}° ciclo</strong> de{" "}
+                      <strong className="text-black">{career}</strong>, ¿cuál es tu nivel de experiencia práctica?
+                    </p>
                   </div>
 
-                  <div className="space-y-6">
-                    <div className="space-y-3 bg-neutral-50 p-4 border border-utp-border">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-black flex justify-between items-center">
-                        <span>¿Qué ciclo académico estás cursando?</span>
-                        <span className="bg-[#B50E30] text-white font-black px-2.5 py-1 text-xs">{semester}º CICLO</span>
-                      </label>
-                      <input 
-                        type="range" 
-                        min="1" 
-                        max="10" 
-                        step="1"
-                        value={semester}
-                        onChange={(e) => setSemester(Number(e.target.value))}
-                        className="w-full h-2 bg-[#E5E5E5] outline-none appearance-none cursor-pointer rounded-none"
-                        style={{ accentColor: '#B50E30' }}
-                      />
-                      <div className="flex justify-between text-[10px] text-black font-extrabold uppercase tracking-widest">
-                        <span>1º</span>
-                        <span>5º (Estudios Generales)</span>
-                        <span>10º (Egreso)</span>
-                      </div>
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <div className="h-10 w-10 bg-black text-white flex items-center justify-center rounded-xl text-sm font-black">
+                      {name.charAt(0)}
                     </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-black">Nivel de experiencia profesional acumulada</label>
-                      <div className="space-y-2">
-                        {EXPERIENCES.map((exp) => (
-                          <button
-                            key={exp}
-                            type="button"
-                            onClick={() => setExperienceLevel(exp)}
-                            className={`w-full p-4 rounded-none border text-left text-xs font-bold transition flex items-center justify-between ${
-                              experienceLevel === exp 
-                                ? "bg-black border-black text-white" 
-                                : "bg-white border-utp-border text-black hover:bg-neutral-50"
-                            }`}
-                          >
-                            <span>{exp.toUpperCase()}</span>
-                            {experienceLevel === exp && (
-                              <Check className="h-4 w-4 text-[#B50E30] stroke-[3]" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 3: Puesto Objetivo e Intereses */}
-              {step === 3 && (
-                <div className="space-y-5">
-                  <div className="space-y-1.5">
-                    <h2 className="text-lg font-black text-black uppercase tracking-wider">Sectores e Intereses Profesionales</h2>
-                    <p className="text-xs text-neutral-500 font-semibold">Define los roles favoritos que consideras prioritarios para tu plan de vida.</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-black">Perfiles recomendados para tu carrera:</label>
-                      <div className="flex flex-wrap gap-2">
-                        {career && SUGGESTED_ROLES[career]?.map((role) => (
-                          <button
-                            key={role}
-                            type="button"
-                            onClick={() => setTargetRole(role)}
-                            className={`px-3.5 py-2 rounded-none border text-[11px] font-black uppercase tracking-wider transition ${
-                              targetRole === role 
-                                ? "bg-[#B50E30] border-[#B50E30] text-white" 
-                                : "bg-white border-utp-border text-black hover:border-black"
-                            }`}
-                          >
-                            {role}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-black flex items-center gap-1.5">
-                        <TrendingUp className="h-4 w-4 text-[#B50E30]" />
-                        Escribe tu puesto objetivo de preferencia:
-                      </label>
-                      <input 
-                        type="text" 
-                        value={targetRole}
-                        onChange={(e) => setTargetRole(e.target.value)}
-                        placeholder="Ej: Practicante de Cloud Engineering"
-                        className="w-full px-4 py-3 bg-white rounded-none border border-utp-border outline-none focus:border-black text-xs font-semibold text-black transition font-mono"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-black">Intereses o Tecnologías Clave (separados por comas)</label>
-                      <input 
-                        type="text" 
-                        value={interestsText}
-                        onChange={(e) => setInterestsText(e.target.value)}
-                        placeholder="Ej: Inteligencia Artificial, Servicios de red, Consultoría"
-                        className="w-full px-4 py-3 bg-white rounded-none border border-utp-border outline-none focus:border-black text-xs font-semibold text-black transition"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 4: Skills Checklist */}
-              {step === 4 && (
-                <div className="space-y-5">
-                  <div className="space-y-1.5">
-                    <h2 className="text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
-                      <Cpu className="h-5 w-5 text-[#B50E30]" />
-                      Habilidades e Inventario Profesional
-                    </h2>
-                    <p className="text-xs text-neutral-500 font-semibold">Selecciona aquellas tecnologías con las cuales ya has completado proyectos o laboratorios.</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="p-4 bg-neutral-50 border border-utp-border text-xs rounded-none flex items-center gap-3">
-                      <div className="bg-[#B50E30] text-white p-2 shrink-0">
-                        <Award className="h-4 w-4 text-white" />
-                      </div>
-                      <p className="text-black font-semibold leading-relaxed">
-                        Evaluaremos tu nivel basándonos en tu ciclo formativo e inventario tecnológico para proponer talleres y certificados oficiales gratis del programa.
+                    <div>
+                      <p className="font-bold text-black text-sm">{name}</p>
+                      <p className="text-xs text-neutral-500">
+                        {career} · {semester}° Ciclo
                       </p>
                     </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-black">Habilidades Técnicas sugeridas para {career || "esta área"}:</span>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {career && TYPICAL_SKILLS[career]?.map((skill) => {
-                          const hasSkill = selectedSkills.includes(skill);
-                          return (
-                            <button
-                              key={skill}
-                              type="button"
-                              onClick={() => handleToggleSkill(skill)}
-                              className={`p-3 rounded-none border text-left text-xs font-bold tracking-tight cursor-pointer transition flex items-center justify-between ${
-                                hasSkill 
-                                  ? "bg-black border-black text-white" 
-                                  : "bg-white border-utp-border text-black hover:border-black"
-                              }`}
-                            >
-                              <span className="truncate">{skill}</span>
-                              {hasSkill && <Check className="h-3.5 w-3.5 text-[#B50E30] shrink-0 stroke-[3]" />}
+                  <div className="space-y-3">
+                    {EXPERIENCE_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setExperienceLevel(opt.id)}
+                        className={`w-full p-4 rounded-xl border-2 text-left transition ${
+                          experienceLevel === opt.id
+                            ? "border-[#B50E30] bg-[#B50E30]/5"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-black text-black">{opt.title}</span>
+                          {experienceLevel === opt.id && (
+                            <Check className="h-5 w-5 text-[#B50E30]" />
+                          )}
+                        </div>
+                        <p className="text-sm text-neutral-500 mt-1">{opt.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* PASO 3: Especialización */}
+              {step === 3 && (
+                <div className="space-y-5">
+                  <div>
+                    <h2 className="text-xl font-black text-black flex items-center gap-2">
+                      <Target className="h-5 w-5 text-[#B50E30]" />
+                      Áreas de especialización
+                    </h2>
+                    <p className="text-sm text-neutral-500 mt-1">
+                      ¿En qué áreas de <strong className="text-black">{career}</strong> te gustaría especializarte?
+                      Selecciona varias o escribe una nueva.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input
+                      value={specInput}
+                      onChange={(e) => setSpecInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addCustomTag(specInput, setSpecInput, specializations, setSpecializations);
+                        }
+                      }}
+                      placeholder="Escribe y presiona Enter..."
+                      className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#B50E30]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        addCustomTag(specInput, setSpecInput, specializations, setSpecializations)
+                      }
+                      className="px-4 py-2.5 bg-black text-white rounded-xl"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {specializations.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {specializations.map((s) => (
+                        <span
+                          key={s}
+                          className="inline-flex items-center gap-1 px-3 py-1 bg-[#B50E30] text-white text-xs font-bold rounded-full"
+                        >
+                          {s}
+                          <button type="button" onClick={() => removeTag(specializations, setSpecializations, s)}>
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-2">
+                    {specializationPool.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleTag(specializations, setSpecializations, tag)}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-full border transition ${
+                          specializations.includes(tag)
+                            ? "bg-black text-white border-black"
+                            : "bg-white text-black border-gray-200 hover:border-black"
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* PASO 4: Habilidades */}
+              {step === 4 && (
+                <div className="space-y-5">
+                  <div>
+                    <h2 className="text-xl font-black text-black">Revisa tus habilidades</h2>
+                    <p className="text-sm text-neutral-500 mt-1">
+                      Extraídas de tu CV. Ajústalas a tu realidad: quita, añade o confirma.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {/* Técnicas */}
+                    <div className="space-y-3 p-4 border border-gray-200 rounded-xl">
+                      <h3 className="text-sm font-black flex items-center gap-2">
+                        <Brain className="h-4 w-4 text-[#B50E30]" />
+                        Habilidades técnicas
+                      </h3>
+                      <div className="flex flex-wrap gap-1.5 min-h-[60px]">
+                        {hardSkills.map((s) => (
+                          <span
+                            key={s}
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-xs font-semibold rounded-lg"
+                          >
+                            {s}
+                            <button type="button" onClick={() => removeTag(hardSkills, setHardSkills, s)}>
+                              <X className="h-3 w-3 text-neutral-400" />
                             </button>
-                          );
-                        })}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-1">
+                        <input
+                          value={hardInput}
+                          onChange={(e) => setHardInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              addCustomTag(hardInput, setHardInput, hardSkills, setHardSkills);
+                            }
+                          }}
+                          placeholder="Añadir habilidad..."
+                          className="flex-1 px-3 py-1.5 text-xs border border-gray-200 rounded-lg outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => addCustomTag(hardInput, setHardInput, hardSkills, setHardSkills)}
+                          className="px-2 bg-black text-white rounded-lg text-xs"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {careerSkills
+                          .filter((s) => !hardSkills.includes(s))
+                          .slice(0, 6)
+                          .map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => setHardSkills([...hardSkills, s])}
+                              className="px-2 py-0.5 text-[10px] border border-gray-200 rounded hover:border-black"
+                            >
+                              + {s}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+
+                    {/* Blandas */}
+                    <div className="space-y-3 p-4 border border-gray-200 rounded-xl">
+                      <h3 className="text-sm font-black flex items-center gap-2">
+                        <Users className="h-4 w-4 text-[#B50E30]" />
+                        Habilidades blandas
+                      </h3>
+                      <div className="flex flex-wrap gap-1.5 min-h-[60px]">
+                        {softSkills.map((s) => (
+                          <span
+                            key={s}
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-xs font-semibold rounded-lg"
+                          >
+                            {s}
+                            <button type="button" onClick={() => removeTag(softSkills, setSoftSkills, s)}>
+                              <X className="h-3 w-3 text-neutral-400" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-1">
+                        <input
+                          value={softInput}
+                          onChange={(e) => setSoftInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              addCustomTag(softInput, setSoftInput, softSkills, setSoftSkills);
+                            }
+                          }}
+                          placeholder="Añadir habilidad..."
+                          className="flex-1 px-3 py-1.5 text-xs border border-gray-200 rounded-lg outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => addCustomTag(softInput, setSoftInput, softSkills, setSoftSkills)}
+                          className="px-2 bg-black text-white rounded-lg text-xs"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {GENERIC_SOFT_SKILLS.filter((s) => !softSkills.includes(s))
+                          .slice(0, 5)
+                          .map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => setSoftSkills([...softSkills, s])}
+                              className="px-2 py-0.5 text-[10px] border border-gray-200 rounded hover:border-black"
+                            >
+                              + {s}
+                            </button>
+                          ))}
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Errors Block */}
               {errorStr && (
-                <div className="p-3.5 bg-neutral-50 border-l-4 border-[#B50E30] text-xs text-black font-extrabold uppercase tracking-wide">
-                  {errorStr}
-                </div>
+                <div className="p-3 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl">{errorStr}</div>
               )}
 
-              {/* Navigation Actions */}
-              <div className="pt-5 border-t border-utp-border flex items-center justify-between">
+              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => setStep(prev => Math.max(1, prev - 1))}
+                  onClick={() => {
+                    setErrorStr(null);
+                    setStep((s) => Math.max(1, s - 1));
+                  }}
                   disabled={step === 1}
-                  className={`px-5 py-2.5 rounded-none border text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition ${
-                    step === 1 
-                      ? "text-neutral-300 border-neutral-150 bg-neutral-50 cursor-not-allowed" 
-                      : "text-black border-black hover:bg-neutral-50 cursor-pointer"
-                  }`}
+                  className="flex items-center gap-1.5 text-sm font-bold text-neutral-400 disabled:opacity-30 hover:text-black transition"
                 >
-                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <ArrowLeft className="h-4 w-4" />
                   Atrás
                 </button>
 
-                {step < 4 ? (
+                {step < TOTAL_STEPS ? (
                   <button
                     type="button"
-                    onClick={() => {
-                      if (step === 1 && !career) {
-                        setErrorStr("Por favor selecciona tu carrera profesional de la lista.");
-                        return;
-                      }
-                      if (step === 2 && !experienceLevel) {
-                        setErrorStr("Por favor selecciona tu nivel de experiencia laboral.");
-                        return;
-                      }
-                      if (step === 3 && !targetRole) {
-                        setErrorStr("Por favor especifica tu puesto o área de aspiración.");
-                        return;
-                      }
-                      setErrorStr(null);
-                      setStep(prev => prev + 1);
-                    }}
-                    className="px-6 py-2.5 bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-neutral-900 transition flex items-center gap-1.5 cursor-pointer shadow-none rounded-none"
+                    onClick={goNext}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-black text-white text-sm font-bold rounded-xl hover:bg-neutral-800 transition"
                   >
                     Siguiente
-                    <ArrowRight className="h-3.5 w-3.5 text-[#B50E30]" />
+                    <ArrowRight className="h-4 w-4" />
                   </button>
                 ) : (
                   <button
                     type="button"
-                    onClick={handleSubmit}
-                    className="px-6 py-3 bg-[#B50E30] text-white text-xs font-black uppercase tracking-widest hover:bg-[#85061B] transition flex items-center gap-2 cursor-pointer shadow-none rounded-none"
+                    onClick={handleFinish}
+                    className="flex items-center gap-2 px-6 py-3 bg-[#B50E30] text-white text-sm font-black rounded-xl hover:bg-[#85061B] transition"
                   >
-                    <Sparkles className="h-3.5 w-3.5 fill-white" />
-                    Generar Ruta con IA
+                    <Sparkles className="h-4 w-4 fill-white" />
+                    Continuar al Análisis
+                    <ArrowRight className="h-4 w-4" />
                   </button>
                 )}
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+          </AnimatePresence>
+        </div>
+      </main>
     </div>
   );
 }

@@ -90,10 +90,10 @@ export function TestimonialCarousel({ testimonials: items, onLike, onComment, cl
               transition={{ duration: 0.4, ease: "easeInOut" }}
             >
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl utp-cta text-gray-900 mb-2">
                   {current.name}
                 </h2>
-                <p className="text-sm font-medium text-gray-700">
+                <p className="text-sm utp-body text-gray-700">
                   {current.title}
                 </p>
               </div>
@@ -107,7 +107,7 @@ export function TestimonialCarousel({ testimonials: items, onLike, onComment, cl
                 <button
                   type="button"
                   onClick={() => onLike?.(current.id)}
-                  className={`flex items-center gap-1.5 text-xs font-black uppercase tracking-wider transition cursor-pointer ${
+                  className={`flex items-center gap-1.5 text-xs utp-hero uppercase tracking-wider transition cursor-pointer ${
                     current.likedByUser ? "text-[#B50E30]" : "text-neutral-500 hover:text-[#B50E30]"
                   }`}
                 >
@@ -117,7 +117,7 @@ export function TestimonialCarousel({ testimonials: items, onLike, onComment, cl
                 <button
                   type="button"
                   onClick={() => setShowCommentModal(true)}
-                  className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-neutral-500 hover:text-[#B50E30] transition cursor-pointer"
+                  className="flex items-center gap-1.5 text-xs utp-hero uppercase tracking-wider text-neutral-500 hover:text-[#B50E30] transition cursor-pointer"
                 >
                   <MessageSquare className="h-4 w-4" />
                   <span>{current.commentsCount ?? 0} Comentarios</span>
@@ -174,10 +174,10 @@ export function TestimonialCarousel({ testimonials: items, onLike, onComment, cl
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4, ease: "easeInOut" }}
             >
-              <h2 className="text-xl font-bold text-gray-900 mb-2">
+              <h2 className="text-xl utp-cta text-gray-900 mb-2">
                 {current.name}
               </h2>
-              <p className="text-sm font-medium text-gray-600 mb-4">
+              <p className="text-sm utp-body text-gray-600 mb-4">
                 {current.title}
               </p>
               <p className="text-black text-sm leading-relaxed mb-6">
@@ -188,7 +188,7 @@ export function TestimonialCarousel({ testimonials: items, onLike, onComment, cl
                 <button
                   type="button"
                   onClick={() => onLike?.(current.id)}
-                  className={`flex items-center gap-1.5 text-xs font-black uppercase tracking-wider transition cursor-pointer ${
+                  className={`flex items-center gap-1.5 text-xs utp-hero uppercase tracking-wider transition cursor-pointer ${
                     current.likedByUser ? "text-[#B50E30]" : "text-neutral-500 hover:text-[#B50E30]"
                   }`}
                 >
@@ -198,7 +198,7 @@ export function TestimonialCarousel({ testimonials: items, onLike, onComment, cl
                 <button
                   type="button"
                   onClick={() => setShowCommentModal(true)}
-                  className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-neutral-500 hover:text-[#B50E30] transition cursor-pointer"
+                  className="flex items-center gap-1.5 text-xs utp-hero uppercase tracking-wider text-neutral-500 hover:text-[#B50E30] transition cursor-pointer"
                 >
                   <MessageSquare className="h-4 w-4" />
                   <span>{current.commentsCount ?? 0}</span>
@@ -241,7 +241,7 @@ export function TestimonialCarousel({ testimonials: items, onLike, onComment, cl
               className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Comentarios</h3>
+              <h3 className="text-lg utp-cta text-gray-900 mb-1">Comentarios</h3>
               <p className="text-sm text-gray-500 mb-4">
                 {current.name} • {current.title}
               </p>
@@ -251,7 +251,7 @@ export function TestimonialCarousel({ testimonials: items, onLike, onComment, cl
                 <div className="mb-4 max-h-48 overflow-y-auto space-y-2 border-b border-gray-100 pb-4">
                   {current.comments.map((c, i) => (
                     <div key={i} className="bg-gray-50 rounded-xl p-3 text-sm">
-                      <div className="flex items-center justify-between text-xs font-bold text-gray-500 mb-1">
+                      <div className="flex items-center justify-between text-xs utp-cta text-gray-500 mb-1">
                         <span>{c.authorName}</span>
                         <span>{c.date}</span>
                       </div>
@@ -283,14 +283,14 @@ export function TestimonialCarousel({ testimonials: items, onLike, onComment, cl
                   <button
                     type="button"
                     onClick={() => setShowCommentModal(false)}
-                    className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-black transition"
+                    className="px-4 py-2 text-sm utp-subtitle text-gray-600 hover:text-black transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={!commentText.trim()}
-                    className="px-5 py-2 bg-black text-white text-sm font-semibold rounded-xl hover:bg-neutral-900 disabled:opacity-40 transition"
+                    className="px-5 py-2 bg-black text-white text-sm utp-subtitle rounded-xl hover:bg-neutral-900 disabled:opacity-40 transition"
                   >
                     Enviar
                   </button>

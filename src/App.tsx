@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UserProfile, SkillGap, CareerMission, CvAnalysis, InterviewSession, EnrolledCourse } from "./types";
+import { UserProfile, SkillGap, CareerMission, CvAnalysis, InterviewSession, EnrolledCourse, CvMeta } from "./types";
 import { 
   Trophy, Award, BookOpen, AlertCircle, ArrowRight, CheckCircle, Lock, Play, Zap,
   Briefcase, GraduationCap, FileText, MessageSquare, Users, PhoneCall, ChevronRight,
@@ -141,14 +141,20 @@ export default function App() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
+  const [diagnosisCompleted, setDiagnosisCompleted] = useState(false);
+  const [cvAnalysis, setCvAnalysis] = useState<CvAnalysis | null>(null);
+  const [cvMeta, setCvMeta] = useState<CvMeta | null>(null);
+  const [cvText, setCvText] = useState<string>("");
 
   useEffect(() => {
     const savedProfile = localStorage.getItem("sp_profile");
     const savedGaps = localStorage.getItem("sp_gaps");
     const savedMissions = localStorage.getItem("sp_missions");
     const savedCourses = localStorage.getItem("sp_enrolled_courses");
+    const savedCvAnalysis = localStorage.getItem("sp_cv_analysis");
+    const savedCvMeta = localStorage.getItem("sp_cv_meta");
     const authenticated = localStorage.getItem("sp_authenticated") === "true";
-    const diagnosisCompleted = localStorage.getItem("sp_diagnosis_completed") === "true";
+    const diagnosisDone = localStorage.getItem("sp_diagnosis_completed") === "true";
 
     if (savedProfile) {
       const parsed = JSON.parse(savedProfile);
@@ -168,9 +174,13 @@ export default function App() {
     setMissions(loadedMissions);
     setEnrolledCourses(loadedCourses);
     setIsAuthenticated(authenticated);
+    setDiagnosisCompleted(diagnosisDone);
+    if (savedCvAnalysis) setCvAnalysis(JSON.parse(savedCvAnalysis));
+    if (savedCvMeta) setCvMeta(JSON.parse(savedCvMeta));
+    setCvText(localStorage.getItem("sp_cv_text") || "");
 
     if (authenticated) {
-      setView(diagnosisCompleted ? "dashboard" : "diagnostico");
+      setView(diagnosisDone ? "dashboard" : "diagnostico");
     }
 
     setIsHydrated(true);
@@ -462,11 +472,21 @@ export default function App() {
     }
   };
 
-  const handleAnalysisSuccess = (updatedProfile: UserProfile, updatedGaps: SkillGap[], updatedMissions: CareerMission[]) => {
-    saveState(updatedProfile, updatedGaps, updatedMissions);
+  const handleDiagnosisComplete = (
+    updatedProfile: UserProfile,
+    cvText: string,
+    meta: CvMeta
+  ) => {
+    setProfile(updatedProfile);
+    localStorage.setItem("sp_profile", JSON.stringify(updatedProfile));
+    localStorage.setItem("sp_cv_text", cvText);
+    localStorage.setItem("sp_cv_meta", JSON.stringify(meta));
     localStorage.setItem("sp_diagnosis_completed", "true");
-    setView("dashboard");
-    triggerNotification("🚀 ¡Diagnóstico procesado! Tu ruta incluye cursos personalizados según tus brechas.");
+    setDiagnosisCompleted(true);
+    setCvMeta(meta);
+    setCvText(cvText);
+    setView("cvanalyzer");
+    triggerNotification("✅ Diagnóstico completado. Continúa en la sección Análisis.");
   };
 
   const handleApplicationCompleted = (company: string, roleName: string) => {
@@ -478,40 +498,55 @@ export default function App() {
     localStorage.setItem("sp_authenticated", "true");
     setIsAuthenticated(true);
 
-    if (isNewUser) {
-      const freshProfile: UserProfile = {
-        name: profileData.name || "Estudiante UTP",
-        career: profileData.career || "",
-        semester: profileData.semester || 1,
-        experienceLevel: "",
-        targetRole: profileData.targetRole || "",
-        currentSkills: [],
-        interests: [],
-        employabilityScore: 0,
-        xp: 0,
-        level: 1,
-        progressToNextLevel: 0,
-      };
+    const studentProfile: UserProfile = {
+      name: profileData.name || "Estudiante UTP",
+      career: profileData.career || "",
+      semester: profileData.semester || 1,
+      experienceLevel: "",
+      targetRole: profileData.targetRole || "",
+      currentSkills: [],
+      softSkills: [],
+      interests: [],
+      employabilityScore: 0,
+      xp: 0,
+      level: 1,
+      progressToNextLevel: 0,
+    };
 
-      setProfile(freshProfile);
+    if (isNewUser) {
+      setProfile(studentProfile);
       setGaps([]);
       setMissions([]);
       setEnrolledCourses([]);
-      localStorage.setItem("sp_profile", JSON.stringify(freshProfile));
+      localStorage.setItem("sp_profile", JSON.stringify(studentProfile));
       localStorage.setItem("sp_gaps", JSON.stringify([]));
       localStorage.setItem("sp_missions", JSON.stringify([]));
       localStorage.setItem("sp_enrolled_courses", JSON.stringify([]));
       localStorage.removeItem("sp_diagnosis_completed");
+      localStorage.removeItem("sp_cv_analysis");
+      localStorage.removeItem("sp_cv_meta");
+      localStorage.removeItem("sp_cv_text");
+      setDiagnosisCompleted(false);
+      setCvAnalysis(null);
+      setCvMeta(null);
+      setCvText("");
       setView("diagnostico");
       triggerNotification(
-        `🎉 ¡Bienvenido, ${freshProfile.name}! Completa tu Diagnóstico IA para generar tu plan personalizado.`
+        `🎉 ¡Bienvenido, ${studentProfile.name}! Completa tu diagnóstico para continuar.`
       );
       return;
     }
 
-    const diagnosisCompleted = localStorage.getItem("sp_diagnosis_completed") === "true";
-    setView(diagnosisCompleted ? "dashboard" : "diagnostico");
-    triggerNotification(`👋 ¡Hola de nuevo! ${diagnosisCompleted ? "Retoma tu ruta." : "Termina tu Diagnóstico IA."}`);
+    const savedProfile = localStorage.getItem("sp_profile");
+    const merged = savedProfile
+      ? { ...JSON.parse(savedProfile), name: studentProfile.name, career: studentProfile.career, semester: studentProfile.semester }
+      : studentProfile;
+    setProfile({ ...MOCK_INITIAL_PROFILE, ...merged });
+
+    const diagnosisDone = localStorage.getItem("sp_diagnosis_completed") === "true";
+    setDiagnosisCompleted(diagnosisDone);
+    setView(diagnosisDone ? "dashboard" : "diagnostico");
+    triggerNotification(`👋 ¡Hola de nuevo, ${merged.name}! ${diagnosisDone ? "Retoma tu ruta." : "Termina tu diagnóstico."}`);
   };
 
   const handleLogout = () => {
@@ -530,6 +565,32 @@ export default function App() {
         onStart={handleLandingStart}
         currentProfileName={profile.name !== MOCK_INITIAL_PROFILE.name ? profile.name : ""}
       />
+    );
+  }
+
+  if (!diagnosisCompleted) {
+    return (
+      <>
+        <AnimatePresence>
+          {activeNotification && (
+            <motion.div
+              initial={{ opacity: 0, y: -50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 16, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed top-0 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-4"
+            >
+              <div className="bg-black border-l-4 border-utp-red text-white p-4 rounded-none shadow-xl flex items-center gap-3">
+                <Sparkles className="h-5 w-5 text-utp-red fill-utp-red shrink-0" />
+                <p className="text-xs font-semibold leading-relaxed text-white">{activeNotification}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <DiagnosticoWizard
+          currentProfile={profile}
+          onComplete={handleDiagnosisComplete}
+        />
+      </>
     );
   }
 
@@ -575,13 +636,15 @@ export default function App() {
                 { id: "dashboard", label: "Mi Ruta", icon: Trophy },
                 { id: "profile", label: "Mi Perfil", icon: User },
                 { id: "diagnostico", label: "Diagnóstico IA", icon: GraduationCap },
-                { id: "cvanalyzer", label: "CV Analyzer ATS", icon: FileText },
+                { id: "cvanalyzer", label: "Análisis", icon: FileText },
                 { id: "interviewer", label: "Entrevistas IA", icon: MessageSquare },
                 { id: "jobs", label: "Vacantes & Match", icon: Briefcase },
                 { id: "resources", label: "Capacitaciones", icon: Award },
                 { id: "community", label: "Feed / Networking", icon: Users },
                 { id: "whatsapp", label: "WhatsApp Tutor", icon: PhoneCall },
-              ].map((item) => {
+              ]
+                .filter((item) => !(item.id === "diagnostico" && diagnosisCompleted))
+                .map((item) => {
                 const IconComponent = item.icon;
                 const isActive = view === item.id;
                 return (
@@ -683,6 +746,25 @@ export default function App() {
                 </motion.div>
               )}
 
+              {view === "diagnostico" && diagnosisCompleted && (
+                <motion.div
+                  key="diagnostico_redirect"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center py-20"
+                >
+                  <p className="text-sm font-bold text-neutral-500">Ya completaste tu diagnóstico inicial.</p>
+                  <button
+                    type="button"
+                    onClick={() => setView("cvanalyzer")}
+                    className="mt-4 px-6 py-2 bg-[#B50E30] text-white text-xs font-black uppercase tracking-wider"
+                  >
+                    Ir a Análisis
+                  </button>
+                </motion.div>
+              )}
+
               {view === "profile" && (
                 <motion.div
                   key="profile_view"
@@ -703,20 +785,6 @@ export default function App() {
                 </motion.div>
               )}
 
-              {view === "diagnostico" && (
-                <motion.div
-                  key="diagnostico_view"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <DiagnosticoWizard 
-                    currentProfile={profile}
-                    onAnalysisSuccess={handleAnalysisSuccess}
-                  />
-                </motion.div>
-              )}
-
               {view === "cvanalyzer" && (
                 <motion.div
                   key="cv_view"
@@ -728,8 +796,13 @@ export default function App() {
                     targetRole={profile.targetRole}
                     gaps={gaps}
                     currentSkills={profile.currentSkills}
+                    savedAnalysis={cvAnalysis ?? undefined}
+                    cvInfo={cvMeta ?? undefined}
+                    cvText={cvText || undefined}
                     onNavigateToDiagnostico={() => setView("diagnostico")}
                     onAnalysisResult={(res) => {
+                      setCvAnalysis(res);
+                      localStorage.setItem("sp_cv_analysis", JSON.stringify(res));
                       const scoreIncrease = Math.max(0, Math.floor((res.score - profile.employabilityScore) / 4));
                       if (scoreIncrease > 0) {
                         const newScore = Math.min(100, profile.employabilityScore + scoreIncrease);

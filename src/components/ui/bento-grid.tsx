@@ -59,7 +59,7 @@ function BentoGrid({ items, className, itemClassName }: BentoGridProps) {
               {item.status && (
                 <span
                   className={cn(
-                    "text-[9px] font-black px-1.5 py-0.5 uppercase tracking-wider",
+                    "text-[9px] utp-hero px-1.5 py-0.5 uppercase tracking-wider",
                     item.status === "Critica" || item.status === "alta"
                       ? "bg-[#B50E30] text-white"
                       : item.status === "Media" || item.status === "media"
@@ -73,12 +73,12 @@ function BentoGrid({ items, className, itemClassName }: BentoGridProps) {
             </div>
 
             {/* Title */}
-            <h3 className="font-extrabold text-xs text-black uppercase tracking-tight leading-tight">
+            <h3 className="utp-hero text-xs text-black uppercase tracking-tight leading-tight">
               {item.title}
             </h3>
 
             {/* Description */}
-            <p className="text-[11px] text-neutral-600 font-medium leading-relaxed line-clamp-3">
+            <p className="text-[11px] text-neutral-600 utp-body leading-relaxed line-clamp-3">
               {item.description}
             </p>
 
@@ -88,14 +88,14 @@ function BentoGrid({ items, className, itemClassName }: BentoGridProps) {
                 {item.tags?.map((tag, i) => (
                   <span
                     key={i}
-                    className="text-[8px] font-bold text-neutral-500 uppercase tracking-wider"
+                    className="text-[8px] utp-cta text-neutral-500 uppercase tracking-wider"
                   >
                     #{tag}
                   </span>
                 ))}
               </div>
               {item.meta && (
-                <span className="text-[9px] text-neutral-400 font-semibold truncate max-w-[60%] text-right">
+                <span className="text-[9px] text-neutral-400 utp-subtitle truncate max-w-[60%] text-right">
                   {item.meta}
                 </span>
               )}

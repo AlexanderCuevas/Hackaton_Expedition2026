@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CvAnalysis, SkillGap } from "../types";
+import { CvAnalysis, SkillGap, CvMeta } from "../types";
 import {
   FileText, Sparkles, AlertCircle, CheckCircle,
   BookOpen, AlertTriangle, TrendingUp, ChevronRight, X,
@@ -98,6 +98,8 @@ interface CvAnalyzerPanelProps {
   targetRole: string;
   onAnalysisResult: (analysis: CvAnalysis) => void;
   savedAnalysis?: CvAnalysis;
+  cvInfo?: CvMeta;
+  cvText?: string;
   gaps?: SkillGap[];
   currentSkills?: string[];
   onNavigateToDiagnostico?: () => void;
@@ -111,14 +113,25 @@ export default function CvAnalyzerPanel({
   targetRole,
   onAnalysisResult,
   savedAnalysis,
+  cvInfo,
+  cvText: incomingCvText,
   gaps: incomingGaps,
   currentSkills: incomingSkills,
   onNavigateToDiagnostico
 }: CvAnalyzerPanelProps) {
-  /* --- simulated state --- */
   const analysis = savedAnalysis ?? SIMULATED_ANALYSIS;
-  const optimizedScore = SIMULATED_OPTIMIZED_SCORE;
+  const displayInfo = cvInfo ?? {
+    ...SIMULATED_CV_INFO,
+    targetRole: targetRole || SIMULATED_CV_INFO.targetRole,
+  };
+  const optimizedScore = savedAnalysis
+    ? Math.min(95, Math.max(analysis.score + 15, analysis.score + Math.round((100 - analysis.score) * 0.35)))
+    : SIMULATED_OPTIMIZED_SCORE;
   const routeImpact = getRouteImpactData(analysis.score, optimizedScore);
+  const topWeakness = analysis.weaknesses[0] ?? "Faltan palabras clave técnicas y evidencias alineadas a la vacante.";
+  const topAction = analysis.strengths.length > 0
+    ? "Adaptar el CV al formato Harvard y reforzar tus fortalezas detectadas."
+    : "Adaptar el CV al formato Harvard y agregar logros medibles.";
 
   /* --- UI state --- */
   const [showDetails, setShowDetails] = useState(false);
@@ -143,8 +156,9 @@ export default function CvAnalyzerPanel({
             CV Analyzer IA &mdash; Escaneo ATS
           </h2>
           <p className="text-neutral-500 text-xs font-semibold">
-            El CV ya fue cargado desde tu perfil. Aquí la IA te muestra cómo optimizarlo
-            para tu vacante objetivo y adaptarlo a un formato profesional tipo Harvard.
+            {incomingCvText
+              ? "Tu CV fue cargado en el diagnóstico. Aquí podrás revisar el análisis ATS de tu perfil."
+              : "El CV ya fue cargado desde tu perfil. Aquí la IA te muestra cómo optimizarlo para tu vacante objetivo."}
           </p>
         </div>
       </div>
@@ -168,18 +182,18 @@ export default function CvAnalyzerPanel({
                     <CheckCircle className="h-3.5 w-3.5 text-[#B50E30]" />
                   </p>
                   <p className="text-[11px] font-extrabold text-black truncate">
-                    {SIMULATED_CV_INFO.fileName}
+                    {displayInfo.fileName}
                   </p>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[9px] font-semibold text-neutral-500 uppercase tracking-wider">
-                    <span>{SIMULATED_CV_INFO.format}</span>
+                    <span>{displayInfo.format}</span>
                     <span className="w-1 h-1 bg-neutral-300" />
-                    <span>Fuente: {SIMULATED_CV_INFO.source}</span>
+                    <span>Fuente: {displayInfo.source}</span>
                     <span className="w-1 h-1 bg-neutral-300" />
-                    <span>Estado: {SIMULATED_CV_INFO.status}</span>
+                    <span>Estado: {displayInfo.status}</span>
                     <span className="w-1 h-1 bg-neutral-300" />
-                    <span>Vacante: {SIMULATED_CV_INFO.targetRole}</span>
+                    <span>Vacante: {displayInfo.targetRole || targetRole}</span>
                     <span className="w-1 h-1 bg-neutral-300" />
-                    <span>Análisis: {SIMULATED_CV_INFO.analysisDate}</span>
+                    <span>Análisis: {displayInfo.analysisDate}</span>
                   </div>
                 </div>
               </div>
@@ -251,14 +265,14 @@ export default function CvAnalyzerPanel({
                       <AlertCircle className="h-4 w-4 text-[#B50E30] shrink-0 mt-0.5" />
                       <div>
                         <p className="text-[10px] font-black text-black uppercase tracking-wider">Mayor problema detectado</p>
-                        <p className="text-[11px] text-neutral-600 font-semibold mt-0.5">Faltan palabras clave técnicas y evidencias alineadas a la vacante.</p>
+                        <p className="text-[11px] text-neutral-600 font-semibold mt-0.5">{topWeakness}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-2 pt-1.5 border-t border-utp-border">
                       <Sparkles className="h-4 w-4 text-[#B50E30] shrink-0 fill-[#B50E30] mt-0.5" />
                       <div>
                         <p className="text-[10px] font-black text-black uppercase tracking-wider">Próxima mejor acción</p>
-                        <p className="text-[11px] text-neutral-600 font-semibold mt-0.5">Adaptar el CV al formato Harvard y agregar logros medibles.</p>
+                        <p className="text-[11px] text-neutral-600 font-semibold mt-0.5">{topAction}</p>
                       </div>
                     </div>
                   </div>
@@ -274,7 +288,14 @@ export default function CvAnalyzerPanel({
               Tus 3 mejoras prioritarias
             </h3>
             <div className="space-y-2">
-              {SIMULATED_RECOMMENDATIONS.map((rec, idx) => (
+              {(savedAnalysis
+                ? analysis.weaknesses.slice(0, 3).map((w, idx) => ({
+                    title: `Mejora ${idx + 1}`,
+                    description: w,
+                    impact: `+${Math.round((optimizedScore - analysis.score) / 3)}%`,
+                  }))
+                : SIMULATED_RECOMMENDATIONS
+              ).map((rec, idx) => (
                 <div key={idx} className="p-3 bg-neutral-50 border border-utp-border flex items-start gap-3">
                   <div className="h-6 w-6 bg-black flex items-center justify-center shrink-0 mt-0.5">
                     <span className="text-white text-[10px] font-black">{idx + 1}</span>
@@ -521,9 +542,9 @@ export default function CvAnalyzerPanel({
               <div className="text-center py-6 px-4">
                 <AlertCircle className="h-6 w-6 text-[#B50E30] mx-auto mb-2" />
                 <p className="text-black text-[11px] font-extrabold uppercase tracking-wide">
-                  Sin diagnóstico registrado
+                  {savedAnalysis ? "Brechas en proceso de sincronización" : "Sin diagnóstico registrado"}
                 </p>
-                {onNavigateToDiagnostico && (
+                {!savedAnalysis && onNavigateToDiagnostico && (
                   <button
                     type="button"
                     onClick={onNavigateToDiagnostico}

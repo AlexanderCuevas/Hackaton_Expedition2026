@@ -24,6 +24,7 @@ export interface UserProfile {
   experienceLevel: string; // Sin experiencia, Proyectos personales, Prácticas, Experiencia laboral
   targetRole: string;
   currentSkills: string[];
+  softSkills?: string[];
   interests: string[];
   employabilityScore: number; // 0 to 100
   xp: number; // Experience points
@@ -68,6 +69,15 @@ export interface CvAnalysis {
   keywordsMissing: string[];
   generalFeedback: string; // Markdown supported
   atsFormattedCvAdvice: string; // Actionable prompt to refine
+}
+
+export interface CvMeta {
+  fileName: string;
+  format: string;
+  source: string;
+  status: string;
+  targetRole: string;
+  analysisDate: string;
 }
 
 export interface Vacancy {

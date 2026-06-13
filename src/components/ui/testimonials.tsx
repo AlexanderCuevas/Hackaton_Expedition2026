@@ -37,7 +37,7 @@ export function Testimonials({
     <div className={className}>
       <div className="flex flex-col items-center justify-center pt-5">
         <div className="flex flex-col gap-5 mb-8">
-          <h2 className="text-center text-4xl font-medium">{title}</h2>
+          <h2 className="text-center text-4xl utp-body">{title}</h2>
           <p className="text-center text-muted-foreground">
             {description.split("<br />").map((line, i) => (
               <span key={i}>
@@ -74,7 +74,7 @@ export function Testimonials({
                     className="rounded-full"
                   />
                   <div className="flex flex-col pl-4">
-                    <span className="font-semibold text-base">
+                    <span className="utp-subtitle text-base">
                       {testimonial.name}
                     </span>
                     <span className="text-sm text-muted-foreground">
@@ -83,7 +83,7 @@ export function Testimonials({
                   </div>
                 </div>
                 <div className="mt-5 mb-5">
-                  <p className="text-foreground font-medium">
+                  <p className="text-foreground utp-body">
                     {testimonial.text}
                   </p>
                 </div>

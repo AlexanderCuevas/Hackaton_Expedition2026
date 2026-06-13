@@ -557,6 +557,70 @@ export function getDefaultTargetRole(career: string): string {
   return CAREER_SUGGESTED_ROLES[career]?.[0] ?? "Practicante Profesional";
 }
 
+/** Estudiantes simulados recuperados por código UTP tras login/registro */
+export const MOCK_STUDENTS_BY_CODE: Record<
+  string,
+  { name: string; career: string; semester: number; code: string }
+> = {
+  U20213456: {
+    name: "Valeria Alva",
+    career: "Administración",
+    semester: 8,
+    code: "U20213456",
+  },
+  U22223419: {
+    name: "Adrian Quispe",
+    career: "Ingeniería de Sistemas",
+    semester: 7,
+    code: "U22223419",
+  },
+  U20198765: {
+    name: "Camila Ríos",
+    career: "Marketing",
+    semester: 6,
+    code: "U20198765",
+  },
+  U20204567: {
+    name: "Diego Mendoza",
+    career: "Derecho",
+    semester: 9,
+    code: "U20204567",
+  },
+  U20211234: {
+    name: "Sofía Torres",
+    career: "Diseño Gráfico / UX-UI",
+    semester: 5,
+    code: "U20211234",
+  },
+};
+
+export const GENERIC_SOFT_SKILLS = [
+  "Comunicación efectiva",
+  "Trabajo en equipo",
+  "Liderazgo",
+  "Resolución de problemas",
+  "Organización",
+  "Adaptabilidad",
+  "Pensamiento crítico",
+  "Proactividad",
+  "Gestión del tiempo",
+  "Empatía",
+];
+
+export const CAREER_SPECIALIZATION_TAGS: Record<string, string[]> = {
+  "Ingeniería de Sistemas": ["Desarrollo Web", "Backend", "Cloud", "Ciberseguridad", "Data Analytics", "DevOps"],
+  "Ingeniería de Software": ["Frontend", "Mobile", "Full Stack", "QA", "Arquitectura de Software"],
+  Administración: ["Gestión de Proyectos", "Finanzas", "Operaciones", "Consultoría", "Recursos Humanos"],
+  Marketing: ["Marketing Digital", "Branding", "E-commerce", "Contenido", "Investigación de Mercados"],
+  "Diseño Gráfico / UX-UI": ["UX Research", "UI Design", "Prototipado", "Design Systems", "Accesibilidad"],
+  "Diseño Publicitario": ["Branding", "Publicidad Digital", "Motion", "Copywriting Visual"],
+  Arquitectura: ["Diseño Sostenible", "BIM", "Urbanismo", "Interiorismo", "Gestión de Obras"],
+  Derecho: ["Derecho Corporativo", "Litigación", "Compliance", "Propiedad Intelectual"],
+  "Negocios Internacionales": ["Comercio Exterior", "Logística", "Negociación", "Supply Chain"],
+  "Psicología Organizacional": ["Selección de Talento", "Clima Laboral", "Coaching", "Desarrollo Organizacional"],
+  "Ciencias de la Comunicación": ["Audiovisual", "Relaciones Públicas", "Periodismo Digital", "Community Management"],
+};
+
 export const UNIVERSITY_EVENTS = [
   {
     title: "Hackathon Universitaria UTP & Xpedition 2026",

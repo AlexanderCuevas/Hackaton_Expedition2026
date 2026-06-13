@@ -79,7 +79,7 @@ export default function TestimonialsEditorial({ testimonials, onLike, onComment 
                 />
               </div>
               <div>
-                <p className="font-medium text-black">{current.author}</p>
+                <p className="utp-body text-black">{current.author}</p>
                 <p className="text-sm text-neutral-500">
                   {current.role}
                   <span className="mx-2 text-black/20">/</span>
@@ -98,7 +98,7 @@ export default function TestimonialsEditorial({ testimonials, onLike, onComment 
         <button
           type="button"
           onClick={() => onLike?.(current.id)}
-          className={`flex items-center gap-1.5 text-xs font-black uppercase tracking-wider transition cursor-pointer ${
+          className={`flex items-center gap-1.5 text-xs utp-hero uppercase tracking-wider transition cursor-pointer ${
             current.likedByUser ? "text-[#B50E30]" : "text-neutral-500 hover:text-[#B50E30]"
           }`}
         >
@@ -108,7 +108,7 @@ export default function TestimonialsEditorial({ testimonials, onLike, onComment 
         <button
           type="button"
           onClick={() => onComment?.(current.id)}
-          className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-neutral-500 hover:text-[#B50E30] transition cursor-pointer"
+          className="flex items-center gap-1.5 text-xs utp-hero uppercase tracking-wider text-neutral-500 hover:text-[#B50E30] transition cursor-pointer"
         >
           <MessageSquare className="h-4 w-4" />
           <span>{current.commentsCount ?? 0} Comentarios</span>

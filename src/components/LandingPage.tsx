@@ -11,7 +11,7 @@ import {
 import principalImg from "./assets/Principal.png";
 import { ImageGallery, ImageGalleryHandle } from "./ui/carousel-circular-image-gallery";
 import { UserProfile } from "../types";
-import { UTP_CAREERS, getDefaultTargetRole } from "../data";
+import { MOCK_STUDENTS_BY_CODE } from "../data";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────
 interface LandingPageProps {
@@ -288,28 +288,42 @@ function Modal({
   onClose: () => void;
   onStart: (profileData: Partial<UserProfile>, isNewUser: boolean) => void;
 }) {
-  const [email, setEmail] = useState("");
+  const [studentCode, setStudentCode] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
-  const [emailErr, setEmailErr] = useState("");
+  const [codeErr, setCodeErr] = useState("");
   const [pwErr, setPwErr] = useState("");
   const [toast, setToast] = useState<{msg: string; type: "success" | "info" | "error"} | null>(null);
 
-  const isValidUtp = (e: string) => /^[a-zA-Z0-9._%+-]+@(utp\.edu\.pe|utp\.pe)$/i.test(e.trim());
-
   const handleSubmit = () => {
     let err = false;
-    if (!email.trim()) { setEmailErr("El correo electrónico es obligatorio."); err = true; }
-    else if (!isValidUtp(email)) { setEmailErr("Introduce un correo institucional válido (@utp.edu.pe o @utp.pe)"); err = true; }
-    else setEmailErr("");
+    const normalized = studentCode.trim().toUpperCase();
+    if (!normalized) {
+      setCodeErr("El código de estudiante es obligatorio.");
+      err = true;
+    } else if (!MOCK_STUDENTS_BY_CODE[normalized]) {
+      setCodeErr("Código no encontrado. Prueba U20213456, U22223419 o U20198765.");
+      err = true;
+    } else setCodeErr("");
     if (!password) { setPwErr("La contraseña es obligatoria."); err = true; }
     else setPwErr("");
     if (err) return;
-    setToast({ msg: "Verificando identidad en el servidor UTP...", type: "info" });
+
+    const student = MOCK_STUDENTS_BY_CODE[normalized];
+    setToast({ msg: "Recuperando datos académicos desde el sistema UTP...", type: "info" });
     setTimeout(() => {
-      setToast({ msg: "Acceso Concedido. Redirigiendo a tu Ruta de Empleabilidad...", type: "success" });
+      setToast({ msg: "Acceso concedido. Redirigiendo...", type: "success" });
       setTimeout(() => {
-        handleStart({ name: "Estudiante UTP", career: "", semester: 1, targetRole: "" }, false);
+        const isNew = localStorage.getItem("sp_diagnosis_completed") !== "true";
+        handleStart(
+          {
+            name: student.name,
+            career: student.career,
+            semester: student.semester,
+            targetRole: "",
+          },
+          isNew
+        );
         onClose();
       }, 1200);
     }, 1800);
@@ -319,7 +333,7 @@ function Modal({
     if (e.key === "Enter") { e.preventDefault(); handleSubmit(); }
   };
 
-  const clearErr = () => { setEmailErr(""); setPwErr(""); };
+  const clearErr = () => { setCodeErr(""); setPwErr(""); };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -347,21 +361,21 @@ function Modal({
             </p>
           </div>
           <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }} className="text-[34px] sm:text-[40px] font-black tracking-tighter text-center leading-tight text-slate-900 mt-6">
-            ¡Hola de nuevo!
+            Accede con tu código UTP
           </h1>
-          <p className="text-xs font-semibold text-slate-400 mt-2 tracking-wide uppercase">Portal de Acceso UTP</p>
+          <p className="text-xs font-semibold text-slate-400 mt-2 tracking-wide uppercase">Recuperaremos tu nombre, carrera y ciclo automáticamente</p>
 
           {/* Form */}
           <div className="w-full space-y-5 mt-8">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-900 tracking-tight block">Correo electrónico institucional</label>
-              <input type="email" autoFocus value={email} onChange={(e) => { setEmail(e.target.value); clearErr(); }} onKeyDown={handleKeyDown}
-                className={`w-full px-3.5 py-3 bg-white border ${emailErr ? "border-rose-500" : "border-slate-300"} rounded-[4px] text-slate-900 text-base outline-none font-medium transition-colors`}
-                placeholder="nombre@utp.edu.pe" />
-              {emailErr && (
+              <label className="text-sm font-bold text-slate-900 tracking-tight block">Código de estudiante UTP</label>
+              <input type="text" autoFocus value={studentCode} onChange={(e) => { setStudentCode(e.target.value); clearErr(); }} onKeyDown={handleKeyDown}
+                className={`w-full px-3.5 py-3 bg-white border ${codeErr ? "border-rose-500" : "border-slate-300"} rounded-[4px] text-slate-900 text-base outline-none font-medium transition-colors uppercase`}
+                placeholder="Ej. U20213456" />
+              {codeErr && (
                 <div className="text-rose-600 text-xs font-semibold flex items-center gap-1.5">
                   <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                  <span>{emailErr}</span>
+                  <span>{codeErr}</span>
                 </div>
               )}
             </div>
@@ -390,7 +404,7 @@ function Modal({
             <div className="bg-slate-50 border border-slate-100 p-3.5 rounded-lg">
               <p className="text-xs text-slate-500 leading-normal flex gap-2">
                 <ShieldAlert className="w-4 h-4 text-[#B50E30] shrink-0" />
-                <span>Acceso exclusivo para estudiantes y docentes con cuentas de dominio <strong>@utp.edu.pe</strong> o <strong>@utp.pe</strong>.</span>
+                <span>Usa tu <strong>código UTP</strong> (ej. U20213456). El sistema cargará tu nombre, carrera y ciclo académico.</span>
               </p>
             </div>
 

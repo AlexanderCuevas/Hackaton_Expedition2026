@@ -772,14 +772,7 @@ export default function App() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  <UserProfilePanel 
-                    profile={profile}
-                    onUpdateProfile={(updated) => {
-                      setProfile(updated);
-                      localStorage.setItem("sp_profile", JSON.stringify(updated));
-                    }}
-                    gaps={gaps}
-                    missions={missions}
+                  <UserProfilePanel
                     onNavigateToMyCourses={() => setView("mycourses")}
                   />
                 </motion.div>

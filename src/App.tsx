@@ -15,6 +15,7 @@ import InterviewPanel from "./components/InterviewPanel";
 import SocialHub from "./components/SocialHub";
 import WhatsAppPreview from "./components/WhatsAppPreview";
 import UserProfilePanel from "./components/UserProfilePanel";
+import VacanciesPanel from "./components/VacanciesPanel";
 import LandingPage from "./components/LandingPage";
 import MyCoursesPanel from "./components/MyCoursesPanel";
 
@@ -747,76 +748,11 @@ export default function App() {
               )}
 
               {view === "jobs" && (
-                <motion.div
-                  key="jobs_view"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="space-y-6"
-                >
-                  <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
-                    <div className="absolute right-0 top-0 w-32 h-full utp-diagonal-pattern opacity-10 pointer-events-none" />
-                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
-                    <h2 className="text-base font-black text-black uppercase tracking-widest flex items-center gap-2">
-                      <Briefcase className="h-5 w-5 text-[#B50E30]" />
-                      Match Inteligente de Vacantes UTP+
-                    </h2>
-                    <p className="text-[#64748B] text-xs font-semibold mt-1">
-                      Solo mostramos vacantes acordes a tu carrera de {profile.career || "Sistemas"}. El porcentaje indica tu nivel de compatibilidad.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {INITIAL_VACANCIES.map((vac) => {
-                      return (
-                        <div key={vac.id} className="bg-white rounded-none border border-utp-border p-6 flex flex-col justify-between gap-4">
-                          <div className="space-y-3">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <span className="bg-black text-white font-black text-[9px] px-2 py-0.5 rounded-none uppercase tracking-wider">
-                                  {vac.company}
-                                </span>
-                                <h3 className="font-extrabold text-sm text-black uppercase tracking-tight mt-1.5">{vac.role}</h3>
-                                <p className="text-[10px] text-neutral-400 font-extrabold uppercase mt-0.5 tracking-wider">Ubicación: {vac.location} • {vac.salary}</p>
-                              </div>
-                              <span className="bg-[#B50E30] text-white font-black text-xs px-2.5 py-1 rounded-none uppercase tracking-wider">
-                                {vac.matchScore}% Match
-                              </span>
-                            </div>
-
-                            <p className="text-xs text-neutral-700 leading-relaxed font-semibold">
-                              {vac.description}
-                            </p>
-
-                            <div className="space-y-1.5">
-                              <span className="text-[9px] font-black text-[#B50E30] uppercase tracking-widest block">Habilidades por adquirir:</span>
-                              <div className="flex flex-wrap gap-1">
-                                {vac.skillsMissing.map((sk) => (
-                                  <span key={sk} className="bg-neutral-50 border border-utp-border text-black text-[9px] font-bold uppercase tracking-tight px-1.5 py-0.5 rounded-none">
-                                    {sk}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="border-t border-utp-border pt-4 flex items-center justify-between text-xs gap-3">
-                            <span className="text-[10px] text-neutral-400 leading-tight font-bold uppercase tracking-tight max-w-[50%]">
-                              💡 Tip: {vac.tipsForApplying.slice(0, 75)}...
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleApplicationCompleted(vac.company, vac.role)}
-                              className="bg-black hover:bg-neutral-900 border border-black text-white font-black uppercase tracking-widest text-[10px] py-2 px-4 rounded-none transition cursor-pointer"
-                            >
-                              Postular con un clic
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </motion.div>
+                <VacanciesPanel
+                  vacancies={INITIAL_VACANCIES}
+                  career={profile.career || "Sistemas"}
+                  onApply={handleApplicationCompleted}
+                />
               )}
 
               {view === "resources" && (

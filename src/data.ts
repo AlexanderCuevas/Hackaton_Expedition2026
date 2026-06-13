@@ -147,6 +147,147 @@ export const INITIAL_COMMUNITY_POSTS: SocialPost[] = [
     likedByUser: false,
     category: "ayuda",
     comments: []
+  },
+  {
+    id: "post_04",
+    authorName: "Carlos Mendoza",
+    authorCareer: "Sistemas & Software (Alumni)",
+    authorSemester: 10,
+    avatarColor: "bg-red-700",
+    content: "Estamos armando equipo para el Cloud Summit LATAM 2026. Busco 2 estudiantes UTP con conocimientos básicos de Kubernetes y muchas ganas de aprender. Ofrezco mentoría intensiva 1:1 durante las 3 semanas previas al evento. Los interesados pueden escribirme directo.",
+    date: "Hace 5 horas",
+    likes: 23,
+    likedByUser: false,
+    category: "evento",
+    comments: [
+      {
+        authorName: "Diego Alva",
+        content: "¡Me apunto! Tengo experiencia con Docker y estoy empezando con K8s.",
+        date: "Hace 4 horas"
+      },
+      {
+        authorName: "Mateo Cáceres",
+        content: "Yo también quiero participar, ingeniero. Tengo base de AWS y contenedores.",
+        date: "Hace 3 horas"
+      }
+    ]
+  },
+  {
+    id: "post_05",
+    authorName: "Andrea Salazar",
+    authorCareer: "Psicología Organizacional",
+    authorSemester: 10,
+    avatarColor: "bg-emerald-600",
+    content: "Tips de reclutamiento para sus postulaciones: El 80% de los reclutadores descarta CVs que no mencionan logros cuantificables. En lugar de poner 'Responsable de reportes', escriban 'Reduje el tiempo de entrega de reportes en un 30% usando macros de Excel'. Esto multiplica sus chances de pasar el filtro ATS.",
+    date: "Hace 8 horas",
+    likes: 67,
+    likedByUser: true,
+    category: "general",
+    comments: [
+      {
+        authorName: "Valeria Ruiz",
+        content: "Excelente consejo, Andrea. ¿Recomiendas algún formato en específico para el CV?",
+        date: "Hace 7 horas"
+      }
+    ]
+  },
+  {
+    id: "post_06",
+    authorName: "Diana Tello",
+    authorCareer: "Ingeniería de Software (Alumni UTP)",
+    authorSemester: 10,
+    avatarColor: "bg-purple-600",
+    content: "¡Lanzamos la beta de nuestra app Xpedition Studio! 🎉 Después de 6 meses de desarrollo con un equipo de 4 personas, logramos publicar en Play Store. Fue un camino duro pero aprendí más que en cualquier curso. El tip: no subestimen el poder de un MVP bien ejecutado para conseguir inversionistas.",
+    date: "Hace 1 día",
+    likes: 89,
+    likedByUser: false,
+    category: "logro",
+    comments: [
+      {
+        authorName: "Jose Sandoval",
+        content: "Diana, increíble logro. ¿Usaron React Native o Flutter?",
+        date: "Hace 20 horas"
+      },
+      {
+        authorName: "Diana Tello",
+        content: "¡Gracias, Jose! Usamos React Native con Expo. Fue clave para iterar rápido.",
+        date: "Hace 19 horas"
+      }
+    ]
+  },
+  {
+    id: "post_07",
+    authorName: "Mateo Cáceres",
+    authorCareer: "Ingeniería de Sistemas",
+    authorSemester: 9,
+    avatarColor: "bg-cyan-600",
+    content: "Comparto mi pipeline de CI/CD que armé para el curso de Ingeniería de Software. Configuré GitHub Actions con pruebas automatizadas, linting y deploy a un VPS de DigitalOcean. Si alguien quiere guía para armar el suyo, puedo hacer un workshop gratuito este sábado.",
+    date: "Hace 12 horas",
+    likes: 34,
+    likedByUser: false,
+    category: "proyecto",
+    comments: []
+  },
+  {
+    id: "post_08",
+    authorName: "Valeria Alva (Tú)",
+    authorCareer: "Ingeniería de Sistemas",
+    authorSemester: 7,
+    avatarColor: "bg-black",
+    content: "¿Alguien ha usado el simulador de entrevistas de SkillPath AI? Acabo de terminar una simulación para puesto de Junior Full Stack y me sorprendió lo preciso del feedback. Me recomendó practicar la estructura STAR para preguntas de trabajo en equipo. Muy recomendado para los que están en búsqueda de prácticas.",
+    date: "Hace 30 minutos",
+    likes: 15,
+    likedByUser: false,
+    category: "general",
+    comments: [
+      {
+        authorName: "Diego Alva",
+        content: "Sí, lo usé la semana pasada. Me ayudó a corregir mi postura al responder preguntas técnicas.",
+        date: "Hace 15 minutos"
+      }
+    ]
+  },
+  {
+    id: "post_09",
+    authorName: "Diego Alva",
+    authorCareer: "Ingeniería de Sistemas",
+    authorSemester: 8,
+    avatarColor: "bg-indigo-500",
+    content: "¿Alguien más se inscribió al taller de 'Inglés Técnico para Entrevistas' que anunció la universidad? Empieza la próxima semana y cubre vocabulario específico para roles de TI. Creo que es justo lo que necesito para postular a las vacantes de Belcorp que compartió la Lic. Andrea.",
+    date: "Hace 3 horas",
+    likes: 11,
+    likedByUser: false,
+    category: "evento",
+    comments: []
+  },
+  {
+    id: "post_10",
+    authorName: "Jose Sandoval",
+    authorCareer: "Negocios Internacionales",
+    authorSemester: 9,
+    avatarColor: "bg-teal-500",
+    content: "Después de 3 meses de preparación, aprobé el examen de certificación en Scrum Master (PSM I). El material de estudio que compartió la universidad fue suficiente, pero recomiendo complementar con simulacros en línea. Ahora estoy listo para postular a roles ágiles en proyectos internacionales.",
+    date: "Hace 6 horas",
+    likes: 52,
+    likedByUser: true,
+    category: "logro",
+    comments: [
+      {
+        authorName: "Andrea Salazar",
+        content: "¡Felicitaciones, Jose! Las certificaciones ágiles tienen alta demanda en los procesos de selección que manejamos.",
+        date: "Hace 5 horas"
+      },
+      {
+        authorName: "Valeria Ruiz",
+        content: "¿Cuánto tiempo te tomó prepararte? Me interesa obtenerla también.",
+        date: "Hace 4 horas"
+      },
+      {
+        authorName: "Jose Sandoval",
+        content: "Gracias, Andrea. Valeria, le dediqué unas 2 horas diarias por 3 meses. El examen no es muy difícil si practicas los simulacros.",
+        date: "Hace 3 horas"
+      }
+    ]
   }
 ];
 

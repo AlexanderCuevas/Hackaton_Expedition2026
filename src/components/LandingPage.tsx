@@ -13,15 +13,13 @@ import {
   TrendingUp, BarChart3, Shield, ChevronRight, ChevronLeft
 } from "lucide-react";
 import principalImg from "./assets/Principal.png";
+import { UserProfile } from "../types";
+import { UTP_CAREERS, getDefaultTargetRole } from "../data";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────
-export interface UserProfile {
-  name: string; career: string; semester: number; targetRole: string;
-  employabilityScore: number; xp: number; level: number; progressToNextLevel: number;
-}
 interface LandingPageProps {
-  onStart?: (p?: Partial<UserProfile>) => void;
-  currentProfileName?: string;
+  onStart: (profileData: Partial<UserProfile>, isNewUser: boolean) => void;
+  currentProfileName: string;
 }
 
 // ─── HOOK: intersection observer ───────────────────────────────────────────
@@ -343,30 +341,45 @@ function StatNum({ target, suffix = "", prefix = "" }: { target: number; suffix?
 }
 
 // ─── MODAL ─────────────────────────────────────────────────────────────────
-function Modal({ onClose, onStart: handleStart }: { onClose: () => void; onStart?: (p?: Partial<UserProfile>) => void }) {
-  const [name, setName] = useState("");
+function Modal({
+  onClose,
+  onStart: handleStart,
+  authMode,
+  initialName,
+}: {
+  onClose: () => void;
+  onStart: (profileData: Partial<UserProfile>, isNewUser: boolean) => void;
+  authMode: "register" | "login";
+  initialName: string;
+}) {
+  const [name, setName] = useState(initialName);
   const [email, setEmail] = useState("");
-  const [career, setCareer] = useState("Ingeniería de Sistemas");
-  const [semester, setSemester] = useState(7);
-  const [role, setRole] = useState("Junior Full Stack Developer");
+  const [career, setCareer] = useState<string>(UTP_CAREERS[0]);
+  const [semester, setSemester] = useState(1);
+  const [role, setRole] = useState(getDefaultTargetRole(UTP_CAREERS[0]));
   const [loading, setLoading] = useState(false);
 
+  const handleCareerChange = (chosen: string) => {
+    setCareer(chosen);
+    setRole(getDefaultTargetRole(chosen));
+  };
+
   const submit = (e: React.FormEvent) => {
-    e.preventDefault(); setLoading(true);
+    e.preventDefault();
+    setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      handleStart?.({
-        name: name.trim() || "Estudiante UTP",
-        career,
-        semester,
-        targetRole: role,
-        employabilityScore: 68,
-        xp: 320,
-        level: 2,
-        progressToNextLevel: 60
-      });
+      handleStart(
+        {
+          name: name.trim() || "Estudiante UTP",
+          career,
+          semester,
+          targetRole: role || getDefaultTargetRole(career),
+        },
+        authMode === "register"
+      );
       onClose();
-    }, 900);
+    }, 800);
   };
 
   return (
@@ -379,14 +392,22 @@ function Modal({ onClose, onStart: handleStart }: { onClose: () => void; onStart
           <X className="h-3.5 w-3.5" />
         </button>
         <div className="p-7">
-          <p className="text-[#B50E30] text-[9px] font-black uppercase tracking-[0.22em] mb-1">Acceso gratuito</p>
-          <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }} className="text-2xl font-black text-black uppercase tracking-tight mb-1">Únete ahora</h2>
-          <p className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider mb-6">Configura tu perfil de empleabilidad UTP</p>
+          <p className="text-[#B50E30] text-[9px] font-black uppercase tracking-[0.22em] mb-1">
+            {authMode === "register" ? "Acceso inmediato" : "Bienvenido de nuevo"}
+          </p>
+          <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }} className="text-2xl font-black text-black uppercase tracking-tight mb-1">
+            {authMode === "register" ? "Únete a la plataforma" : "Inicia sesión"}
+          </h2>
+          <p className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider mb-6">
+            {authMode === "register"
+              ? "Configura tu perfil académico UTP+ y genera tu ruta con IA"
+              : "Retoma tu ruta de empleabilidad personalizada"}
+          </p>
 
           <form onSubmit={submit} className="space-y-3">
             {[
-              { label: "Nombre completo", value: name, set: setName, type: "text", placeholder: "Ej. Valentina Ríos", col: "full" },
-              { label: "Correo UTP", value: email, set: setEmail, type: "email", placeholder: "u12345678@utp.edu.pe", col: "full", mono: true },
+              { label: "Nombre completo", value: name, set: setName, type: "text", placeholder: "Ej. Valentina Ríos", mono: false },
+              { label: "Correo UTP", value: email, set: setEmail, type: "email", placeholder: "u12345678@utp.edu.pe", mono: true },
             ].map((f) => (
               <div key={f.label}>
                 <label className="text-neutral-400 text-[9px] font-black uppercase tracking-widest block mb-1">{f.label}</label>
@@ -398,16 +419,16 @@ function Modal({ onClose, onStart: handleStart }: { onClose: () => void; onStart
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-neutral-400 text-[9px] font-black uppercase tracking-widest block mb-1">Carrera</label>
-                <select value={career} onChange={(e) => setCareer(e.target.value)}
+                <select value={career} onChange={(e) => handleCareerChange(e.target.value)}
                   className="w-full bg-neutral-50 border border-neutral-200 text-black px-3.5 py-2.5 rounded-xl text-xs font-medium focus:border-[#B50E30] outline-none h-[42px]">
-                  {["Ing. de Sistemas", "Ing. de Software", "Diseño Publicitario", "Psicología Org.", "Negocios Int."].map(c => <option key={c}>{c}</option>)}
+                  {UTP_CAREERS.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-neutral-400 text-[9px] font-black uppercase tracking-widest block mb-1">Ciclo</label>
                 <select value={semester} onChange={(e) => setSemester(+e.target.value)}
                   className="w-full bg-neutral-50 border border-neutral-200 text-black px-3.5 py-2.5 rounded-xl text-xs font-medium focus:border-[#B50E30] outline-none h-[42px]">
-                  {[1,2,3,4,5,6,7,8,9,10].map(s => <option key={s} value={s}>{s}° Ciclo</option>)}
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((s) => <option key={s} value={s}>{s}° Ciclo</option>)}
                 </select>
               </div>
             </div>
@@ -419,11 +440,25 @@ function Modal({ onClose, onStart: handleStart }: { onClose: () => void; onStart
             </div>
             <button type="submit" disabled={loading}
               className="w-full mt-2 bg-[#B50E30] hover:bg-[#85061B] text-white text-xs font-black uppercase tracking-widest py-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer border-0 shadow-lg shadow-[#B50E30]/20">
-              {loading
-                ? <><svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Generando tu ruta...</>
-                : <>Comenzar mi Ruta UTP+ <ArrowRight className="h-4 w-4" /></>}
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Generando Ruta UTP+ ...
+                </>
+              ) : authMode === "register" ? (
+                <>Comenzar Diagnóstico IA <ArrowRight className="h-4 w-4" /></>
+              ) : (
+                <>Entrar a SkillPath AI <ArrowRight className="h-4 w-4" /></>
+              )}
             </button>
-            <p className="text-neutral-300 text-[9px] text-center font-bold uppercase tracking-wider">Gratis · Solo necesitas tu correo UTP</p>
+            <p className="text-neutral-300 text-[9px] text-center font-bold uppercase tracking-wider">
+              {authMode === "register"
+                ? "Al registrarte, declaras pertenecer activamente a la comunidad de egreso de la UTP."
+                : "Gratis · Solo necesitas tu correo UTP"}
+            </p>
           </form>
         </div>
       </div>
@@ -434,6 +469,7 @@ function Modal({ onClose, onStart: handleStart }: { onClose: () => void; onStart
 // ─── MAIN COMPONENT ─────────────────────────────────────────────────────────
 export default function LandingPage({ onStart, currentProfileName }: LandingPageProps) {
   const [modal, setModal] = useState(false);
+  const [authMode, setAuthMode] = useState<"register" | "login">("register");
   const [videoOpen, setVideoOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -444,7 +480,10 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
     return () => window.removeEventListener("scroll", h);
   }, []);
 
-  const open = useCallback(() => setModal(true), []);
+  const openModal = useCallback((mode: "register" | "login") => {
+    setAuthMode(mode);
+    setModal(true);
+  }, []);
   const close = useCallback(() => setModal(false), []);
 
   const { ref: statsRef, inView: statsInView } = useInView(0.3);
@@ -576,10 +615,10 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
             <Logo />
             <nav className="hidden md:flex items-center gap-8" />
             <div className="flex items-center gap-3">
-              <button onClick={open} className="hidden sm:block text-neutral-500 hover:text-black text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer">
+              <button onClick={() => openModal("login")} className="hidden sm:block text-neutral-500 hover:text-black text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer">
                 Iniciar sesión
               </button>
-              <button onClick={open} className="btn-primary bg-[#B50E30] hover:bg-[#85061B] text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl cursor-pointer border-0 shadow-md shadow-[#B50E30]/20">
+              <button onClick={() => openModal("register")} className="btn-primary bg-[#B50E30] hover:bg-[#85061B] text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl cursor-pointer border-0 shadow-md shadow-[#B50E30]/20">
                 Empieza gratis
               </button>
             </div>
@@ -623,7 +662,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
 
               {/* CTAs */}
               <div className="hero-cta flex flex-col sm:flex-row gap-3">
-                <button onClick={open}
+                <button onClick={() => openModal("register")}
                   className="btn-primary group bg-[#B50E30] text-white text-sm font-black uppercase tracking-widest px-8 py-4 rounded-2xl flex items-center justify-center gap-3 cursor-pointer border-0 shadow-xl shadow-[#B50E30]/25">
                   Crea tu perfil gratis
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -698,7 +737,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                 <p className="text-neutral-500 text-sm font-medium leading-relaxed max-w-sm mt-5 mb-8">
                   Metodología que combina IA, gamificación y verificación por mentores para resultados reales.
                 </p>
-                <button onClick={open} className="btn-primary group bg-black hover:bg-[#B50E30] text-white text-xs font-black uppercase tracking-widest px-7 py-3.5 rounded-2xl flex items-center gap-2 cursor-pointer border-0 w-fit">
+                <button onClick={() => openModal("register")} className="btn-primary group bg-black hover:bg-[#B50E30] text-white text-xs font-black uppercase tracking-widest px-7 py-3.5 rounded-2xl flex items-center gap-2 cursor-pointer border-0 w-fit">
                   Comenzar ahora <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               </Appear>
@@ -872,7 +911,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
               <p className="text-neutral-500 text-base font-medium max-w-md mx-auto leading-relaxed mb-10">
                 Únete a los estudiantes UTP que consiguen empleo antes de graduarse. Gratis, real, verificado.
               </p>
-              <button onClick={open}
+              <button onClick={() => openModal("register")}
                 className="btn-primary group bg-[#B50E30] text-white text-sm font-black uppercase tracking-widest px-12 py-5 rounded-2xl inline-flex items-center gap-3 cursor-pointer border-0 shadow-2xl shadow-[#B50E30]/25">
                 Crea tu cuenta gratis
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -955,7 +994,14 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
         </footer>
 
         {/* ══ MODAL ══════════════════════════════════════════════════════ */}
-        {modal && <Modal onClose={close} onStart={onStart} />}
+        {modal && (
+          <Modal
+            onClose={close}
+            onStart={onStart}
+            authMode={authMode}
+            initialName={currentProfileName}
+          />
+        )}
 
       </div>
     </>

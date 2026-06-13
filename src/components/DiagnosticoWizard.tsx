@@ -5,22 +5,13 @@ import {
   TrendingUp, User, Cpu, Award
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { integrateRouteWithCourses } from "../utils/courseMatcher";
+import { UTP_CAREERS, CAREER_TYPICAL_SKILLS, CAREER_SUGGESTED_ROLES } from "../data";
 
 interface DiagnosticoWizardProps {
   currentProfile: UserProfile;
   onAnalysisSuccess: (profile: UserProfile, gaps: SkillGap[], missions: CareerMission[]) => void;
 }
-
-const CAREERS = [
-  "Ingeniería de Sistemas",
-  "Administración",
-  "Marketing",
-  "Diseño Gráfico / UX-UI",
-  "Arquitectura",
-  "Derecho",
-  "Negocios Internacionales",
-  "Ciencias de la Comunicación"
-];
 
 const EXPERIENCES = [
   "Sin experiencia (Buscando mi primera práctica)",
@@ -29,27 +20,9 @@ const EXPERIENCES = [
   "Experiencia laboral general fuera de mi carrera"
 ];
 
-const TYPICAL_SKILLS: Record<string, string[]> = {
-  "Ingeniería de Sistemas": ["HTML/CSS", "JavaScript", "SQL Server", "TypeScript", "Python", "React", "Node.js", "Git/GitHub", "Metodologías Ágiles", "AWS Basic"],
-  "Administración": ["Excel Intermedio", "Power BI básico", "Gestión de Proyectos", "Presupuestos", "Scrum", "Inglés Intermedio", "Liderazgo"],
-  "Marketing": ["Google Analytics", "Facebook Ads", "Copywriting", "SEO/SEM", "Canva/Photoshop", "Email Marketing", "Estrategia Digital"],
-  "Diseño Gráfico / UX-UI": ["Figma", "Adobe Illustrator", "Prototipado", "Design Thinking", "Adobe Photoshop", "User Research", "Wireframing"],
-  "Arquitectura": ["AutoCAD", "Revit", "Sketchup", "Renderizado 3D", "Control de Obras", "Diseño Sostenible"],
-  "Derecho": ["Redacción Jurídica", "Litigación Oral", "Investigación Legal", "Mediación", "Derecho Corporativo"],
-  "Negocios Internacionales": ["Excel Financiero", "Logística Internacional", "Aduanas", "Inglés Comercial", "Negociación"],
-  "Ciencias de la Comunicación": ["Redacción Creativa", "Edición de Video", "Community Management", "Relaciones Públicas", "Fotografía"]
-};
-
-const SUGGESTED_ROLES: Record<string, string[]> = {
-  "Ingeniería de Sistemas": ["Full Stack Developer Junior", "Analista de Datos", "Backend Developer Trainee", "DevOps Enginner Junior", "QA Analyst"],
-  "Administración": ["Analista de Procesos", "Asistente de Recursos Humanos", "Project Manager Junior", "Administrador de Operaciones"],
-  "Marketing": ["Social Media Analyst", "Growth Marketing Specialist", "Asistente de Marketing Digital", "SEO Copywriter"],
-  "Diseño Gráfico / UX-UI": ["Diseñador UX/UI Trainee", "Product Designer Junior", "Diseñador Gráfico Digital", "Content Creator"],
-  "Arquitectura": ["Asistente de Diseñor Arquitectónico", "Modelador BIM Junior", "Supervisor de Obras Junior"],
-  "Derecho": ["Asistente Legal Corporativo", "Consultor Contractual Junior", "Secigra / Practicante Judicial"],
-  "Negocios Internacionales": ["Asistente de Comercio Exterior", "Analista de Inteligencia Comercial", "Supply Chain Trainee"],
-  "Ciencias de la Comunicación": ["Redactor Creativo", "Especialista en PR / Comunicaciones", "Coordinador de Audiovisuales"]
-};
+const TYPICAL_SKILLS = CAREER_TYPICAL_SKILLS;
+const SUGGESTED_ROLES = CAREER_SUGGESTED_ROLES;
+const CAREERS = [...UTP_CAREERS];
 
 export default function DiagnosticoWizard({
   currentProfile,
@@ -64,8 +37,17 @@ export default function DiagnosticoWizard({
   const [career, setCareer] = useState(currentProfile.career || "");
   const [semester, setSemester] = useState<number>(currentProfile.semester || 1);
   const [experienceLevel, setExperienceLevel] = useState(currentProfile.experienceLevel || "");
-  const [targetRole, setTargetRole] = useState(currentProfile.targetRole || "");
-  const [selectedSkills, setSelectedSkills] = useState<string[]>(currentProfile.currentSkills || []);
+  const [targetRole, setTargetRole] = useState(
+    currentProfile.targetRole ||
+      (currentProfile.career ? SUGGESTED_ROLES[currentProfile.career]?.[0] ?? "" : "")
+  );
+  const [selectedSkills, setSelectedSkills] = useState<string[]>(
+    currentProfile.currentSkills.length > 0
+      ? currentProfile.currentSkills
+      : currentProfile.career && TYPICAL_SKILLS[currentProfile.career]
+        ? TYPICAL_SKILLS[currentProfile.career].slice(0, 3)
+        : []
+  );
   const [interestsText, setInterestsText] = useState(currentProfile.interests.join(", ") || "");
 
   const handleToggleSkill = (skill: string) => {
@@ -134,13 +116,15 @@ export default function DiagnosticoWizard({
         status: "pendiente"
       }));
 
-      const missions: CareerMission[] = (data.recommendedMissions || []).map((rm: any, idx: number) => ({
+      const rawMissions: CareerMission[] = (data.recommendedMissions || []).map((rm: any, idx: number) => ({
         ...rm,
         status: idx === 0 ? "disponible" : "bloqueado",
         order: idx + 1
       }));
 
-      onAnalysisSuccess(updatedProfile, gaps, missions);
+      const { gaps: enrichedGaps, missions } = integrateRouteWithCourses(gaps, rawMissions);
+
+      onAnalysisSuccess(updatedProfile, enrichedGaps, missions);
     } catch (err: any) {
       console.error(err);
       setErrorStr(err.message || "Ocurrió un error inesperado al procesar con IA. Por favor, intenta de nuevo.");

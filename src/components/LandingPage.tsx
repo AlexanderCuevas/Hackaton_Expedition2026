@@ -642,7 +642,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                 alt="Ecosistema de Competencias Ruta de Empleabilidad"
                 className="hero-card relative w-full h-auto object-contain"
                 style={{
-                  maxHeight: "720px",
+                  maxHeight: "1000px",
                   animation: "floatA 5s ease-in-out infinite",
                   filter: "drop-shadow(0 20px 40px rgba(181,14,48,0.12))",
                 }}
@@ -845,10 +845,29 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
           )}
         </section>
 
-        {/* ══ CTA FINAL — IMAGEN ════════════════════════════════════════ */}
-        <section className="py-16 px-6 border-t border-neutral-100 bg-white">
-          <div className="max-w-6xl mx-auto flex justify-center">
-            <img src={principalImg} alt="Ruta de Empleabilidad" className="w-full max-w-4xl h-auto object-contain drop-shadow-xl" />
+        {/* ══ CTA FINAL ══════════════════════════════════════════════════ */}
+        <section className="border-t border-neutral-100 py-32 px-6 relative overflow-hidden" style={{ background: "#F7F8FA" }}>
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ background: "radial-gradient(ellipse at 50% 60%, rgba(181,14,48,0.07) 0%, transparent 65%)" }} />
+          <div className="max-w-4xl mx-auto text-center relative z-10">
+            <Appear>
+              <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.25em] mb-5">¿Listo para empezar?</p>
+              <h2 className="display text-6xl sm:text-7xl md:text-8xl font-black uppercase tracking-tight leading-[0.9] text-black mb-6"
+                style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                Construye tu<br /><span className="text-[#B50E30]">futuro</span> hoy.
+              </h2>
+              <p className="text-neutral-500 text-base font-medium max-w-md mx-auto leading-relaxed mb-10">
+                Únete a los estudiantes UTP que consiguen empleo antes de graduarse. Gratis, real, verificado.
+              </p>
+              <button onClick={open}
+                className="btn-primary group bg-[#B50E30] text-white text-sm font-black uppercase tracking-widest px-12 py-5 rounded-2xl inline-flex items-center gap-3 cursor-pointer border-0 shadow-2xl shadow-[#B50E30]/25">
+                Crea tu cuenta gratis
+                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <p className="text-neutral-300 text-[10px] font-bold uppercase tracking-widest mt-5">
+                Sin costo · Solo correo UTP
+              </p>
+            </Appear>
           </div>
         </section>
 

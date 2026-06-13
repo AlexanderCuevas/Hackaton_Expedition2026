@@ -117,6 +117,23 @@ export default function SocialHub() {
 
   const [activeSegment, setActiveSegment] = useState<"comunidad" | "networking">("comunidad");
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.12 },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" as const },
+    },
+  };
+
   const openProfile = (name: string, fallbackData?: any) => {
     let cleanName = name.replace(" (Tú)", "").trim();
     if (cleanName === "Tú" || cleanName === "Valeria Alva (Tú)" || cleanName === "Valeria Alva") {
@@ -458,83 +475,100 @@ export default function SocialHub() {
             </div>
           </motion.div>
         ) : (
-          /* NETWORKING CONNECTIONS SEGMENT */
+          /* NETWORKING CONNECTIONS SEGMENT — VacanciesPanel card design */
           <motion.div
             key="networking"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
-            {contacts.map((c) => (
-              <div 
-                key={c.id} 
-                className="bg-white rounded-none border border-utp-border p-6 flex flex-col justify-between gap-4"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <span className={`text-[9px] font-black px-2.5 py-1 uppercase tracking-wider rounded-none ${
-                        c.type === "mentor"
-                          ? "bg-black text-[#B50E30] border border-black"
-                          : c.type === "reclutador"
-                            ? "bg-[#B50E30] text-white border border-[#B50E30]"
-                            : "bg-black text-white border border-black"
-                      }`}>
-                        {c.type}
-                      </span>
-                      <h3 className="font-extrabold text-sm uppercase text-black tracking-tight mt-3">{c.name}</h3>
-                      <p className="text-xs text-neutral-500 font-bold uppercase">
-                        {c.role} @ <span className="font-extrabold text-black">{c.company}</span>
-                      </p>
-                    </div>
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 gap-5"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {contacts.map((c) => (
+                <motion.div
+                  key={c.id}
+                  variants={cardVariants}
+                  whileHover={{ y: -4 }}
+                  className="relative group bg-white border border-gray-200 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.12)] transition-all duration-400 ease-out p-6 md:p-7 overflow-hidden flex flex-col"
+                >
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-[#B50E30] transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+
+                  <div className="flex justify-between items-start mb-4 gap-3">
+                    <span className={`text-[10px] md:text-xs font-bold px-3 py-1 uppercase tracking-widest mt-1 shadow-sm shrink-0 ${
+                      c.type === "mentor"
+                        ? "bg-black text-[#B50E30]"
+                        : c.type === "reclutador"
+                          ? "bg-[#B50E30] text-white"
+                          : "bg-black text-white"
+                    }`}>
+                      {c.type}
+                    </span>
                   </div>
 
-                  <p className="text-xs text-neutral-700 leading-relaxed font-semibold">
+                  <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-black leading-tight mb-2 group-hover:text-[#B50E30] transition-colors duration-300">
+                    {c.name}
+                  </h3>
+
+                  <div className="flex flex-wrap items-center gap-3 text-gray-400 font-bold text-[10px] md:text-xs uppercase tracking-wider mb-4">
+                    <span className="flex items-center gap-1">
+                      <Briefcase className="w-3.5 h-3.5 text-[#B50E30]" />
+                      {c.role} @ <strong className="text-black font-extrabold">{c.company}</strong>
+                    </span>
+                  </div>
+
+                  <p className="text-gray-600 font-medium leading-relaxed text-xs md:text-sm mb-5 line-clamp-2">
                     {c.bio}
                   </p>
 
-                  <div className="text-[10px] font-black uppercase tracking-wider text-black bg-neutral-50 p-3 rounded-none border border-utp-border flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 text-[#B50E30] shrink-0 fill-[#B50E30]" />
-                    <span>{c.compatibilityText}</span>
+                  <div className="mb-5">
+                    <span className="text-[10px] font-black text-[#B50E30] uppercase tracking-widest block mb-2">
+                      Compatibilidad:
+                    </span>
+                    <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-black font-bold uppercase text-[10px] px-3 py-2">
+                      <Sparkles className="h-4 w-4 text-[#B50E30] shrink-0 fill-[#B50E30]" />
+                      <span>{c.compatibilityText}</span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="border-t border-utp-border pt-4 flex items-center justify-between gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openProfile(c.name)}
-                    className="text-xs font-black uppercase tracking-wider rounded-lg border-gray-200 text-gray-700 hover:text-[#B50E30] hover:border-[#B50E30]"
-                  >
-                    Ver Perfil
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => handleConnect(c.id)}
-                    disabled={c.isConnected || c.isPending}
-                    className={`text-xs font-black uppercase tracking-widest rounded-lg ${
-                      c.isConnected 
-                        ? "bg-neutral-100 text-neutral-500 border-neutral-200 shadow-none hover:bg-neutral-100" 
-                        : c.isPending 
-                          ? "bg-neutral-50 text-neutral-400 border-utp-border shadow-none hover:bg-neutral-50" 
-                          : "bg-[#B50E30] hover:bg-[#85061B] text-white shadow-none"
-                    }`}
-                  >
+                  <hr className="border-gray-200 mb-5 group-hover:border-[#B50E30]/20 transition-colors" />
+
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-auto">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openProfile(c.name)}
+                      className="text-xs font-black uppercase tracking-wider rounded-lg border-gray-200 text-gray-700 hover:text-[#B50E30] hover:border-[#B50E30]"
+                    >
+                      Ver Perfil
+                    </Button>
+
                     {c.isConnected ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-[#B50E30] stroke-[3]" />
+                      <div className="w-full md:w-auto bg-neutral-100 text-neutral-500 border border-neutral-200 text-xs font-black uppercase tracking-widest px-6 py-3 flex items-center justify-center gap-2 shrink-0 select-none">
+                        <Check className="h-4 w-4 text-[#B50E30] stroke-[3]" />
                         Conectado
-                      </>
+                      </div>
                     ) : c.isPending ? (
-                      "Solicitado"
+                      <div className="w-full md:w-auto bg-neutral-50 text-neutral-400 border border-gray-200 text-xs font-black uppercase tracking-widest px-6 py-3 flex items-center justify-center gap-2 shrink-0 select-none">
+                        Solicitado
+                      </div>
                     ) : (
-                      "Conectar"
+                      <motion.button
+                        type="button"
+                        onClick={() => handleConnect(c.id)}
+                        whileTap={{ scale: 0.97 }}
+                        className="group/btn w-full md:w-auto bg-black text-white font-black uppercase tracking-widest text-[11px] px-6 py-3 flex items-center justify-center gap-2 hover:bg-[#B50E30] hover:shadow-[0_8px_20px_rgba(181,14,48,0.3)] transition-all duration-300 shrink-0 cursor-pointer"
+                      >
+                        Conectar
+                      </motion.button>
                     )}
-                  </Button>
-                </div>
-              </div>
-            ))}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

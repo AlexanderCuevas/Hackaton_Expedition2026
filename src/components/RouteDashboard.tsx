@@ -2,10 +2,12 @@ import React from "react";
 import { UserProfile, SkillGap, CareerMission } from "../types";
 import { 
   Trophy, Award, BookOpen, AlertCircle, ArrowRight, CheckCircle, Lock, Play, Zap,
-  CheckSquare, Calendar, ChevronRight, Check
+  CheckSquare, Calendar, ChevronRight, Check,
+  TrendingUp, Star
 } from "lucide-react";
 import { motion } from "motion/react";
 import { CERTIFICATIONS_AND_COURSES, UNIVERSITY_EVENTS } from "../data";
+import { BentoGrid, type BentoItem } from "./ui/bento-grid";
 
 interface RouteDashboardProps {
   profile: UserProfile;
@@ -32,6 +34,19 @@ export default function RouteDashboard({
 
   // Group gaps by priority for quick indicators
   const highPriorityGapsCount = gaps.filter(g => g.priority === "alta" && g.status !== "completado").length;
+
+  // Map gaps to BentoItems
+  const gapBentoItems: BentoItem[] = gaps.map((gap) => ({
+    title: gap.skillName,
+    description: gap.description,
+    icon: gap.category === "tecnica" ? <TrendingUp className="w-3.5 h-3.5 text-blue-600" />
+      : gap.category === "blanda" ? <Star className="w-3.5 h-3.5 text-amber-600" />
+      : <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />,
+    status: gap.priority,
+    tags: [gap.category],
+    meta: gap.recommendedResource,
+    hasPersistentHover: gap.priority === "alta",
+  }));
 
   return (
     <div className="space-y-6">
@@ -234,7 +249,7 @@ export default function RouteDashboard({
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-utp-border">
               <h3 className="text-xs font-black text-black uppercase tracking-widest flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-[#B50E30]" />
-                Brechas por Superar
+                Skills & Brechas
               </h3>
               {highPriorityGapsCount > 0 && (
                 <span className="bg-black text-white text-[9px] font-black px-2 py-0.5 rounded-none uppercase">
@@ -243,6 +258,21 @@ export default function RouteDashboard({
               )}
             </div>
 
+            {/* Current Skills */}
+            {profile.currentSkills.length > 0 && (
+              <div className="mb-4">
+                <p className="text-[9px] font-black text-neutral-400 uppercase tracking-widest mb-2">Tus habilidades actuales</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {profile.currentSkills.map((skill) => (
+                    <span key={skill} className="bg-black text-white text-[9px] font-bold px-2 py-1 uppercase tracking-tight">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Gaps as BentoGrid cards */}
             {gaps.length === 0 ? (
               <div className="text-center py-8 px-4">
                 <AlertCircle className="h-8 w-8 text-[#B50E30] mx-auto mb-3" />
@@ -257,34 +287,7 @@ export default function RouteDashboard({
                 </button>
               </div>
             ) : (
-              <div className="space-y-3">
-                {gaps.map((gap, idx) => (
-                  <div key={idx} className="p-3 bg-neutral-50 rounded-none border border-utp-border text-xs space-y-2 relative overflow-hidden">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-extrabold text-black uppercase tracking-tight truncate">{gap.skillName}</span>
-                      <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-none uppercase shrink-0 ${
-                        gap.priority === "alta" 
-                          ? "bg-[#B50E30] text-white" 
-                          : gap.priority === "media" 
-                            ? "bg-black text-white" 
-                            : "bg-neutral-200 text-black"
-                      }`}>
-                        {gap.priority}
-                      </span>
-                    </div>
-                    <p className="text-neutral-600 text-[11px] leading-relaxed font-medium">
-                      {gap.description}
-                    </p>
-                    <div className="bg-white p-2.5 rounded-none border border-utp-border space-y-1">
-                      <div className="text-[9px] font-black text-[#B50E30] uppercase tracking-wider">Recurso Recomendado</div>
-                      <div className="text-[11px] text-black font-extrabold flex items-center justify-between">
-                        <span className="truncate pr-1">{gap.recommendedResource}</span>
-                        <ChevronRight className="h-3.5 w-3.5 text-black shrink-0" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <BentoGrid items={gapBentoItems} className="p-0 grid-cols-1 gap-2" />
             )}
           </div>
 

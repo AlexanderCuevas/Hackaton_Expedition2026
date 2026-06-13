@@ -3,10 +3,12 @@ import { SocialPost, NetworkingContact } from "../types";
 import { 
   Users, MessageSquare, ThumbsUp, Sparkles, Send, Tag, Share2, 
   Search, PlusCircle, Check, Briefcase, GraduationCap, Trophy,
-  User, HeartHandshake, Award, X
+  User, HeartHandshake, Award, X, LayoutGrid, List
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { INITIAL_COMMUNITY_POSTS, INITIAL_NETWORKING_CONTACTS } from "../data";
+import { TestimonialCarousel } from "./ui/profile-card-testimonial-carousel";
+import { NavBar } from "./ui/tubelight-navbar";
 
 const COMMUNITY_USER_PROFILES: Record<string, any> = {
   "Diego Alva": {
@@ -108,6 +110,7 @@ export default function SocialHub() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const [activeCategory, setActiveCategory] = useState<"todo" | SocialPost["category"]>("todo");
+  const [postViewMode, setPostViewMode] = useState<"list" | "testimonials">("testimonials");
 
   const [activeSegment, setActiveSegment] = useState<"comunidad" | "networking">("comunidad");
 
@@ -246,6 +249,18 @@ export default function SocialHub() {
     ? posts 
     : posts.filter(p => p.category === activeCategory);
 
+  const carouselData = filteredPosts.map((p) => ({
+    id: p.id,
+    name: p.authorName.replace(" (Tú)", ""),
+    title: `${p.authorCareer} • ${p.authorSemester}º ciclo`,
+    description: p.content,
+    imageUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(p.authorName.replace(" (Tú)", ""))}&background=B50E30&color=fff&size=200`,
+    likes: p.likes,
+    likedByUser: p.likedByUser,
+    commentsCount: p.comments.length,
+    comments: p.comments,
+  }));
+
   return (
     <div className="space-y-6">
       {/* Tab Select Controller */}
@@ -290,31 +305,41 @@ export default function SocialHub() {
             <div className="lg:col-span-2 space-y-4">
               {/* Category Filter Pills & Create Post Trigger */}
               <div className="bg-white rounded-none border border-utp-border p-4 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap gap-1">
-                  {(["todo", "proyecto", "logro", "ayuda", "evento", "general"] as const).map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setActiveCategory(cat)}
-                      className={`px-3 py-1.5 rounded-none text-[10px] font-black uppercase tracking-wide transition cursor-pointer ${
-                        activeCategory === cat
-                          ? "bg-black text-white"
-                          : "bg-neutral-50 text-black hover:bg-neutral-150 border border-utp-border"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
+                <NavBar
+                  items={[
+                    { name: "todo", icon: <List className="h-3.5 w-3.5" /> },
+                    { name: "proyecto", icon: <Briefcase className="h-3.5 w-3.5" /> },
+                    { name: "logro", icon: <Trophy className="h-3.5 w-3.5" /> },
+                    { name: "ayuda", icon: <HeartHandshake className="h-3.5 w-3.5" /> },
+                    { name: "evento", icon: <Sparkles className="h-3.5 w-3.5" /> },
+                    { name: "general", icon: <Tag className="h-3.5 w-3.5" /> },
+                  ]}
+                  activeTab={activeCategory}
+                  onTabChange={(name) => setActiveCategory(name as "todo" | "proyecto" | "logro" | "ayuda" | "evento" | "general")}
+                />
 
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(true)}
-                  className="bg-[#B50E30] hover:bg-[#85061B] text-white text-[11px] font-black uppercase tracking-widest px-4 py-2.5 flex items-center gap-1.5 transition cursor-pointer rounded-none"
-                >
-                  <PlusCircle className="h-4 w-4" />
-                  Compartir un logro
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setPostViewMode(postViewMode === "list" ? "testimonials" : "list")}
+                    className={`p-2.5 border transition cursor-pointer rounded-none ${
+                      postViewMode === "testimonials"
+                        ? "bg-black text-white border-black"
+                        : "bg-white text-black border-utp-border hover:border-black"
+                    }`}
+                    title={postViewMode === "list" ? "Vista Testimonios" : "Vista Lista"}
+                  >
+                    {postViewMode === "list" ? <LayoutGrid className="h-4 w-4" /> : <List className="h-4 w-4" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(true)}
+                    className="bg-[#B50E30] hover:bg-[#85061B] text-white text-[11px] font-black uppercase tracking-widest px-4 py-2.5 flex items-center gap-1.5 transition cursor-pointer rounded-none"
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    Compartir un logro
+                  </button>
+                </div>
               </div>
 
               {/* POST WRITE PANEL IN-LINE CARD IF TRIGGERED */}
@@ -374,7 +399,31 @@ export default function SocialHub() {
                 </motion.form>
               )}
 
-              {/* POST LIST */}
+              {/* POST LIST / TESTIMONIALS VIEW */}
+              {postViewMode === "testimonials" ? (
+                <div className="bg-white rounded-none border border-utp-border">
+                  <TestimonialCarousel
+                    testimonials={carouselData}
+                    onLike={(id) => handleLike(id as string)}
+                    onComment={(id, text) => {
+                      setPosts((prev) =>
+                        prev.map((p) => {
+                          if (p.id === id) {
+                            return {
+                              ...p,
+                              comments: [
+                                ...p.comments,
+                                { authorName: "Valeria Alva (Tú)", content: text, date: "Ahora mismo" },
+                              ],
+                            };
+                          }
+                          return p;
+                        })
+                      );
+                    }}
+                  />
+                </div>
+              ) : (
               <div className="space-y-4">
                 {filteredPosts.map((post) => (
                   <div key={post.id} className="bg-white rounded-none border border-utp-border p-6 space-y-4">
@@ -468,6 +517,7 @@ export default function SocialHub() {
                   </div>
                 ))}
               </div>
+            )}
             </div>
 
             {/* Micro networking sidebar inside community */}

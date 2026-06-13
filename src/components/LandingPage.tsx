@@ -134,7 +134,7 @@ function Logo({ dark = false }: { dark?: boolean }) {
         <circle cx="120" cy="102" r="7" fill="#B50E30" />
       </svg>
       <div>
-        <p style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+        <p
           className={`font-black text-[15px] uppercase tracking-tight leading-none ${dark ? "text-white" : "text-black"}`}>
           Ruta de <span className="text-[#B50E30]">Empleabilidad</span>
         </p>
@@ -170,7 +170,7 @@ function StoriesSection() {
           style={{ opacity: inView ? 1 : 0, transform: inView ? "none" : "translateY(24px)", transition: "all 0.6s ease" }}>
           <div>
             <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.22em] mb-2">Historias reales · Servicio de Empleabilidad</p>
-            <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+            <h2
               className="text-4xl md:text-5xl font-black uppercase text-black leading-none tracking-tight">
               Ellos ya<br /><span className="text-[#B50E30]">lo lograron.</span>
             </h2>
@@ -211,7 +211,7 @@ function StoriesSection() {
                     {s.campusLabel}
                   </p>
                   <h3
-                    style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+                   
                     className="text-2xl md:text-3xl font-extrabold uppercase text-black tracking-tight leading-tight"
                   >
                     {s.name}
@@ -229,7 +229,7 @@ function StoriesSection() {
             {/* Dato destacado */}
             <div className="flex items-end gap-4 border-b border-gray-100 pb-4">
               <p
-                style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+               
                 className="text-3xl md:text-4xl font-bold text-black leading-none"
               >
                 {s.stat}
@@ -248,7 +248,7 @@ function StoriesSection() {
                   className="flex gap-4 border-b border-gray-100 pb-4 pt-4 first:pt-0 last:border-0"
                 >
                   <span
-                    style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+                   
                     className="text-sm font-black text-gray-300 shrink-0 w-6"
                   >
                     {String(i + 1).padStart(2, "0")}
@@ -377,11 +377,11 @@ function Modal({
               </g>
               <circle cx="120" cy="102" r="7" fill="#B50E30" />
             </svg>
-            <p style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }} className="font-black text-[15px] uppercase tracking-tight leading-none text-black">
+            <p className="font-black text-[15px] uppercase tracking-tight leading-none text-black">
               Ruta de <span className="text-[#B50E30]">Empleabilidad</span>
             </p>
           </div>
-          <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }} className="text-[34px] sm:text-[40px] font-black tracking-tighter text-center leading-tight text-slate-900 mt-6">
+          <h1 className="text-[34px] sm:text-[40px] font-black tracking-tighter text-center leading-tight text-slate-900 mt-6">
             Accede con tu código UTP
           </h1>
           <p className="text-xs font-semibold text-slate-400 mt-2 tracking-wide uppercase">Recuperaremos tu nombre, carrera y ciclo automáticamente</p>
@@ -476,23 +476,9 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
 
   return (
     <>
-      {/* ── FONTS + GLOBAL ANIMATIONS ── */}
+      {/* ── GLOBAL ANIMATIONS ── */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
         * { box-sizing: border-box; }
-
-        body, html {
-          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        }
-
-        .landing-page {
-          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        }
-
-        .display {
-          font-family: 'Bricolage Grotesque', system-ui, sans-serif;
-        }
 
         @keyframes ticker {
           from { transform: translateX(0); }
@@ -626,15 +612,15 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
               {/* Headline */}
               <div className="space-y-1">
                 <h1 className="hero-text-1 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-black"
-                  style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                 >
                   Tu primer
                 </h1>
                 <h1 className="hero-text-2 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-[#B50E30]"
-                  style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                 >
                   empleo
                 </h1>
                 <h1 className="hero-text-3 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-black"
-                  style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                 >
                   empieza aquí.
                 </h1>
               </div>
@@ -661,7 +647,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
               <div className="hero-stats flex items-center gap-8 pt-3 border-t border-neutral-100">
                 {[{ val: "1,500+", label: "Estudiantes" }, { val: "92%", label: "Contratados" }, { val: "20+", label: "Empresas" }].map((s) => (
                   <div key={s.label}>
-                    <p className="display text-2xl font-black text-black" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{s.val}</p>
+                    <p className="text-2xl font-black text-black">{s.val}</p>
                     <p className="text-neutral-400 text-[9px] font-bold uppercase tracking-widest mt-0.5">{s.label}</p>
                   </div>
                 ))}
@@ -713,8 +699,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
             <div className="lg:sticky lg:top-28">
               <Appear>
                 <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.22em] mb-3">Cómo funciona</p>
-                <h2 className="display text-5xl font-black uppercase text-black tracking-tight leading-[0.95]"
-                  style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                <h2 className="text-5xl font-black uppercase text-black tracking-tight leading-[0.95]"
+                 >
                   De estudiante<br />a empleable<br /><span className="text-[#B50E30]">en 4 pasos.</span>
                 </h2>
                 <p className="text-neutral-500 text-sm font-medium leading-relaxed max-w-sm mt-5 mb-8">
@@ -739,8 +725,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                     </div>
                     <div className="pt-1.5">
                       <span className="text-[9px] font-black uppercase tracking-widest text-neutral-300">{step.n}</span>
-                      <h3 className="display text-xl font-black uppercase text-black tracking-tight mt-0.5 mb-1.5"
-                        style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{step.title}</h3>
+                      <h3 className="text-xl font-black uppercase text-black tracking-tight mt-0.5 mb-1.5"
+                       >{step.title}</h3>
                       <p className="text-neutral-500 text-sm font-medium leading-relaxed">{step.desc}</p>
                     </div>
                   </div>
@@ -758,8 +744,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
           <div className="max-w-7xl mx-auto space-y-14">
             <Appear>
               <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.22em] mb-3">Herramientas incluidas</p>
-              <h2 className="display text-5xl font-black uppercase text-black tracking-tight leading-[0.95]"
-                style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              <h2 className="text-5xl font-black uppercase text-black tracking-tight leading-[0.95]"
+               >
                 Todo lo que necesitas<br />para ser <span className="text-[#B50E30]">contratado.</span>
               </h2>
             </Appear>
@@ -773,8 +759,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                     <div className="h-12 w-12 bg-black group-hover:bg-[#B50E30] text-white rounded-2xl flex items-center justify-center mb-5 transition-all duration-300">
                       {f.icon}
                     </div>
-                    <h3 className="display font-black text-base uppercase tracking-tight text-black mb-2"
-                      style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{f.title}</h3>
+                    <h3 className="font-black text-base uppercase tracking-tight text-black mb-2"
+                     >{f.title}</h3>
                     <p className="text-neutral-500 text-sm font-medium leading-relaxed">{f.desc}</p>
                   </div>
                 </Appear>
@@ -794,8 +780,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
               { target: 20, suffix: "+", label: "Empresas aliadas" },
             ].map((s) => (
               <div key={s.label}>
-                <p className="display text-4xl sm:text-5xl font-black text-white leading-none"
-                  style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                <p className="text-4xl sm:text-5xl font-black text-white leading-none"
+                 >
                   <StatNum target={s.target} suffix={s.suffix} />
                 </p>
                 <p className="text-white/60 text-[10px] font-bold uppercase tracking-wider mt-2">{s.label}</p>
@@ -811,8 +797,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
             <Appear>
               <div className="text-center mb-10">
                 <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.25em] mb-3">Mira cómo funciona</p>
-                <h2 className="display text-4xl sm:text-5xl font-black uppercase text-white tracking-tight leading-[0.95]"
-                  style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                <h2 className="text-4xl sm:text-5xl font-black uppercase text-white tracking-tight leading-[0.95]"
+                 >
                   Ve la plataforma<br /><span className="text-[#B50E30]">en acción.</span>
                 </h2>
               </div>
@@ -887,8 +873,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
           <div className="max-w-4xl mx-auto text-center relative z-10">
             <Appear>
               <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.25em] mb-5">¿Listo para empezar?</p>
-              <h2 className="display text-6xl sm:text-7xl md:text-8xl font-black uppercase tracking-tight leading-[0.9] text-black mb-6"
-                style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              <h2 className="text-6xl sm:text-7xl md:text-8xl font-black uppercase tracking-tight leading-[0.9] text-black mb-6"
+               >
                 Construye tu<br /><span className="text-[#B50E30]">futuro</span> hoy.
               </h2>
               <p className="text-neutral-500 text-base font-medium max-w-md mx-auto leading-relaxed mb-10">

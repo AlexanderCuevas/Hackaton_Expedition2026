@@ -501,7 +501,7 @@ export default function UserProfilePanel({ onNavigateToMyCourses }: UserProfileP
               <div className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="bg-white border border-neutral-200 p-5 space-y-3">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-black flex items-center gap-2 pb-3 border-b border-neutral-100">
+                    <h3 className="heading-sm text-black tracking-widest flex items-center gap-2 pb-3 border-b border-neutral-100">
                       <User className="h-3.5 w-3.5 text-[#B50E30]" /> Información académica
                     </h3>
                     {[
@@ -521,7 +521,7 @@ export default function UserProfilePanel({ onNavigateToMyCourses }: UserProfileP
                     ))}
                   </div>
                   <div className="bg-white border border-neutral-200 p-5 space-y-4">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-black flex items-center gap-2 pb-3 border-b border-neutral-100">
+                    <h3 className="heading-sm text-black tracking-widest flex items-center gap-2 pb-3 border-b border-neutral-100">
                       <Compass className="h-3.5 w-3.5 text-[#B50E30]" /> Áreas de interés
                     </h3>
                     <form onSubmit={addInterest} className="flex gap-2">
@@ -572,7 +572,7 @@ export default function UserProfilePanel({ onNavigateToMyCourses }: UserProfileP
             {activeTab === "habilidades" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="bg-white border border-neutral-200 p-5 space-y-4">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-black flex items-center gap-2 pb-3 border-b border-neutral-100">
+                  <h3 className="heading-sm text-black tracking-widest flex items-center gap-2 pb-3 border-b border-neutral-100">
                     <BarChart2 className="h-3.5 w-3.5 text-[#B50E30]" /> Tech Skills
                   </h3>
                   <div className="space-y-4">
@@ -592,7 +592,7 @@ export default function UserProfilePanel({ onNavigateToMyCourses }: UserProfileP
                   </form>
                 </div>
                 <div className="bg-white border border-neutral-200 p-5 space-y-3">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-black flex items-center gap-2 pb-3 border-b border-neutral-100">
+                  <h3 className="heading-sm text-black tracking-widest flex items-center gap-2 pb-3 border-b border-neutral-100">
                     <Target className="h-3.5 w-3.5 text-[#B50E30]" /> Skills por desarrollar
                   </h3>
                   {[
@@ -627,7 +627,7 @@ export default function UserProfilePanel({ onNavigateToMyCourses }: UserProfileP
             {activeTab === "analisis" && (
               <div className="space-y-5">
                 <div className="bg-white border border-neutral-200 p-5">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-black flex items-center gap-2 pb-3 border-b border-neutral-100 mb-4">
+                  <h3 className="heading-sm text-black tracking-widest flex items-center gap-2 pb-3 border-b border-neutral-100 mb-4">
                     <BrainCircuit className="h-3.5 w-3.5 text-[#B50E30]" /> Razonamiento cognitivo
                   </h3>
                   <div className="flex flex-col md:flex-row gap-6 items-center">
@@ -662,7 +662,7 @@ export default function UserProfilePanel({ onNavigateToMyCourses }: UserProfileP
                   </div>
                 </div>
                 <div className="bg-white border border-neutral-200 p-5">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-black flex items-center gap-2 pb-3 border-b border-neutral-100 mb-2">
+                  <h3 className="heading-sm text-black tracking-widest flex items-center gap-2 pb-3 border-b border-neutral-100 mb-2">
                     <Layers className="h-3.5 w-3.5 text-[#B50E30]" /> Rasgos personales
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-1">

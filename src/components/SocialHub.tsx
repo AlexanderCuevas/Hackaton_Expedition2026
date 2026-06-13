@@ -444,7 +444,7 @@ export default function SocialHub() {
             {/* Micro networking sidebar inside community */}
             <div className="space-y-6">
               <div className="bg-white rounded-none border border-utp-border p-6 space-y-4">
-                <h3 className="text-xs font-black text-black uppercase tracking-widest flex items-center gap-2 pb-2 border-b border-utp-border">
+                <h3 className="heading-sm text-black tracking-widest flex items-center gap-2 pb-2 border-b border-utp-border">
                   <Trophy className="h-4 w-4 text-[#B50E30]" />
                   Egresados Destacados
                 </h3>
@@ -460,7 +460,7 @@ export default function SocialHub() {
                         <span className="text-[8px] font-black text-white bg-black px-2 py-0.5 rounded-none uppercase tracking-wide">
                           {cont.type}
                         </span>
-                        <h4 className="font-black text-xs text-black uppercase tracking-tight group-hover:text-[#B50E30] transition-colors">{cont.name}</h4>
+                        <h4 className="heading-md text-black group-hover:text-[#B50E30] transition-colors">{cont.name}</h4>
                         <p className="text-[11px] text-neutral-550 font-bold uppercase">
                           {cont.role} en <strong className="text-black">{cont.company}</strong>
                         </p>

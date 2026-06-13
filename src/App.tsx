@@ -862,7 +862,7 @@ export default function App() {
                   <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden flex items-center justify-between">
                     <div>
                       <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
-                      <h2 className="text-base font-black text-black uppercase tracking-widest flex items-center gap-2">
+                      <h2 className="heading-md text-black tracking-widest flex items-center gap-2">
                         <Award className="h-5 w-5 text-[#B50E30]" />
                         Beca UTP+: Capacitaciones & Cursos
                       </h2>

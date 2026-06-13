@@ -56,7 +56,7 @@ export default function WhatsAppPreview() {
       <div className="lg:col-span-5 space-y-6">
         <div className="bg-white rounded-none border border-utp-border p-6 space-y-5">
           <div className="space-y-1">
-            <h2 className="text-sm font-black text-black uppercase tracking-widest flex items-center gap-2">
+            <h2 className="heading-sm text-black tracking-widest flex items-center gap-2">
               <PhoneCall className="h-4.5 w-4.5 text-[#B50E30]" />
               Sincronización con WhatsApp
             </h2>

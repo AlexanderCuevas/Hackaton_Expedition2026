@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { UserProfile, SkillGap, CareerMission, CvAnalysis, InterviewSession } from "./types";
+import { UserProfile, SkillGap, CareerMission, CvAnalysis, InterviewSession, EnrolledCourse } from "./types";
 import { 
   Trophy, Award, BookOpen, AlertCircle, ArrowRight, CheckCircle, Lock, Play, Zap,
   Briefcase, GraduationCap, FileText, MessageSquare, Users, PhoneCall, ChevronRight,
-  Menu, X, Sparkles, LogOut, CheckSquare, Bell, Calendar, User
+  Menu, X, Sparkles, LogOut, CheckSquare, Bell, Calendar, User, Library
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -17,9 +17,11 @@ import WhatsAppPreview from "./components/WhatsAppPreview";
 import UserProfilePanel from "./components/UserProfilePanel";
 import VacanciesPanel from "./components/VacanciesPanel";
 import LandingPage from "./components/LandingPage";
+import MyCoursesPanel from "./components/MyCoursesPanel";
 
 // Mock Data
 import { INITIAL_VACANCIES, CERTIFICATIONS_AND_COURSES, UNIVERSITY_EVENTS } from "./data";
+import { integrateRouteWithCourses } from "./utils/courseMatcher";
 
 // Preloaded state for Hackathon demo so that it's highly populated instantly
 const MOCK_INITIAL_PROFILE: UserProfile = {
@@ -63,7 +65,7 @@ const MOCK_INITIAL_GAPS: SkillGap[] = [
   }
 ];
 
-const MOCK_INITIAL_MISSIONS: CareerMission[] = [
+const BASE_INITIAL_MISSIONS: CareerMission[] = [
   {
     id: "m_cv_01",
     title: "Optimizar CV para filtros ATS",
@@ -110,29 +112,107 @@ const MOCK_INITIAL_MISSIONS: CareerMission[] = [
   }
 ];
 
+const { gaps: MOCK_INITIAL_GAPS_ENRICHED, missions: MOCK_INITIAL_MISSIONS } =
+  integrateRouteWithCourses(MOCK_INITIAL_GAPS, BASE_INITIAL_MISSIONS);
+
 export default function App() {
   const [view, setView] = useState<string>("dashboard");
   const [profile, setProfile] = useState<UserProfile>(MOCK_INITIAL_PROFILE);
-  const [gaps, setGaps] = useState<SkillGap[]>(MOCK_INITIAL_GAPS);
+  const [gaps, setGaps] = useState<SkillGap[]>(MOCK_INITIAL_GAPS_ENRICHED);
   const [missions, setMissions] = useState<CareerMission[]>(MOCK_INITIAL_MISSIONS);
   const [activeNotification, setActiveNotification] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
 
   useEffect(() => {
     const savedProfile = localStorage.getItem("sp_profile");
     const savedGaps = localStorage.getItem("sp_gaps");
     const savedMissions = localStorage.getItem("sp_missions");
+    const savedCourses = localStorage.getItem("sp_enrolled_courses");
     const authenticated = localStorage.getItem("sp_authenticated") === "true";
+    const diagnosisCompleted = localStorage.getItem("sp_diagnosis_completed") === "true";
 
     if (savedProfile) setProfile(JSON.parse(savedProfile));
     if (savedGaps) setGaps(JSON.parse(savedGaps));
     if (savedMissions) setMissions(JSON.parse(savedMissions));
+    if (savedCourses) setEnrolledCourses(JSON.parse(savedCourses));
     setIsAuthenticated(authenticated);
+
+    if (authenticated) {
+      setView(diagnosisCompleted ? "dashboard" : "diagnostico");
+    }
+
     setIsHydrated(true);
   }, []);
 
   // Save changes to state
+  const saveEnrolledCourses = (courses: EnrolledCourse[]) => {
+    setEnrolledCourses(courses);
+    localStorage.setItem("sp_enrolled_courses", JSON.stringify(courses));
+  };
+
+  const handleEnrollCourse = (courseId: string) => {
+    if (enrolledCourses.some((c) => c.courseId === courseId && c.source === "internal")) {
+      setView("mycourses");
+      return;
+    }
+
+    const course = CERTIFICATIONS_AND_COURSES.find((c) => c.id === courseId);
+    if (!course) return;
+
+    const newEnrollment: EnrolledCourse = {
+      courseId,
+      enrolledAt: new Date().toISOString(),
+      progress: 0,
+      completedLessons: [],
+      source: "internal",
+    };
+
+    saveEnrolledCourses([...enrolledCourses, newEnrollment]);
+    handleAddXpDirectly(50);
+    setView("mycourses");
+    triggerNotification(`📖 Inscripción confirmada en "${course.title}". ¡Continúa en Mis Cursos!`);
+  };
+
+  const handleEnrollExternalCourse = (suggestionId: string) => {
+    if (enrolledCourses.some((c) => c.courseId === suggestionId)) {
+      triggerNotification("Este curso ya está guardado en Mis Cursos.");
+      return;
+    }
+
+    const newEnrollment: EnrolledCourse = {
+      courseId: suggestionId,
+      enrolledAt: new Date().toISOString(),
+      progress: 0,
+      completedLessons: [],
+      source: "external",
+    };
+
+    saveEnrolledCourses([...enrolledCourses, newEnrollment]);
+    triggerNotification("✅ Curso externo guardado en Mis Cursos.");
+  };
+
+  const handleCompleteLesson = (courseId: string, lessonId: string, xpReward: number) => {
+    const course = CERTIFICATIONS_AND_COURSES.find((c) => c.id === courseId);
+    if (!course) return;
+
+    const updatedCourses = enrolledCourses.map((enrollment) => {
+      if (enrollment.courseId !== courseId) return enrollment;
+
+      if (enrollment.completedLessons.includes(lessonId)) return enrollment;
+
+      const completedLessons = [...enrollment.completedLessons, lessonId];
+      const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
+      const progress = Math.round((completedLessons.length / totalLessons) * 100);
+
+      return { ...enrollment, completedLessons, progress };
+    });
+
+    saveEnrolledCourses(updatedCourses);
+    handleAddXpDirectly(xpReward);
+  };
+
   const saveState = (updatedProfile: UserProfile, updatedGaps: SkillGap[], updatedMissions: CareerMission[]) => {
     setProfile(updatedProfile);
     setGaps(updatedGaps);
@@ -253,10 +333,23 @@ export default function App() {
     }, 4000);
   };
 
+  const handleStartCourseFromMission = (mission: CareerMission) => {
+    if (mission.courseId) {
+      handleEnrollCourse(mission.courseId);
+      return;
+    }
+
+    if (mission.externalSuggestionId) {
+      handleEnrollExternalCourse(mission.externalSuggestionId);
+      setView("mycourses");
+    }
+  };
+
   const handleAnalysisSuccess = (updatedProfile: UserProfile, updatedGaps: SkillGap[], updatedMissions: CareerMission[]) => {
     saveState(updatedProfile, updatedGaps, updatedMissions);
+    localStorage.setItem("sp_diagnosis_completed", "true");
     setView("dashboard");
-    triggerNotification("🚀 ¡Diagnóstico procesado con IA! Tu ruta Duolingo fue personalizada.");
+    triggerNotification("🚀 ¡Diagnóstico procesado! Tu ruta incluye cursos personalizados según tus brechas.");
   };
 
   const handleApplicationCompleted = (company: string, roleName: string) => {
@@ -264,24 +357,50 @@ export default function App() {
     handleAddXpDirectly(50);
   };
 
-  const handleLandingStart = (profileData?: Partial<UserProfile>) => {
-    const mergedProfile: UserProfile = {
-      ...MOCK_INITIAL_PROFILE,
-      ...profileData,
-      currentSkills: profileData?.currentSkills ?? MOCK_INITIAL_PROFILE.currentSkills,
-      interests: profileData?.interests ?? MOCK_INITIAL_PROFILE.interests,
-      experienceLevel: profileData?.experienceLevel ?? MOCK_INITIAL_PROFILE.experienceLevel,
-    };
-
-    saveState(mergedProfile, MOCK_INITIAL_GAPS, MOCK_INITIAL_MISSIONS);
+  const handleLandingStart = (profileData: Partial<UserProfile>, isNewUser: boolean) => {
     localStorage.setItem("sp_authenticated", "true");
     setIsAuthenticated(true);
-    triggerNotification(`🎉 ¡Bienvenido, ${mergedProfile.name}! Tu ruta de empleabilidad está lista.`);
+
+    if (isNewUser) {
+      const freshProfile: UserProfile = {
+        name: profileData.name || "Estudiante UTP",
+        career: profileData.career || "",
+        semester: profileData.semester || 1,
+        experienceLevel: "",
+        targetRole: profileData.targetRole || "",
+        currentSkills: [],
+        interests: [],
+        employabilityScore: 0,
+        xp: 0,
+        level: 1,
+        progressToNextLevel: 0,
+      };
+
+      setProfile(freshProfile);
+      setGaps([]);
+      setMissions([]);
+      setEnrolledCourses([]);
+      localStorage.setItem("sp_profile", JSON.stringify(freshProfile));
+      localStorage.setItem("sp_gaps", JSON.stringify([]));
+      localStorage.setItem("sp_missions", JSON.stringify([]));
+      localStorage.setItem("sp_enrolled_courses", JSON.stringify([]));
+      localStorage.removeItem("sp_diagnosis_completed");
+      setView("diagnostico");
+      triggerNotification(
+        `🎉 ¡Bienvenido, ${freshProfile.name}! Completa tu Diagnóstico IA para generar tu plan personalizado.`
+      );
+      return;
+    }
+
+    const diagnosisCompleted = localStorage.getItem("sp_diagnosis_completed") === "true";
+    setView(diagnosisCompleted ? "dashboard" : "diagnostico");
+    triggerNotification(`👋 ¡Hola de nuevo! ${diagnosisCompleted ? "Retoma tu ruta." : "Termina tu Diagnóstico IA."}`);
   };
 
   const handleLogout = () => {
     localStorage.removeItem("sp_authenticated");
     setIsAuthenticated(false);
+    setView("dashboard");
   };
 
   if (!isHydrated) {
@@ -342,6 +461,7 @@ export default function App() {
                 { id: "interviewer", label: "Entrevistas IA", icon: MessageSquare },
                 { id: "jobs", label: "Vacantes & Match", icon: Briefcase },
                 { id: "resources", label: "Certificados", icon: Award },
+                { id: "mycourses", label: "Mis Cursos", icon: Library },
                 { id: "community", label: "Feed / Networking", icon: Users },
                 { id: "whatsapp", label: "WhatsApp Tutor", icon: PhoneCall },
               ].map((item) => {
@@ -446,6 +566,7 @@ export default function App() {
                     missions={missions}
                     onCompleteSubtask={handleCompleteSubtask}
                     onNavigateToView={setView}
+                    onStartCourseFromMission={handleStartCourseFromMission}
                     onCompleteMissionDirectly={(id) => handleCompleteSubtask(id, 0)}
                   />
                 </motion.div>
@@ -558,8 +679,8 @@ export default function App() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {CERTIFICATIONS_AND_COURSES.map((cert, idx) => (
-                      <div key={idx} className="bg-white rounded-none border border-utp-border p-6 flex flex-col justify-between gap-4">
+                    {CERTIFICATIONS_AND_COURSES.map((cert) => (
+                      <div key={cert.id} className="bg-white rounded-none border border-utp-border p-6 flex flex-col justify-between gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="text-[9px] text-neutral-400 font-extrabold uppercase tracking-widest">{cert.provider}</span>
@@ -569,21 +690,42 @@ export default function App() {
                           </div>
                           <h3 className="font-extrabold text-sm text-black uppercase tracking-tight mt-1">{cert.title}</h3>
                           <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Duración: {cert.duration} • Beneficio: {cert.cost}</p>
+                          {cert.linkedGap && (
+                            <p className="text-[10px] text-[#B50E30] font-bold uppercase tracking-tight">
+                              Cierra brecha: {cert.linkedGap}
+                            </p>
+                          )}
                         </div>
                         <button
                           type="button"
-                          onClick={() => {
-                            handleAddXpDirectly(50);
-                            triggerNotification(`📖 Inscripción procesada en "${cert.title}". ¡Ve al aula virtual!`);
-                          }}
+                          onClick={() => handleEnrollCourse(cert.id)}
                           className="w-full py-2.5 bg-black hover:bg-neutral-900 text-white font-black uppercase tracking-widest text-xs rounded-none transition cursor-pointer flex items-center justify-center gap-1 border border-black"
                         >
-                          Llevar curso
+                          {enrolledCourses.some((c) => c.courseId === cert.id && c.source === "internal")
+                            ? "Continuar curso"
+                            : "Llevar curso"}
                           <ChevronRight className="h-4 w-4 text-[#B50E30]" />
                         </button>
                       </div>
                     ))}
                   </div>
+                </motion.div>
+              )}
+
+              {view === "mycourses" && (
+                <motion.div
+                  key="mycourses_view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <MyCoursesPanel
+                    enrolledCourses={enrolledCourses}
+                    gaps={gaps}
+                    onCompleteLesson={handleCompleteLesson}
+                    onEnrollExternal={handleEnrollExternalCourse}
+                    onNavigateToCatalog={() => setView("resources")}
+                  />
                 </motion.div>
               )}
 

@@ -38,6 +38,8 @@ export interface CareerMission {
   order: number;
   actionLabel: string;
   subtasks: { text: string; done: boolean }[];
+  courseId?: string;
+  externalSuggestionId?: string;
 }
 
 export interface CvAnalysis {
@@ -109,4 +111,53 @@ export interface NetworkingContact {
   isPending: boolean;
   compatibilityText: string;
   bio: string;
+}
+
+export interface CourseLesson {
+  id: string;
+  title: string;
+  duration: string;
+}
+
+export interface CourseModule {
+  id: string;
+  title: string;
+  lessons: CourseLesson[];
+}
+
+export interface CourseCatalogItem {
+  id: string;
+  title: string;
+  provider: string;
+  badge: string;
+  duration: string;
+  pointsAwarded: number;
+  cost: string;
+  url: string;
+  source: "internal" | "partner";
+  linkedGap?: string;
+  description: string;
+  modules: CourseModule[];
+}
+
+export interface EnrolledCourse {
+  courseId: string;
+  enrolledAt: string;
+  progress: number;
+  completedLessons: string[];
+  source: "internal" | "external";
+}
+
+export interface ExternalCourseSuggestion {
+  id: string;
+  platform: string;
+  title: string;
+  instructor: string;
+  price: string;
+  originalPrice?: string;
+  rating: number;
+  students: string;
+  linkedGap: string;
+  url: string;
+  highlight: string;
 }

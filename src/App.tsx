@@ -15,6 +15,7 @@ import InterviewPanel from "./components/InterviewPanel";
 import SocialHub from "./components/SocialHub";
 import WhatsAppPreview from "./components/WhatsAppPreview";
 import UserProfilePanel from "./components/UserProfilePanel";
+import LandingPage from "./components/LandingPage";
 
 // Mock Data
 import { INITIAL_VACANCIES, CERTIFICATIONS_AND_COURSES, UNIVERSITY_EVENTS } from "./data";
@@ -114,16 +115,20 @@ export default function App() {
   const [gaps, setGaps] = useState<SkillGap[]>(MOCK_INITIAL_GAPS);
   const [missions, setMissions] = useState<CareerMission[]>(MOCK_INITIAL_MISSIONS);
   const [activeNotification, setActiveNotification] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Loading state from localStorage
   useEffect(() => {
     const savedProfile = localStorage.getItem("sp_profile");
     const savedGaps = localStorage.getItem("sp_gaps");
     const savedMissions = localStorage.getItem("sp_missions");
-    
+    const authenticated = localStorage.getItem("sp_authenticated") === "true";
+
     if (savedProfile) setProfile(JSON.parse(savedProfile));
     if (savedGaps) setGaps(JSON.parse(savedGaps));
     if (savedMissions) setMissions(JSON.parse(savedMissions));
+    setIsAuthenticated(authenticated);
+    setIsHydrated(true);
   }, []);
 
   // Save changes to state
@@ -258,6 +263,39 @@ export default function App() {
     handleAddXpDirectly(50);
   };
 
+  const handleLandingStart = (profileData?: Partial<UserProfile>) => {
+    const mergedProfile: UserProfile = {
+      ...MOCK_INITIAL_PROFILE,
+      ...profileData,
+      currentSkills: profileData?.currentSkills ?? MOCK_INITIAL_PROFILE.currentSkills,
+      interests: profileData?.interests ?? MOCK_INITIAL_PROFILE.interests,
+      experienceLevel: profileData?.experienceLevel ?? MOCK_INITIAL_PROFILE.experienceLevel,
+    };
+
+    saveState(mergedProfile, MOCK_INITIAL_GAPS, MOCK_INITIAL_MISSIONS);
+    localStorage.setItem("sp_authenticated", "true");
+    setIsAuthenticated(true);
+    triggerNotification(`🎉 ¡Bienvenido, ${mergedProfile.name}! Tu ruta de empleabilidad está lista.`);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("sp_authenticated");
+    setIsAuthenticated(false);
+  };
+
+  if (!isHydrated) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <LandingPage
+        onStart={handleLandingStart}
+        currentProfileName={profile.name !== MOCK_INITIAL_PROFILE.name ? profile.name : ""}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-black flex flex-col font-sans">
       {/* Absolute Dynamic Celebrations Banner */}
@@ -334,19 +372,28 @@ export default function App() {
                 LVL {profile.level}
               </span>
             </div>
-            
+
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-[9px] text-neutral-400 uppercase font-bold tracking-wider">
                 <span>XP: {profile.xp}</span>
                 <span>{profile.progressToNextLevel}%</span>
               </div>
               <div className="w-full bg-[#1e1e1e] h-1 rounded-none overflow-hidden">
-                <div 
+                <div
                   className="bg-utp-red h-full transition-all duration-300"
                   style={{ width: `${profile.progressToNextLevel}%` }}
                 />
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 text-[9px] font-bold uppercase tracking-wider text-neutral-400 hover:text-white transition cursor-pointer pt-1"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Cerrar sesión
+            </button>
           </div>
         </div>
 

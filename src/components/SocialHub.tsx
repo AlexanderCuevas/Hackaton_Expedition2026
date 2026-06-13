@@ -3,11 +3,10 @@ import { SocialPost, NetworkingContact } from "../types";
 import { 
   Users, MessageSquare, ThumbsUp, Sparkles, Send, Tag, Share2, 
   Search, PlusCircle, Check, Briefcase, GraduationCap, Trophy,
-  User, HeartHandshake, Award, X, LayoutGrid, List
+  User, HeartHandshake, Award, X, List
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { INITIAL_COMMUNITY_POSTS, INITIAL_NETWORKING_CONTACTS } from "../data";
-import { TestimonialCarousel } from "./ui/profile-card-testimonial-carousel";
 import { NavBar } from "./ui/tubelight-navbar";
 import { FeedView } from "./ui/feed-view";
 
@@ -111,7 +110,6 @@ export default function SocialHub() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const [activeCategory, setActiveCategory] = useState<"todo" | SocialPost["category"]>("todo");
-  const [postViewMode, setPostViewMode] = useState<"feed" | "testimonials">("feed");
 
   const [activeSegment, setActiveSegment] = useState<"comunidad" | "networking">("comunidad");
 
@@ -221,18 +219,6 @@ export default function SocialHub() {
     ? posts 
     : posts.filter(p => p.category === activeCategory);
 
-  const carouselData = filteredPosts.map((p) => ({
-    id: p.id,
-    name: p.authorName.replace(" (Tú)", ""),
-    title: `${p.authorCareer} • ${p.authorSemester}º ciclo`,
-    description: p.content,
-    imageUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(p.authorName.replace(" (Tú)", ""))}&background=B50E30&color=fff&size=200`,
-    likes: p.likes,
-    likedByUser: p.likedByUser,
-    commentsCount: p.comments.length,
-    comments: p.comments,
-  }));
-
   return (
     <div className="space-y-6">
       {/* Tab Select Controller */}
@@ -293,18 +279,6 @@ export default function SocialHub() {
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => setPostViewMode(postViewMode === "feed" ? "testimonials" : "feed")}
-                    className={`p-2.5 border transition cursor-pointer rounded-none ${
-                      postViewMode === "testimonials"
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-black border-utp-border hover:border-black"
-                    }`}
-                    title={postViewMode === "feed" ? "Vista Testimonios" : "Vista Feed"}
-                  >
-                    {postViewMode === "feed" ? <LayoutGrid className="h-4 w-4" /> : <List className="h-4 w-4" />}
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => setShowCreateModal(true)}
                     className="bg-[#B50E30] hover:bg-[#85061B] text-white text-[11px] font-black uppercase tracking-widest px-4 py-2.5 flex items-center gap-1.5 transition cursor-pointer rounded-none"
                   >
@@ -316,21 +290,21 @@ export default function SocialHub() {
 
               {/* POST WRITE PANEL IN-LINE CARD IF TRIGGERED */}
               {showCreateModal && (
-                <motion.form 
+                <motion.form
                   onSubmit={handleCreatePost}
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="bg-black text-white rounded-none p-6 border border-neutral-900 space-y-4"
+                  className="bg-white text-black rounded-none p-6 border border-gray-200 space-y-4"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase tracking-widest font-black text-[#B50E30] flex items-center gap-1.5">
-                      <Sparkles className="h-4 w-4 fill-white text-white" />
+                      <Sparkles className="h-4 w-4 fill-[#B50E30] text-[#B50E30]" />
                       Anuncia tu crecimiento a la red académica
                     </span>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => setShowCreateModal(false)}
-                      className="text-xs text-neutral-400 hover:text-white font-extrabold uppercase tracking-wide"
+                      className="text-xs text-gray-500 hover:text-black font-extrabold uppercase tracking-wide"
                     >
                       Cancelar
                     </button>
@@ -341,17 +315,17 @@ export default function SocialHub() {
                     value={newPostContent}
                     onChange={(e) => setNewPostContent(e.target.value)}
                     placeholder="Comparte tu avance corporativo, un proyecto académico de la UTP o solicita retroalimentación de verbos en el CV..."
-                    className="w-full p-4 bg-neutral-950 text-white text-xs font-semibold outline-none rounded-none border border-neutral-800 focus:border-[#B50E30] placeholder-neutral-500 font-mono"
+                    className="w-full p-4 bg-white text-black text-xs font-semibold outline-none rounded-none border border-gray-200 focus:border-[#B50E30] placeholder-gray-400 font-mono"
                     rows={4}
                   />
 
                   <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-[9px] uppercase font-black text-neutral-400">Categoría:</span>
+                      <span className="text-[9px] uppercase font-black text-gray-500">Categoría:</span>
                       <select
                         value={newPostCategory}
                         onChange={(e) => setNewPostCategory(e.target.value as SocialPost["category"])}
-                        className="bg-neutral-950 border border-neutral-800 text-xs text-white rounded-none px-2.5 py-1.5 uppercase font-bold"
+                        className="bg-white border border-gray-200 text-xs text-black rounded-none px-2.5 py-1.5 uppercase font-bold"
                       >
                         <option value="proyecto">PROYECTO</option>
                         <option value="logro">LOGRO FORMATIVO</option>
@@ -371,31 +345,8 @@ export default function SocialHub() {
                 </motion.form>
               )}
 
-              {/* POST GRID / TESTIMONIALS VIEW */}
-              {postViewMode === "testimonials" ? (
-                <div className="bg-white rounded-none border border-utp-border">
-                  <TestimonialCarousel
-                    testimonials={carouselData}
-                    onLike={(id) => handleLike(id as string)}
-                    onComment={(id, text) => {
-                      setPosts((prev) =>
-                        prev.map((p) => {
-                          if (p.id === id) {
-                            return {
-                              ...p,
-                              comments: [
-                                ...p.comments,
-                                { authorName: "Valeria Alva (Tú)", content: text, date: "Ahora mismo" },
-                              ],
-                            };
-                          }
-                          return p;
-                        })
-                      );
-                    }}
-                  />
-                </div>
-              ) : filteredPosts.length === 0 ? (
+              {/* FEED VIEW — único diseño oficial */}
+              {filteredPosts.length === 0 ? (
               <div className="bg-white rounded-none border border-utp-border p-8 text-center space-y-4">
                 <div className="text-neutral-300 mx-auto">
                   {activeCategory === "todo" ? (

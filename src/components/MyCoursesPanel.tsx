@@ -633,7 +633,7 @@ export default function MyCoursesPanel({
       <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
         <div className="absolute right-0 top-0 w-32 h-full utp-diagonal-pattern opacity-10 pointer-events-none" />
         <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
-        <h2 className="text-base font-black text-black uppercase tracking-widest flex items-center gap-2">
+        <h2 className="heading-lg text-black tracking-widest flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-[#B50E30]" />
           Mis Cursos
         </h2>

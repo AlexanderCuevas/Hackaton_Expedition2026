@@ -163,7 +163,7 @@ export default function InterviewPanel({
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div className="space-y-1.5">
-            <h2 className="text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
+            <h2 className="heading-lg text-black flex items-center gap-2">
               <MessageSquare className="h-5.5 w-5.5 text-[#B50E30]" />
               Entrevista de Trabajo IA - Simulación STAR
             </h2>
@@ -412,7 +412,7 @@ export default function InterviewPanel({
 
             {/* Markdown Report Message */}
             <div className="bg-white rounded-none border border-utp-border p-6 space-y-4">
-              <h4 className="text-xs font-black text-black pb-2 border-b border-utp-border uppercase tracking-widest flex items-center gap-2">
+              <h4 className="heading-sm text-black pb-2 border-b border-utp-border tracking-widest flex items-center gap-2">
                 <BookOpen className="h-4.5 w-4.5 text-[#B50E30]" />
                 Giga-Informe del Mentor IA
               </h4>

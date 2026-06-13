@@ -222,7 +222,7 @@ export default function CvAnalyzerPanel({
         <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
 
         <div className="relative z-10 space-y-1">
-          <h2 className="text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
+          <h2 className="heading-lg text-black flex items-center gap-2">
             <FileText className="h-5.5 w-5.5 text-[#B50E30]" />
             CV Analyzer IA &mdash; Escaneo ATS
           </h2>
@@ -308,7 +308,7 @@ export default function CvAnalyzerPanel({
           <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
             <div className="absolute right-0 top-0 w-24 h-full utp-diagonal-pattern opacity-10 pointer-events-none" />
             <div className="relative z-10">
-              <h3 className="text-sm font-black text-black uppercase tracking-widest flex items-center gap-2 pb-4 border-b border-utp-border">
+              <h3 className="heading-sm text-black tracking-widest flex items-center gap-2 pb-4 border-b border-utp-border">
                 <Sparkles className="h-4 w-4 text-[#B50E30] fill-[#B50E30]" />
                 Análisis IA del CV
               </h3>
@@ -490,7 +490,7 @@ export default function CvAnalyzerPanel({
                     <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
                       <div className="flex items-center gap-2">
                         <Sparkles className="h-4 w-4 fill-[#B50E30] text-[#B50E30]" />
-                        <span className="text-[11px] font-black uppercase tracking-widest">Extracto optimizado para formato Harvard</span>
+                        <span className="heading-xs tracking-widest">Extracto optimizado para formato Harvard</span>
                       </div>
                     </div>
                     <p className="text-[11px] text-neutral-400 font-semibold pt-3 pb-1">
@@ -564,7 +564,7 @@ export default function CvAnalyzerPanel({
 
                   {/* Estructura Harvard */}
                   <div className="border-t border-utp-border pt-5">
-                    <h4 className="text-[11px] font-black text-black uppercase tracking-wider flex items-center gap-2 mb-3">
+                    <h4 className="heading-xs text-black flex items-center gap-2 mb-3">
                       <BookOpen className="h-4 w-4 text-[#B50E30]" />
                       Estructura Harvard recomendada
                     </h4>
@@ -682,7 +682,7 @@ export default function CvAnalyzerPanel({
           {/* -------- Skills & Brechas -------- */}
           <div className="bg-white rounded-none border border-utp-border p-6">
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-utp-border">
-              <h3 className="text-sm font-black text-black uppercase tracking-widest flex items-center gap-2">
+              <h3 className="heading-sm text-black tracking-widest flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-[#B50E30]" />
                 Skills & Brechas
               </h3>

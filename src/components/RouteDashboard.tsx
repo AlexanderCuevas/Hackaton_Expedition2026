@@ -449,14 +449,14 @@ export default function RouteDashboard({
 
         <div className="space-y-2 relative z-10">
           <div className="flex items-center gap-2">
-            <span className="bg-[#B50E30] text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-none">
+            <span className="bg-[#B50E30] text-white heading-xs px-2 py-0.5 rounded-none">
               Puesto Objetivo
             </span>
             <span className="text-black font-semibold text-xs uppercase tracking-wide">
               Ciclo {profile.semester}º Universidades UTP
             </span>
           </div>
-          <h2 className="text-2xl font-black text-black tracking-tight uppercase">
+          <h2 className="heading-xl text-black">
             {profile.targetRole || "Diagnóstico Pendiente"}
           </h2>
           <p className="text-neutral-600 text-xs max-w-xl font-medium leading-relaxed">
@@ -498,7 +498,7 @@ export default function RouteDashboard({
           <div className="bg-white rounded-none border border-utp-border p-6">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-utp-border">
               <div>
-                <h3 className="text-sm font-black text-black uppercase tracking-widest flex items-center gap-2">
+                <h3 className="heading-md text-black tracking-widest flex items-center gap-2">
                   <Zap className="h-5 w-5 text-[#B50E30] fill-[#B50E30]" />
                   Misiones de Empleabilidad UTP
                 </h3>
@@ -551,7 +551,7 @@ export default function RouteDashboard({
         <div className="space-y-6">
           <div className="bg-white rounded-none border border-utp-border p-6">
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-utp-border">
-              <h3 className="text-xs font-black text-black uppercase tracking-widest flex items-center gap-2">
+              <h3 className="heading-sm text-black tracking-widest flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-[#B50E30]" />
                 Skills & Brechas
               </h3>
@@ -600,7 +600,7 @@ export default function RouteDashboard({
           <div className="bg-white rounded-none border border-utp-border p-6 space-y-4">
             <div className="pb-2 border-b border-utp-border flex items-center gap-2">
               <Calendar className="h-4 w-4 text-[#B50E30]" />
-              <h3 className="text-xs font-black text-black uppercase tracking-widest">
+              <h3 className="heading-sm text-black tracking-widest">
                 Eventos & Hackathons de Interés
               </h3>
             </div>

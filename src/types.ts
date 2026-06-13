@@ -183,3 +183,22 @@ export interface ExternalCourseSuggestion {
   url: string;
   highlight: string;
 }
+
+export type NotificationType =
+  | "connection_request"
+  | "connection_accepted"
+  | "like"
+  | "comment"
+  | "system";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  description: string;
+  timestamp: string;
+  read: boolean;
+  actorName?: string;
+  actorAvatar?: string;
+  actionUrl?: string;
+}

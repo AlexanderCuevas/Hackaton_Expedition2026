@@ -3,7 +3,7 @@ import { UserProfile, SkillGap, CareerMission, CvAnalysis, InterviewSession, Enr
 import { 
   Trophy, Award, BookOpen, AlertCircle, ArrowRight, CheckCircle, Lock, Play, Zap,
   Briefcase, GraduationCap, FileText, MessageSquare, Users, PhoneCall, ChevronRight,
-  Menu, X, Sparkles, LogOut, CheckSquare, Bell, Calendar, User, Library
+  Menu, X, Sparkles, LogOut, CheckSquare, Bell, Calendar, User
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -13,6 +13,9 @@ import DiagnosticoWizard from "./components/DiagnosticoWizard";
 import CvAnalyzerPanel from "./components/CvAnalyzerPanel";
 import InterviewPanel from "./components/InterviewPanel";
 import SocialHub from "./components/SocialHub";
+import NotificationBell from "./components/NotificationBell";
+import NotificationDrawer from "./components/NotificationDrawer";
+import { NotificationProvider } from "./context/NotificationContext";
 import WhatsAppPreview from "./components/WhatsAppPreview";
 import UserProfilePanel from "./components/UserProfilePanel";
 import VacanciesPanel from "./components/VacanciesPanel";
@@ -137,6 +140,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
+  const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
 
   useEffect(() => {
     const savedProfile = localStorage.getItem("sp_profile");
@@ -530,6 +534,7 @@ export default function App() {
   }
 
   return (
+    <NotificationProvider>
     <div className="min-h-screen bg-[#FFFFFF] text-black flex flex-col font-sans">
       {/* Absolute Dynamic Celebrations Banner */}
       <AnimatePresence>
@@ -573,8 +578,7 @@ export default function App() {
                 { id: "cvanalyzer", label: "CV Analyzer ATS", icon: FileText },
                 { id: "interviewer", label: "Entrevistas IA", icon: MessageSquare },
                 { id: "jobs", label: "Vacantes & Match", icon: Briefcase },
-                { id: "resources", label: "Certificados", icon: Award },
-                { id: "mycourses", label: "Mis Cursos", icon: Library },
+                { id: "resources", label: "Capacitaciones", icon: Award },
                 { id: "community", label: "Feed / Networking", icon: Users },
                 { id: "whatsapp", label: "WhatsApp Tutor", icon: PhoneCall },
               ].map((item) => {
@@ -649,8 +653,13 @@ export default function App() {
               </div>
             </div>
 
-            {/* Right Stats panel (removed — shown in profile) */}
+            {/* Right side — notification bell */}
+            <div className="flex items-center gap-3">
+              <NotificationBell onClick={() => setNotifDrawerOpen(true)} />
+            </div>
           </header>
+
+          <NotificationDrawer open={notifDrawerOpen} onClose={() => setNotifDrawerOpen(false)} />
 
           {/* Active Work Flow Rendering Frame */}
           <main className="flex-grow p-6 overflow-y-auto max-w-6xl w-full mx-auto flex flex-col justify-between">
@@ -689,6 +698,7 @@ export default function App() {
                     }}
                     gaps={gaps}
                     missions={missions}
+                    onNavigateToMyCourses={() => setView("mycourses")}
                   />
                 </motion.div>
               )}
@@ -775,7 +785,7 @@ export default function App() {
                       <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
                       <h2 className="text-base font-black text-black uppercase tracking-widest flex items-center gap-2">
                         <Award className="h-5 w-5 text-[#B50E30]" />
-                        Beca UTP+: Certificaciones & Cursos
+                        Beca UTP+: Capacitaciones & Cursos
                       </h2>
                       <p className="text-[#64748B] text-xs font-semibold mt-1 ml-7">
                         Para mitigar las brechas del mercado, hemos convenido con plataformas líderes estos accesos gratuitos con tu cuenta universitaria:
@@ -798,12 +808,15 @@ export default function App() {
                             {cert.image && <img src={cert.image} alt={cert.title} className="w-full h-full object-cover" />}
                           </div>
                           <div className="p-5 flex-grow">
-                            <div className="mb-3">
+                            <div className="flex items-center justify-between mb-3">
                               {logos[cert.provider] ? (
                                 <img src={logos[cert.provider]} alt={cert.provider} className="h-6 object-contain" />
                               ) : (
                                 <span className="text-[9px] text-neutral-400 font-extrabold uppercase tracking-widest">{cert.provider}</span>
                               )}
+                              <span className="bg-[#B50E30] text-white font-black text-[9px] px-2 py-0.5 rounded-none uppercase tracking-widest">
+                                +{cert.pointsAwarded} XP
+                              </span>
                             </div>
                             <h3 className="font-black text-sm text-black uppercase tracking-tight leading-snug">{cert.title}</h3>
                             <p className="text-[11px] font-bold text-neutral-600 mt-2 uppercase">{cert.duration}{cert.modality ? ` | ${cert.modality}` : ""}</p>
@@ -822,7 +835,7 @@ export default function App() {
                             )}
                             <button
                               onClick={() => handleEnrollCourse(cert.id)}
-                              className="w-full bg-black text-white py-2 text-xs font-black uppercase hover:bg-neutral-800 transition cursor-pointer border-0"
+                              className="w-full bg-[#B50E30] hover:bg-[#85061B] text-white py-2 text-xs font-black uppercase transition cursor-pointer border-0"
                             >
                               {isEnrolled ? "Continuar curso" : "Llevar curso"}
                             </button>
@@ -896,5 +909,6 @@ export default function App() {
         </div>
       </div>
     </div>
+    </NotificationProvider>
   );
 }

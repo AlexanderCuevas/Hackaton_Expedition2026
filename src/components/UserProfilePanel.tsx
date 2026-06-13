@@ -16,6 +16,7 @@ interface UserProfilePanelProps {
   onUpdateProfile: (updated: UserProfile) => void;
   gaps: SkillGap[];
   missions: CareerMission[];
+  onNavigateToMyCourses?: () => void;
 }
 
 const fadeUp = {
@@ -28,7 +29,7 @@ const scaleIn = {
   show: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeOut" as const } }
 };
 
-export default function UserProfilePanel({ profile, onUpdateProfile, gaps, missions }: UserProfilePanelProps) {
+export default function UserProfilePanel({ profile, onUpdateProfile, gaps, missions, onNavigateToMyCourses }: UserProfilePanelProps) {
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -128,23 +129,36 @@ export default function UserProfilePanel({ profile, onUpdateProfile, gaps, missi
             </p>
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            type="button"
-            onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-            className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-none transition-all flex items-center gap-2 cursor-pointer border-2 ${
-              isEditing 
-                ? "bg-black border-black text-white hover:bg-neutral-800 shadow-[4px_4px_0_#B50E30]" 
-                : "bg-white border-black text-black hover:bg-neutral-50 shadow-[4px_4px_0_#000] hover:shadow-[4px_4px_0_#B50E30]"
-            }`}
-          >
-            {isEditing ? (
-              <><Check className="h-4 w-4 text-green-400" /> Guardar Cambios</>
-            ) : (
-              <><Edit3 className="h-4 w-4 text-[#B50E30]" /> Editar Perfil</>
+          <div className="flex items-center gap-3">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              type="button"
+              onClick={() => isEditing ? handleSave() : setIsEditing(true)}
+              className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-none transition-all flex items-center gap-2 cursor-pointer border-2 ${
+                isEditing 
+                  ? "bg-black border-black text-white hover:bg-neutral-800 shadow-[4px_4px_0_#B50E30]" 
+                  : "bg-white border-black text-black hover:bg-neutral-50 shadow-[4px_4px_0_#000] hover:shadow-[4px_4px_0_#B50E30]"
+              }`}
+            >
+              {isEditing ? (
+                <><Check className="h-4 w-4 text-green-400" /> Guardar Cambios</>
+              ) : (
+                <><Edit3 className="h-4 w-4 text-[#B50E30]" /> Editar Perfil</>
+              )}
+            </motion.button>
+            {onNavigateToMyCourses && (
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                type="button"
+                onClick={onNavigateToMyCourses}
+                className="px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-none transition-all flex items-center gap-2 cursor-pointer bg-[#B50E30] border-2 border-[#B50E30] text-white hover:bg-[#85061B] shadow-[4px_4px_0_#000] hover:shadow-[4px_4px_0_#B50E30]"
+              >
+                <BookOpen className="h-4 w-4" /> Mis Cursos
+              </motion.button>
             )}
-          </motion.button>
+          </div>
         </div>
       </motion.div>
 

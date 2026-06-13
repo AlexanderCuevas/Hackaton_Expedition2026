@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import { SocialPost, NetworkingContact } from "../types";
+import { useNotification } from "../context/NotificationContext";
 import { 
   Users, MessageSquare, ThumbsUp, Sparkles, Send, Tag, Share2, 
   Search, PlusCircle, Check, Briefcase, GraduationCap, Trophy,
-  User, HeartHandshake, Award, X, LayoutGrid, List
+  User, HeartHandshake, Award, X, List
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { INITIAL_COMMUNITY_POSTS, INITIAL_NETWORKING_CONTACTS } from "../data";
-import { TestimonialCarousel } from "./ui/profile-card-testimonial-carousel";
 import { NavBar } from "./ui/tubelight-navbar";
+import { FeedView } from "./ui/feed-view";
+import { Button } from "./ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./ui/card";
 
 const COMMUNITY_USER_PROFILES: Record<string, any> = {
   "Diego Alva": {
@@ -98,6 +101,7 @@ const COMMUNITY_USER_PROFILES: Record<string, any> = {
 };
 
 export default function SocialHub() {
+  const { addNotification } = useNotification();
   const [posts, setPosts] = useState<SocialPost[]>(INITIAL_COMMUNITY_POSTS);
   const [contacts, setContacts] = useState<NetworkingContact[]>(INITIAL_NETWORKING_CONTACTS);
   
@@ -110,11 +114,25 @@ export default function SocialHub() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const [activeCategory, setActiveCategory] = useState<"todo" | SocialPost["category"]>("todo");
-  const [postViewMode, setPostViewMode] = useState<"list" | "testimonials">("testimonials");
 
   const [activeSegment, setActiveSegment] = useState<"comunidad" | "networking">("comunidad");
 
-  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.12 },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" as const },
+    },
+  };
 
   const openProfile = (name: string, fallbackData?: any) => {
     let cleanName = name.replace(" (Tú)", "").trim();
@@ -164,6 +182,13 @@ export default function SocialHub() {
         return c;
       })
     );
+
+    addNotification({
+      type: "connection_accepted",
+      title: "Conexión establecida",
+      description: `Ahora estás conectado con ${username.replace(" (Tú)", "").trim()}`,
+      actorName: username,
+    });
   };
 
   const handleLike = (postId: string) => {
@@ -180,33 +205,6 @@ export default function SocialHub() {
         return p;
       })
     );
-  };
-
-  const handleCommentSubmit = (e: React.FormEvent, postId: string) => {
-    e.preventDefault();
-    const commentText = commentInputs[postId];
-    if (!commentText?.trim()) return;
-
-    setPosts(prevPosts =>
-      prevPosts.map(p => {
-        if (p.id === postId) {
-          return {
-            ...p,
-            comments: [
-              ...p.comments,
-              {
-                authorName: "Valeria Alva (Tú)",
-                content: commentText,
-                date: "Ahora mismo"
-              }
-            ]
-          };
-        }
-        return p;
-      })
-    );
-
-    setCommentInputs(prev => ({ ...prev, [postId]: "" }));
   };
 
   const handleCreatePost = (e: React.FormEvent) => {
@@ -233,33 +231,32 @@ export default function SocialHub() {
   };
 
   const handleConnect = (contactId: string) => {
+    let contactName = "";
     setContacts(prev =>
       prev.map(c => {
         if (c.id === contactId) {
           if (!c.isConnected && !c.isPending) {
+            contactName = c.name;
             return { ...c, isPending: true };
           }
         }
         return c;
       })
     );
+
+    if (contactName) {
+      addNotification({
+        type: "connection_request",
+        title: "Solicitud de conexión enviada",
+        description: `Has solicitado conectar con ${contactName}`,
+        actorName: contactName,
+      });
+    }
   };
 
   const filteredPosts = activeCategory === "todo" 
     ? posts 
     : posts.filter(p => p.category === activeCategory);
-
-  const carouselData = filteredPosts.map((p) => ({
-    id: p.id,
-    name: p.authorName.replace(" (Tú)", ""),
-    title: `${p.authorCareer} • ${p.authorSemester}º ciclo`,
-    description: p.content,
-    imageUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(p.authorName.replace(" (Tú)", ""))}&background=B50E30&color=fff&size=200`,
-    likes: p.likes,
-    likedByUser: p.likedByUser,
-    commentsCount: p.comments.length,
-    comments: p.comments,
-  }));
 
   return (
     <div className="space-y-6">
@@ -321,18 +318,6 @@ export default function SocialHub() {
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => setPostViewMode(postViewMode === "list" ? "testimonials" : "list")}
-                    className={`p-2.5 border transition cursor-pointer rounded-none ${
-                      postViewMode === "testimonials"
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-black border-utp-border hover:border-black"
-                    }`}
-                    title={postViewMode === "list" ? "Vista Testimonios" : "Vista Lista"}
-                  >
-                    {postViewMode === "list" ? <LayoutGrid className="h-4 w-4" /> : <List className="h-4 w-4" />}
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => setShowCreateModal(true)}
                     className="bg-[#B50E30] hover:bg-[#85061B] text-white text-[11px] font-black uppercase tracking-widest px-4 py-2.5 flex items-center gap-1.5 transition cursor-pointer rounded-none"
                   >
@@ -344,21 +329,21 @@ export default function SocialHub() {
 
               {/* POST WRITE PANEL IN-LINE CARD IF TRIGGERED */}
               {showCreateModal && (
-                <motion.form 
+                <motion.form
                   onSubmit={handleCreatePost}
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="bg-black text-white rounded-none p-6 border border-neutral-900 space-y-4"
+                  className="bg-white text-black rounded-none p-6 border border-gray-200 space-y-4"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase tracking-widest font-black text-[#B50E30] flex items-center gap-1.5">
-                      <Sparkles className="h-4 w-4 fill-white text-white" />
+                      <Sparkles className="h-4 w-4 fill-[#B50E30] text-[#B50E30]" />
                       Anuncia tu crecimiento a la red académica
                     </span>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => setShowCreateModal(false)}
-                      className="text-xs text-neutral-400 hover:text-white font-extrabold uppercase tracking-wide"
+                      className="text-xs text-gray-500 hover:text-black font-extrabold uppercase tracking-wide"
                     >
                       Cancelar
                     </button>
@@ -369,17 +354,17 @@ export default function SocialHub() {
                     value={newPostContent}
                     onChange={(e) => setNewPostContent(e.target.value)}
                     placeholder="Comparte tu avance corporativo, un proyecto académico de la UTP o solicita retroalimentación de verbos en el CV..."
-                    className="w-full p-4 bg-neutral-950 text-white text-xs font-semibold outline-none rounded-none border border-neutral-800 focus:border-[#B50E30] placeholder-neutral-500 font-mono"
+                    className="w-full p-4 bg-white text-black text-xs font-semibold outline-none rounded-none border border-gray-200 focus:border-[#B50E30] placeholder-gray-400 font-mono"
                     rows={4}
                   />
 
                   <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-[9px] uppercase font-black text-neutral-400">Categoría:</span>
+                      <span className="text-[9px] uppercase font-black text-gray-500">Categoría:</span>
                       <select
                         value={newPostCategory}
                         onChange={(e) => setNewPostCategory(e.target.value as SocialPost["category"])}
-                        className="bg-neutral-950 border border-neutral-800 text-xs text-white rounded-none px-2.5 py-1.5 uppercase font-bold"
+                        className="bg-white border border-gray-200 text-xs text-black rounded-none px-2.5 py-1.5 uppercase font-bold"
                       >
                         <option value="proyecto">PROYECTO</option>
                         <option value="logro">LOGRO FORMATIVO</option>
@@ -399,124 +384,60 @@ export default function SocialHub() {
                 </motion.form>
               )}
 
-              {/* POST LIST / TESTIMONIALS VIEW */}
-              {postViewMode === "testimonials" ? (
-                <div className="bg-white rounded-none border border-utp-border">
-                  <TestimonialCarousel
-                    testimonials={carouselData}
-                    onLike={(id) => handleLike(id as string)}
-                    onComment={(id, text) => {
-                      setPosts((prev) =>
-                        prev.map((p) => {
-                          if (p.id === id) {
-                            return {
-                              ...p,
-                              comments: [
-                                ...p.comments,
-                                { authorName: "Valeria Alva (Tú)", content: text, date: "Ahora mismo" },
-                              ],
-                            };
-                          }
-                          return p;
-                        })
-                      );
-                    }}
-                  />
+              {/* FEED VIEW — único diseño oficial */}
+              {filteredPosts.length === 0 ? (
+              <div className="bg-white rounded-none border border-utp-border p-8 text-center space-y-4">
+                <div className="text-neutral-300 mx-auto">
+                  {activeCategory === "todo" ? (
+                    <MessageSquare className="h-10 w-10 mx-auto" />
+                  ) : activeCategory === "proyecto" ? (
+                    <Briefcase className="h-10 w-10 mx-auto" />
+                  ) : activeCategory === "logro" ? (
+                    <Trophy className="h-10 w-10 mx-auto" />
+                  ) : activeCategory === "ayuda" ? (
+                    <HeartHandshake className="h-10 w-10 mx-auto" />
+                  ) : activeCategory === "evento" ? (
+                    <Sparkles className="h-10 w-10 mx-auto" />
+                  ) : (
+                    <Tag className="h-10 w-10 mx-auto" />
+                  )}
                 </div>
-              ) : (
-              <div className="space-y-4">
-                {filteredPosts.map((post) => (
-                  <div key={post.id} className="bg-white rounded-none border border-utp-border p-6 space-y-4">
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                      <div 
-                        onClick={() => openProfile(post.authorName, { career: post.authorCareer, semester: post.authorSemester, avatarColor: post.avatarColor })}
-                        className="flex items-center gap-3 cursor-pointer group"
-                        title="Ver Perfil Profesional"
-                      >
-                        <div className="h-10 w-10 bg-black border border-black flex items-center justify-center text-white text-xs font-black uppercase transition-transform group-hover:scale-105 rounded-none">
-                          {post.authorName.replace(" (Tú)", "").slice(0, 2)}
-                        </div>
-                        <div>
-                          <div className="text-xs font-extrabold text-black uppercase tracking-wide flex items-center gap-1.5 transition-colors">
-                            <span>{post.authorName}</span>
-                            <span className="bg-black text-[#B50E30] text-[8px] font-black px-1.5 py-0.5 rounded-none">
-                              {post.category.toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-neutral-400 font-semibold mt-0.5 uppercase tracking-wide">
-                            {post.authorCareer} • {post.authorSemester}º ciclo
-                          </div>
-                        </div>
-                      </div>
-
-                      <span className="text-[10px] text-neutral-450 font-bold uppercase">{post.date}</span>
-                    </div>
-
-                    {/* Content */}
-                    <p className="text-xs text-black leading-relaxed font-semibold">
-                      {post.content}
-                    </p>
-
-                    {/* Footer Likes / Comments */}
-                    <div className="flex items-center justify-between pt-3 border-t border-utp-border text-[11px] font-black uppercase tracking-wider text-neutral-500">
-                      <div className="flex items-center gap-4">
-                        <button
-                          type="button"
-                          onClick={() => handleLike(post.id)}
-                          className={`flex items-center gap-1.5 transition cursor-pointer hover:text-[#B50E30] ${
-                            post.likedByUser ? "text-[#B50E30]" : ""
-                          }`}
-                        >
-                          <ThumbsUp className={`h-4 w-4 ${post.likedByUser ? "fill-[#B50E30] text-[#B50E30]" : ""}`} />
-                          <span>{post.likes} Likes</span>
-                        </button>
-
-                        <div className="flex items-center gap-1.5">
-                          <MessageSquare className="h-4 w-4 text-[#B50E30]" />
-                          <span>{post.comments.length} Comentarios</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Comments List Panel */}
-                    <div className="bg-neutral-50 p-4 rounded-none border border-utp-border space-y-3">
-                      {post.comments.map((comm, cIdx) => (
-                        <div key={cIdx} className="text-xs space-y-1 pb-2.5 border-b border-utp-border last:border-b-0 last:pb-0">
-                          <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-wider">
-                            <span 
-                              onClick={() => openProfile(comm.authorName)}
-                              className="font-black text-black hover:text-[#B50E30] hover:underline cursor-pointer transition-colors"
-                              title="Ver Perfil Profesional"
-                            >
-                              {comm.authorName}
-                            </span>
-                            <span className="text-neutral-400">{comm.date}</span>
-                          </div>
-                          <p className="text-neutral-700 font-semibold pl-1">{comm.content}</p>
-                        </div>
-                      ))}
-
-                      {/* Add comment form */}
-                      <form onSubmit={(e) => handleCommentSubmit(e, post.id)} className="flex items-center gap-2 pt-2">
-                        <input
-                          type="text"
-                          value={commentInputs[post.id] || ""}
-                          onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                          placeholder="Añadir comentario académico de apoyo..."
-                          className="flex-1 bg-white outline-none border border-utp-border rounded-none px-3 py-2 text-xs font-semibold text-black"
-                        />
-                        <button
-                          type="submit"
-                          className="bg-black hover:bg-neutral-900 text-white shrink-0 p-2.5 rounded-none transition flex items-center justify-center cursor-pointer"
-                        >
-                          <Send className="h-3.5 w-3.5 text-white" />
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                ))}
+                <p className="text-xs font-black uppercase text-neutral-400">
+                  {activeCategory === "todo"
+                    ? "Aún no hay publicaciones en el foro"
+                    : `No hay publicaciones en "${activeCategory}"`}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(true)}
+                  className="inline-flex items-center gap-1.5 bg-[#B50E30] hover:bg-[#85061B] text-white text-[11px] font-black uppercase tracking-widest px-4 py-2.5 transition cursor-pointer rounded-none"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Compartir un logro
+                </button>
               </div>
+              ) : (
+              <FeedView
+                posts={filteredPosts}
+                onLike={handleLike}
+                onComment={(id, text) => {
+                  setPosts((prev) =>
+                    prev.map((p) => {
+                      if (p.id === id) {
+                        return {
+                          ...p,
+                          comments: [
+                            ...p.comments,
+                            { authorName: "Valeria Alva (Tú)", content: text, date: "Ahora mismo" },
+                          ],
+                        };
+                      }
+                      return p;
+                    })
+                  );
+                }}
+                onOpenProfile={(name) => openProfile(name)}
+              />
             )}
             </div>
 
@@ -554,82 +475,100 @@ export default function SocialHub() {
             </div>
           </motion.div>
         ) : (
-          /* NETWORKING CONNECTIONS SEGMENT */
+          /* NETWORKING CONNECTIONS SEGMENT — VacanciesPanel card design */
           <motion.div
             key="networking"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
-            {contacts.map((c) => (
-              <div 
-                key={c.id} 
-                className="bg-white rounded-none border border-utp-border p-6 flex flex-col justify-between gap-4"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <span className={`text-[9px] font-black px-2.5 py-1 uppercase tracking-wider rounded-none ${
-                        c.type === "mentor"
-                          ? "bg-black text-[#B50E30] border border-black"
-                          : c.type === "reclutador"
-                            ? "bg-[#B50E30] text-white border border-[#B50E30]"
-                            : "bg-black text-white border border-black"
-                      }`}>
-                        {c.type}
-                      </span>
-                      <h3 className="font-extrabold text-sm uppercase text-black tracking-tight mt-3">{c.name}</h3>
-                      <p className="text-xs text-neutral-500 font-bold uppercase">
-                        {c.role} @ <span className="font-extrabold text-black">{c.company}</span>
-                      </p>
-                    </div>
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 gap-5"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {contacts.map((c) => (
+                <motion.div
+                  key={c.id}
+                  variants={cardVariants}
+                  whileHover={{ y: -4 }}
+                  className="relative group bg-white border border-gray-200 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.12)] transition-all duration-400 ease-out p-6 md:p-7 overflow-hidden flex flex-col"
+                >
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-[#B50E30] transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+
+                  <div className="flex justify-between items-start mb-4 gap-3">
+                    <span className={`text-[10px] md:text-xs font-bold px-3 py-1 uppercase tracking-widest mt-1 shadow-sm shrink-0 ${
+                      c.type === "mentor"
+                        ? "bg-black text-[#B50E30]"
+                        : c.type === "reclutador"
+                          ? "bg-[#B50E30] text-white"
+                          : "bg-black text-white"
+                    }`}>
+                      {c.type}
+                    </span>
                   </div>
 
-                  <p className="text-xs text-neutral-700 leading-relaxed font-semibold">
+                  <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-black leading-tight mb-2 group-hover:text-[#B50E30] transition-colors duration-300">
+                    {c.name}
+                  </h3>
+
+                  <div className="flex flex-wrap items-center gap-3 text-gray-400 font-bold text-[10px] md:text-xs uppercase tracking-wider mb-4">
+                    <span className="flex items-center gap-1">
+                      <Briefcase className="w-3.5 h-3.5 text-[#B50E30]" />
+                      {c.role} @ <strong className="text-black font-extrabold">{c.company}</strong>
+                    </span>
+                  </div>
+
+                  <p className="text-gray-600 font-medium leading-relaxed text-xs md:text-sm mb-5 line-clamp-2">
                     {c.bio}
                   </p>
 
-                  <div className="text-[10px] font-black uppercase tracking-wider text-black bg-neutral-50 p-3 rounded-none border border-utp-border flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 text-[#B50E30] shrink-0 fill-[#B50E30]" />
-                    <span>{c.compatibilityText}</span>
+                  <div className="mb-5">
+                    <span className="text-[10px] font-black text-[#B50E30] uppercase tracking-widest block mb-2">
+                      Compatibilidad:
+                    </span>
+                    <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-black font-bold uppercase text-[10px] px-3 py-2">
+                      <Sparkles className="h-4 w-4 text-[#B50E30] shrink-0 fill-[#B50E30]" />
+                      <span>{c.compatibilityText}</span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="border-t border-utp-border pt-4 flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={() => openProfile(c.name)}
-                    className="text-black hover:text-[#B50E30] text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-none hover:bg-neutral-50 transition cursor-pointer"
-                  >
-                    Ver Perfil
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleConnect(c.id)}
-                    disabled={c.isConnected || c.isPending}
-                    className={`px-4 py-2.5 rounded-none text-xs font-black uppercase tracking-widest transition flex items-center gap-1 cursor-pointer border ${
-                      c.isConnected 
-                        ? "bg-neutral-100 text-neutral-500 border-neutral-200" 
-                        : c.isPending 
-                          ? "bg-neutral-50 text-neutral-400 border-utp-border" 
-                          : "bg-[#B50E30] hover:bg-[#85061B] text-white border-[#B50E30] shadow-none"
-                    }`}
-                  >
+                  <hr className="border-gray-200 mb-5 group-hover:border-[#B50E30]/20 transition-colors" />
+
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-auto">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openProfile(c.name)}
+                      className="text-xs font-black uppercase tracking-wider rounded-lg border-gray-200 text-gray-700 hover:text-[#B50E30] hover:border-[#B50E30]"
+                    >
+                      Ver Perfil
+                    </Button>
+
                     {c.isConnected ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-[#B50E30] stroke-[3]" />
+                      <div className="w-full md:w-auto bg-neutral-100 text-neutral-500 border border-neutral-200 text-xs font-black uppercase tracking-widest px-6 py-3 flex items-center justify-center gap-2 shrink-0 select-none">
+                        <Check className="h-4 w-4 text-[#B50E30] stroke-[3]" />
                         Conectado
-                      </>
+                      </div>
                     ) : c.isPending ? (
-                      "Solicitado"
+                      <div className="w-full md:w-auto bg-neutral-50 text-neutral-400 border border-gray-200 text-xs font-black uppercase tracking-widest px-6 py-3 flex items-center justify-center gap-2 shrink-0 select-none">
+                        Solicitado
+                      </div>
                     ) : (
-                      "Conectar"
+                      <motion.button
+                        type="button"
+                        onClick={() => handleConnect(c.id)}
+                        whileTap={{ scale: 0.97 }}
+                        className="group/btn w-full md:w-auto bg-black text-white font-black uppercase tracking-widest text-[11px] px-6 py-3 flex items-center justify-center gap-2 hover:bg-[#B50E30] hover:shadow-[0_8px_20px_rgba(181,14,48,0.3)] transition-all duration-300 shrink-0 cursor-pointer"
+                      >
+                        Conectar
+                      </motion.button>
                     )}
-                  </button>
-                </div>
-              </div>
-            ))}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -641,7 +580,7 @@ export default function SocialHub() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-neutral-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
             onClick={() => setSelectedUserProfile(null)}
           >
             <motion.div
@@ -649,110 +588,175 @@ export default function SocialHub() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
               transition={{ type: "spring", duration: 0.4 }}
-              className="bg-white rounded-none max-w-md w-full p-6 shadow-none border-l-4 border-l-[#B50E30] border-t border-b border-r border-utp-border relative space-y-5"
               onClick={(e) => e.stopPropagation()}
+              className="w-[90vw] max-w-lg"
             >
-              {/* Close Button */}
-              <button
-                type="button"
-                onClick={() => setSelectedUserProfile(null)}
-                className="absolute top-4 right-4 p-1.5 rounded-none text-neutral-450 hover:text-black hover:bg-neutral-50 transition cursor-pointer border border-utp-border"
-              >
-                <X className="h-4.5 w-4.5" />
-              </button>
-
-              {/* Top decoration segment */}
-              <div className="flex items-center gap-1.5 pb-2 border-b border-utp-border">
-                <span className="text-[10px] uppercase font-black px-2.5 py-0.5 rounded-none tracking-wide bg-black text-white">
-                  {selectedUserProfile.type}
-                </span>
-                <span className="text-[10px] font-black text-neutral-400">ID: UTP-{selectedUserProfile.xp + 1092}</span>
-              </div>
-
-              {/* Main Avatar & General Stats Info */}
-              <div className="flex items-center gap-4">
-                <div className="h-16 w-16 bg-black text-white rounded-none flex items-center justify-center text-lg font-black shrink-0 border border-black relative">
-                  {selectedUserProfile.name.replace("Ing. ", "").replace("Lic. ", "").slice(0, 2).toUpperCase()}
-                  <div className="absolute -bottom-1.5 -right-1.5 h-6 w-6 bg-[#B50E30] border border-white rounded-none flex items-center justify-center text-[10px] font-black text-white">
-                    {selectedUserProfile.level}
-                  </div>
-                </div>
-
-                <div className="space-y-0.5 min-w-0">
-                  <h3 className="text-base font-black uppercase text-black tracking-tight truncate">{selectedUserProfile.name}</h3>
-                  <p className="text-xs font-extrabold text-[#B50E30] uppercase tracking-wider truncate">{selectedUserProfile.targetRole}</p>
-                  <p className="text-[11px] text-neutral-500 font-bold uppercase tracking-tight truncate">{selectedUserProfile.career} • {selectedUserProfile.semester}º Ciclo</p>
-                </div>
-              </div>
-
-              {/* Bio block */}
-              <div className="bg-neutral-50 p-4 rounded-none border border-utp-border">
-                <h4 className="text-[9px] font-black text-neutral-450 uppercase tracking-wider mb-1">Acerca de</h4>
-                <p className="text-xs text-neutral-800 leading-relaxed font-semibold italic">
-                  "{selectedUserProfile.bio}"
-                </p>
-              </div>
-
-              {/* Skill chips container */}
-              <div className="space-y-2">
-                <h4 className="text-[9px] font-black text-[#B50E30] uppercase tracking-wider flex items-center gap-1">
-                  <Award className="h-4 w-4" />
-                  Habilidades Destacadas
-                </h4>
-                <div className="flex flex-wrap gap-1">
-                  {selectedUserProfile.skills.map((s: string) => (
-                    <span
-                      key={s}
-                      className="bg-black text-white text-[10px] font-bold px-2.5 py-1 uppercase tracking-tight rounded-none"
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Dynamic stats row */}
-              <div className="grid grid-cols-2 gap-3 py-1 border-t border-b border-utp-border">
-                <div className="text-center py-2.5 bg-neutral-50 rounded-none border border-utp-border">
-                  <span className="text-[9px] font-black uppercase text-neutral-400 block pb-0.5">Puntos de XP</span>
-                  <span className="text-xs font-black text-black uppercase">{selectedUserProfile.xp} XP</span>
-                </div>
-                <div className="text-center py-2.5 bg-neutral-50 rounded-none border border-utp-border">
-                  <span className="text-[9px] font-black uppercase text-neutral-450 block pb-0.5">Rango Académico</span>
-                  <span className="text-xs font-black text-[#B50E30] uppercase">MEMBER L{selectedUserProfile.level}</span>
-                </div>
-              </div>
-
-              {/* CTA Action Panel */}
-              <div className="flex justify-end gap-2 pt-1">
-                <button
-                  type="button"
+              <Card className="w-full bg-white shadow-xl border-gray-200 relative overflow-hidden rounded-2xl">
+                {/* Close Button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setSelectedUserProfile(null)}
-                  className="px-4 py-2 border border-black text-black hover:bg-neutral-50 rounded-none text-xs font-black uppercase tracking-wider transition cursor-pointer"
+                  className="absolute top-3 right-3 z-20 h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm text-gray-500 hover:text-gray-800 hover:bg-white border border-gray-200"
                 >
-                  Cerrar
-                </button>
+                  <X className="h-4 w-4" />
+                </Button>
 
-                {selectedUserProfile.name.includes("Tú") ? (
-                  <div className="px-4 py-2 bg-neutral-100 text-neutral-400 border border-neutral-200 rounded-none text-xs font-bold uppercase select-none">
-                    Tú (Estudiante)
+                {/* Cover Banner */}
+                <div className="h-28 bg-gradient-to-r from-gray-900 via-neutral-800 to-gray-900 relative">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.05)_0px,transparent_100px)]" />
+                </div>
+
+                {/* Avatar overlapping cover */}
+                <div className="relative px-6">
+                  <div className="relative -mt-12 mb-2 flex items-end gap-4">
+                    <div className="relative shrink-0">
+                      <img
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUserProfile.name.replace(" (Tú)", "").replace("Ing. ", "").replace("Lic. ", ""))}&background=000&color=fff&size=128&bold=true`}
+                        alt={selectedUserProfile.name}
+                        className="h-20 w-20 rounded-2xl border-4 border-white bg-white object-cover shadow-lg"
+                      />
+                      <div className="absolute -bottom-1 -right-1 h-7 w-7 bg-[#B50E30] rounded-full flex items-center justify-center text-[11px] font-bold text-white shadow-md border-2 border-white">
+                        {selectedUserProfile.level}
+                      </div>
+                    </div>
+
+                    <div className="min-w-0 flex-1 pt-1">
+                      <CardTitle className="text-lg font-bold text-gray-900 tracking-tight truncate">
+                        {selectedUserProfile.name}
+                      </CardTitle>
+                      <p className="text-xs font-semibold text-[#B50E30] tracking-wide truncate">
+                        {selectedUserProfile.targetRole}
+                      </p>
+                      <p className="text-[11px] text-gray-500 font-medium truncate">
+                        {selectedUserProfile.career} • {selectedUserProfile.semester}º Ciclo
+                      </p>
+                    </div>
                   </div>
-                ) : connectedProfiles[selectedUserProfile.name] || selectedUserProfile.name.includes("Andrea Salazar") ? (
-                  <div className="px-4 py-2 bg-neutral-50 text-black border border-utp-border rounded-none text-xs font-black uppercase tracking-widest flex items-center gap-1.5 select-none">
-                    <Check className="h-3.5 w-3.5 text-[#B50E30] stroke-[3]" />
-                    Conectados
+
+                  {/* Type badge + ID row */}
+                  <div className="flex items-center gap-2 pb-4 border-b border-gray-100">
+                    <span className="text-[9px] uppercase font-bold px-2.5 py-1 rounded-md tracking-wide bg-black text-white">
+                      {selectedUserProfile.type}
+                    </span>
+                    <span className="text-[9px] font-semibold text-gray-400">ID: UTP-{selectedUserProfile.xp + 1092}</span>
+                    <span className="ml-auto text-[9px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                      ● Disponible para networking
+                    </span>
                   </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => handleUserProfileConnect(selectedUserProfile.name)}
-                    className="px-5 py-2 bg-[#B50E30] hover:bg-[#85061B] text-white rounded-none text-xs font-black uppercase tracking-widest transition flex items-center gap-1.5 cursor-pointer shadow-none"
+                </div>
+
+                <CardContent className="px-6 pt-4 pb-2 space-y-5">
+                  {/* Bio block */}
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <h4 className="text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-1">Acerca de</h4>
+                    <p className="text-xs text-gray-700 leading-relaxed font-[425] italic">
+                      "{selectedUserProfile.bio}"
+                    </p>
+                  </div>
+
+                  {/* Skill chips */}
+                  <div className="space-y-2.5">
+                    <h4 className="text-[9px] font-bold text-[#B50E30] uppercase tracking-wider flex items-center gap-1">
+                      <Award className="h-4 w-4" />
+                      Habilidades Destacadas
+                    </h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedUserProfile.skills.map((s: string) => (
+                        <span
+                          key={s}
+                          className="bg-gray-900 text-white text-[10px] font-semibold px-3 py-1 rounded-md tracking-tight"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Actividad */}
+                  <div className="space-y-2.5">
+                    <h4 className="text-[9px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                      <Briefcase className="h-4 w-4 text-[#B50E30]" />
+                      Actividad reciente
+                    </h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { label: "Proyectos", value: posts.filter(p => p.category === "proyecto" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length },
+                        { label: "Logros", value: posts.filter(p => p.category === "logro" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length },
+                        { label: "Eventos", value: posts.filter(p => p.category === "evento" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length },
+                      ].map((item, i) => (
+                        <div key={i} className="text-center py-3 bg-gray-50 rounded-xl border border-gray-100">
+                          <span className="text-sm font-bold text-gray-900 block">{item.value}</span>
+                          <span className="text-[9px] font-semibold text-gray-400 uppercase">{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Stats row */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="text-center py-3 bg-gray-50 rounded-xl border border-gray-100">
+                      <span className="text-[9px] font-bold uppercase text-gray-400 block pb-0.5">Puntos de XP</span>
+                      <span className="text-xs font-bold text-gray-900">{selectedUserProfile.xp} XP</span>
+                    </div>
+                    <div className="text-center py-3 bg-gray-50 rounded-xl border border-gray-100">
+                      <span className="text-[9px] font-bold uppercase text-gray-400 block pb-0.5">Rango Académico</span>
+                      <span className="text-xs font-bold text-[#B50E30]">MEMBER L{selectedUserProfile.level}</span>
+                    </div>
+                  </div>
+
+                  {/* Redes sociales */}
+                  <div className="space-y-2.5">
+                    <h4 className="text-[9px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                      <Share2 className="h-4 w-4 text-[#B50E30]" />
+                      Redes y Portafolio
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { icon: "in", label: "LinkedIn", color: "bg-blue-100 text-blue-700" },
+                        { icon: "gh", label: "GitHub", color: "bg-gray-100 text-gray-700" },
+                        { icon: "pf", label: "Portafolio", color: "bg-purple-100 text-purple-700" },
+                      ].map((net, i) => (
+                        <span
+                          key={i}
+                          className={`text-[10px] font-semibold px-3 py-1.5 rounded-lg ${net.color} flex items-center gap-1`}
+                        >
+                          {net.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+
+                <CardFooter className="px-6 pb-5 pt-3 flex justify-end gap-2 border-t border-gray-100">
+                  <Button
+                    variant="outline"
+                    onClick={() => setSelectedUserProfile(null)}
+                    className="text-xs font-semibold rounded-lg border-gray-200 text-gray-600 hover:bg-gray-50"
                   >
-                    <HeartHandshake className="h-3.5 w-3.5" />
-                    Conectar
-                  </button>
-                )}
-              </div>
+                    Cerrar
+                  </Button>
+
+                  {selectedUserProfile.name.includes("Tú") ? (
+                    <div className="px-4 py-2 bg-gray-100 text-gray-400 border border-gray-200 rounded-lg text-xs font-semibold select-none">
+                      Tú (Estudiante)
+                    </div>
+                  ) : connectedProfiles[selectedUserProfile.name] || selectedUserProfile.name.includes("Andrea Salazar") ? (
+                    <div className="px-4 py-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 select-none">
+                      <Check className="h-3.5 w-3.5 text-[#B50E30] stroke-[3]" />
+                      Conectados
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => handleUserProfileConnect(selectedUserProfile.name)}
+                      className="bg-[#B50E30] hover:bg-[#85061B] text-white text-xs font-semibold rounded-lg shadow-none"
+                    >
+                      <HeartHandshake className="h-3.5 w-3.5 mr-1" />
+                      Conectar
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
             </motion.div>
           </motion.div>
         )}

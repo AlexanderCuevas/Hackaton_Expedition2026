@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from "react";
 import {
   BookOpen, ChevronRight, ExternalLink, Play, Check, Clock,
-  Sparkles, ArrowLeft, Tag, Star, Users
+  Sparkles, ArrowLeft, Tag, Star, Users, Download, MessageCircle,
+  FileText, ChevronDown, ChevronUp
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -32,6 +33,12 @@ function getExternalSuggestion(suggestionId: string): ExternalCourseSuggestion |
   return EXTERNAL_COURSE_SUGGESTIONS.find((s) => s.id === suggestionId);
 }
 
+const logos: Record<string, string> = {
+  "Google": "https://e7.pngegg.com/pngimages/704/688/png-clipart-google-google-thumbnail.png",
+  "Microsoft": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/3840px-Microsoft_logo.svg.png",
+  "UTP": "https://i.scdn.co/image/ab6765630000ba8af770691237911d7e512de37c",
+};
+
 export default function MyCoursesPanel({
   enrolledCourses,
   gaps,
@@ -43,6 +50,8 @@ export default function MyCoursesPanel({
     enrolledCourses[0]?.courseId ?? null
   );
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"descripcion" | "materiales" | "discusion">("descripcion");
+  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
 
   const activeGaps = gaps.filter((g) => g.status !== "completado");
 
@@ -80,6 +89,10 @@ export default function MyCoursesPanel({
     setActiveLessonId(nextLesson?.id ?? activeLessonId);
   };
 
+  const toggleModule = (moduleId: string) => {
+    setExpandedModules(prev => ({ ...prev, [moduleId]: !prev[moduleId] }));
+  };
+
   const renderCourseViewer = () => {
     if (!activeCourse || !activeEnrollment) return null;
 
@@ -88,6 +101,7 @@ export default function MyCoursesPanel({
     const isLessonDone = activeLesson
       ? activeEnrollment.completedLessons.includes(activeLesson.id)
       : false;
+    const activeModule = activeCourse.modules.find(m => m.lessons.some(l => l.id === activeLessonId));
 
     return (
       <motion.div
@@ -108,8 +122,8 @@ export default function MyCoursesPanel({
           Volver a mis cursos
         </button>
 
-        <div className="bg-white border border-utp-border rounded-none overflow-hidden">
-          <div className="p-6 border-b border-utp-border relative">
+        <div className="bg-white border border-neutral-200 overflow-hidden shadow-sm">
+          <div className="p-6 border-b border-neutral-100 relative">
             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
@@ -119,15 +133,17 @@ export default function MyCoursesPanel({
                 <h2 className="text-lg font-black text-black uppercase tracking-tight">
                   {activeCourse.title}
                 </h2>
-                <p className="text-xs text-neutral-600 font-medium max-w-xl">
-                  {activeCourse.description}
-                </p>
+                {activeModule && (
+                  <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide">
+                    Módulo actual: {activeModule.title}
+                  </p>
+                )}
               </div>
               <div className="text-right shrink-0">
                 <span className="text-[10px] font-black text-[#B50E30] uppercase tracking-wider block">
                   {activeEnrollment.progress}% completado
                 </span>
-                <div className="w-32 bg-neutral-100 h-2 border border-utp-border mt-1">
+                <div className="w-32 bg-neutral-100 h-2 mt-1">
                   <div
                     className="bg-[#B50E30] h-full transition-all"
                     style={{ width: `${activeEnrollment.progress}%` }}
@@ -137,105 +153,264 @@ export default function MyCoursesPanel({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-5 min-h-[360px]">
-            <div className="lg:col-span-2 border-r border-utp-border bg-neutral-50/50 p-4 space-y-3 overflow-y-auto max-h-[420px]">
-              {activeCourse.modules.map((mod) => (
-                <div key={mod.id} className="space-y-1">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-black px-2 pt-2">
-                    {mod.title}
-                  </h4>
-                  {mod.lessons.map((lesson) => {
-                    const done = activeEnrollment.completedLessons.includes(lesson.id);
-                    const isActive = activeLessonId === lesson.id;
-                    return (
-                      <button
-                        key={lesson.id}
-                        type="button"
-                        onClick={() => setActiveLessonId(lesson.id)}
-                        className={`w-full text-left flex items-center gap-2.5 px-3 py-2.5 text-xs transition cursor-pointer ${
-                          isActive
-                            ? "bg-black text-white"
-                            : "hover:bg-white text-black"
-                        }`}
-                      >
-                        <div
-                          className={`h-4 w-4 shrink-0 flex items-center justify-center border ${
-                            done
-                              ? "bg-[#B50E30] border-[#B50E30] text-white"
-                              : isActive
-                                ? "border-white/50"
-                                : "border-neutral-300"
-                          }`}
-                        >
-                          {done && <Check className="h-2.5 w-2.5 stroke-[3]" />}
-                        </div>
-                        <span className="font-semibold flex-1 truncate">{lesson.title}</span>
-                        <span
-                          className={`text-[9px] font-bold shrink-0 ${
-                            isActive ? "text-white/70" : "text-neutral-400"
-                          }`}
-                        >
-                          {lesson.duration}
+          <div className="grid grid-cols-1 lg:grid-cols-5 min-h-[500px]">
+            <div className="lg:col-span-2 border-r border-neutral-100 bg-neutral-50/50 p-4 space-y-3 overflow-y-auto max-h-[580px]">
+              {activeCourse.modules.map((mod) => {
+                const completedInModule = mod.lessons.filter(l => activeEnrollment.completedLessons.includes(l.id)).length;
+                const isExpanded = expandedModules[mod.id] !== false;
+                return (
+                  <div key={mod.id} className="space-y-1 bg-white border border-neutral-200 shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => toggleModule(mod.id)}
+                      className="w-full flex items-center justify-between px-3 py-3 text-left cursor-pointer hover:bg-neutral-50 transition"
+                    >
+                      <div>
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-black">
+                          {mod.title}
+                        </h4>
+                        <span className="text-[9px] font-bold text-neutral-500">
+                          {completedInModule}/{mod.lessons.length} lecciones
                         </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 bg-neutral-200 h-1.5">
+                          <div
+                            className="bg-[#B50E30] h-full transition-all"
+                            style={{ width: `${(completedInModule / mod.lessons.length) * 100}%` }}
+                          />
+                        </div>
+                        {isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-neutral-400" /> : <ChevronDown className="h-3.5 w-3.5 text-neutral-400" />}
+                      </div>
+                    </button>
+                    {isExpanded && (
+                      <div className="pb-1">
+                        {mod.lessons.map((lesson) => {
+                          const done = activeEnrollment.completedLessons.includes(lesson.id);
+                          const isActive = activeLessonId === lesson.id;
+                          return (
+                            <button
+                              key={lesson.id}
+                              type="button"
+                              onClick={() => setActiveLessonId(lesson.id)}
+                              className={`w-full text-left flex items-center gap-2.5 px-3 py-2.5 text-xs transition cursor-pointer ${
+                                isActive
+                                  ? "bg-black text-white"
+                                  : "hover:bg-neutral-100 text-black"
+                              }`}
+                            >
+                              <div
+                                className={`h-4 w-4 shrink-0 flex items-center justify-center border ${
+                                  done
+                                    ? "bg-[#B50E30] border-[#B50E30] text-white"
+                                    : isActive
+                                      ? "border-white/50"
+                                      : "border-neutral-300"
+                                }`}
+                              >
+                                {done && <Check className="h-2.5 w-2.5 stroke-[3]" />}
+                              </div>
+                              <span className="font-semibold flex-1 truncate">{lesson.title}</span>
+                              <span
+                                className={`text-[9px] font-bold shrink-0 ${
+                                  isActive ? "text-white/70" : "text-neutral-400"
+                                }`}
+                              >
+                                {lesson.duration}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="lg:col-span-3 p-6 flex flex-col justify-between">
-              {activeLesson ? (
-                <>
+            <div className="lg:col-span-3 flex flex-col">
+              <div className="p-6 flex-1">
+                {activeLesson ? (
                   <div className="space-y-4">
-                    <div className="aspect-video bg-black flex items-center justify-center relative overflow-hidden">
-                      <div className="absolute inset-0 utp-diagonal-pattern opacity-10" />
+                    <div className="aspect-video bg-gradient-to-br from-neutral-900 via-black to-neutral-800 flex items-center justify-center relative overflow-hidden">
+                      <div className="absolute inset-0" style={{
+                        backgroundImage: `linear-gradient(rgba(181, 14, 48, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(181, 14, 48, 0.08) 1px, transparent 1px)`,
+                        backgroundSize: '48px 48px'
+                      }} />
                       <div className="text-center space-y-3 relative z-10">
-                        <div className="h-14 w-14 bg-[#B50E30] mx-auto flex items-center justify-center">
-                          <Play className="h-6 w-6 text-white fill-white" />
+                        <div className="h-16 w-16 bg-[#B50E30] mx-auto flex items-center justify-center cursor-pointer hover:bg-[#85061B] transition">
+                          <Play className="h-7 w-7 text-white fill-white" />
                         </div>
                         <p className="text-white text-xs font-bold uppercase tracking-wider">
                           Aula Virtual UTP+
                         </p>
                       </div>
                     </div>
-                    <div>
-                      <h3 className="font-extrabold text-sm uppercase text-black tracking-tight">
-                        {activeLesson.title}
-                      </h3>
-                      <p className="text-[10px] text-neutral-500 font-bold uppercase mt-1 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        Duración: {activeLesson.duration}
-                      </p>
-                      <p className="text-xs text-neutral-600 font-medium mt-3 leading-relaxed">
-                        Contenido interactivo del módulo. Completa la lección para avanzar en tu ruta
-                        de empleabilidad y sumar XP hacia tu certificación.
-                      </p>
+
+                    <div className="flex items-center gap-3 border-b border-neutral-100">
+                      {(["descripcion", "materiales", "discusion"] as const).map((tab) => (
+                        <button
+                          key={tab}
+                          type="button"
+                          onClick={() => setActiveTab(tab)}
+                          className={`text-[10px] font-black uppercase tracking-widest px-4 py-3 transition cursor-pointer border-b-2 ${
+                            activeTab === tab
+                              ? "text-[#B50E30] border-[#B50E30]"
+                              : "text-neutral-400 border-transparent hover:text-black"
+                          }`}
+                        >
+                          {tab === "descripcion" && "Descripción"}
+                          {tab === "materiales" && "Materiales"}
+                          {tab === "discusion" && "Discusión"}
+                        </button>
+                      ))}
+                    </div>
+
+                    {activeTab === "descripcion" && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-extrabold text-sm uppercase text-black tracking-tight">
+                            {activeLesson.title}
+                          </h3>
+                          <span className="text-[9px] font-bold text-neutral-500 bg-neutral-100 px-2 py-0.5 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {activeLesson.duration}
+                          </span>
+                        </div>
+                        <p className="text-xs text-neutral-600 font-medium leading-relaxed">
+                          Contenido interactivo del módulo. Completa la lección para avanzar en tu ruta
+                          de empleabilidad y sumar XP hacia tu certificación.
+                        </p>
+                        <div className="bg-neutral-50 border border-neutral-200 p-4 space-y-2">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-black">Objetivos</h4>
+                          <ul className="space-y-1.5">
+                            {["Comprender los fundamentos teóricos", "Aplicar conceptos en casos prácticos", "Evaluar tu conocimiento con ejercicios"].map((obj, idx) => (
+                              <li key={idx} className="flex items-start gap-2 text-xs text-neutral-600 font-medium">
+                                <Check className="h-3.5 w-3.5 text-[#B50E30] mt-0.5 shrink-0" />
+                                {obj}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+
+                    {activeTab === "materiales" && (
+                      <div className="space-y-2">
+                        {[
+                          { name: "Guía de estudio - Lección 4.pdf", size: "2.4 MB", type: "PDF" },
+                          { name: "Ejercicios prácticos - Sesión 4.docx", size: "1.1 MB", type: "Documento" },
+                          { name: "Video complementario - Casos de uso.mp4", size: "45 MB", type: "Video" },
+                        ].map((mat, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-200 hover:bg-neutral-100 transition cursor-pointer">
+                            <div className="flex items-center gap-3">
+                              <FileText className="h-4 w-4 text-[#B50E30]" />
+                              <div>
+                                <p className="text-xs font-bold text-black">{mat.name}</p>
+                                <p className="text-[9px] text-neutral-500 font-semibold">{mat.size} • {mat.type}</p>
+                              </div>
+                            </div>
+                            <Download className="h-4 w-4 text-neutral-400 hover:text-[#B50E30] transition" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {activeTab === "discusion" && (
+                      <div className="space-y-3">
+                        <div className="p-4 bg-neutral-50 border border-neutral-200 text-center space-y-2">
+                          <MessageCircle className="h-6 w-6 text-[#B50E30] mx-auto" />
+                          <p className="text-xs font-bold text-black">Foro de discusión de la lección</p>
+                          <p className="text-[10px] text-neutral-500 font-medium">
+                            Participa con tus compañeros y mentores. Las preguntas y respuestas quedarán
+                            registradas para futuros estudiantes.
+                          </p>
+                          <button
+                            type="button"
+                            className="text-[10px] font-black uppercase tracking-widest border border-black px-4 py-2 hover:bg-black hover:text-white transition cursor-pointer"
+                          >
+                            Escribir mensaje
+                          </button>
+                        </div>
+                        {[
+                          { author: "Carlos M.", text: "¿Alguien ha aplicado esto en un proyecto real?", time: "Hace 2 horas" },
+                          { author: "Docente IA", text: "Excelente pregunta. Te recomiendo el caso práctico del módulo 2.", time: "Hace 1 hora", isTeacher: true },
+                        ].map((msg, idx) => (
+                          <div key={idx} className="flex gap-3 p-3 bg-white border border-neutral-200">
+                            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-black uppercase shrink-0 ${msg.isTeacher ? "bg-[#B50E30] text-white" : "bg-neutral-200 text-black"}`}>
+                              {msg.author[0]}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-bold text-black">{msg.author}</span>
+                                {msg.isTeacher && <span className="text-[8px] font-black text-[#B50E30] uppercase tracking-widest">Instructor</span>}
+                                <span className="text-[9px] text-neutral-400">{msg.time}</span>
+                              </div>
+                              <p className="text-xs text-neutral-600 font-medium mt-1">{msg.text}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between gap-3 pt-4 border-t border-neutral-100 mt-4">
+                      <span className="text-[10px] font-bold text-neutral-500 uppercase">
+                        {isLessonDone ? "Lección completada" : "Marca como completada para +15 XP"}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={isLessonDone}
+                        onClick={handleCompleteLesson}
+                        className={`text-xs font-black uppercase tracking-widest px-5 py-2.5 transition cursor-pointer ${
+                          isLessonDone
+                            ? "bg-neutral-100 text-neutral-400 cursor-default"
+                            : "bg-[#B50E30] hover:bg-[#85061B] text-white"
+                        }`}
+                      >
+                        {isLessonDone ? "Completada" : "Completar lección"}
+                      </button>
                     </div>
                   </div>
+                ) : (
+                  <p className="text-xs text-neutral-500 font-medium">
+                    Selecciona una lección del menú lateral para comenzar.
+                  </p>
+                )}
+              </div>
 
-                  <div className="flex items-center justify-between gap-3 pt-4 border-t border-utp-border mt-4">
-                    <span className="text-[10px] font-bold text-neutral-500 uppercase">
-                      {isLessonDone ? "Lección completada" : "Marca como completada para +15 XP"}
+              {activeLesson && (
+                <div className="border-t border-neutral-100 bg-neutral-50/50 p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <div className="w-full bg-neutral-200 h-1.5">
+                        <div
+                          className="bg-[#B50E30] h-full transition-all"
+                          style={{ width: `${activeEnrollment.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-black text-[#B50E30] whitespace-nowrap">
+                      {activeEnrollment.progress}% del curso
                     </span>
-                    <button
-                      type="button"
-                      disabled={isLessonDone}
-                      onClick={handleCompleteLesson}
-                      className={`text-xs font-black uppercase tracking-widest px-5 py-2.5 transition cursor-pointer ${
-                        isLessonDone
-                          ? "bg-neutral-100 text-neutral-400 cursor-default"
-                          : "bg-[#B50E30] hover:bg-[#85061B] text-white"
-                      }`}
-                    >
-                      {isLessonDone ? "Completada" : "Completar lección"}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        className="h-8 w-8 border border-neutral-300 flex items-center justify-center hover:bg-white transition cursor-pointer"
+                      >
+                        <Play className="h-3.5 w-3.5 fill-black text-black" />
+                      </button>
+                      <span className="text-[10px] font-bold text-neutral-500">
+                        {allLessons.findIndex(l => l.id === activeLessonId) + 1} / {allLessons.length}
+                      </span>
+                      <button
+                        type="button"
+                        className="h-8 w-8 border border-neutral-300 flex items-center justify-center hover:bg-white transition cursor-pointer"
+                      >
+                        <Play className="h-3.5 w-3.5 fill-black text-black rotate-180" />
+                      </button>
+                    </div>
                   </div>
-                </>
-              ) : (
-                <p className="text-xs text-neutral-500 font-medium">
-                  Selecciona una lección del menú lateral para comenzar.
-                </p>
+                </div>
               )}
             </div>
           </div>
@@ -249,7 +424,7 @@ export default function MyCoursesPanel({
       {enrolledInternal.length === 0 && enrolledExternal.length === 0 ? (
         <div className="bg-white border border-utp-border p-10 text-center space-y-4">
           <BookOpen className="h-10 w-10 text-[#B50E30] mx-auto" />
-          <p className="text-sm font-extrabold uppercase text-black">
+          <p className="text-sm font-black uppercase text-black">
             Aún no tienes cursos inscritos
           </p>
           <p className="text-xs text-neutral-500 font-medium max-w-sm mx-auto">
@@ -259,55 +434,66 @@ export default function MyCoursesPanel({
           <button
             type="button"
             onClick={onNavigateToCatalog}
-            className="inline-flex items-center gap-1.5 bg-black text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 hover:bg-neutral-900 transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 bg-[#B50E30] text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 hover:bg-[#85061B] transition cursor-pointer"
           >
             Ver catálogo
-            <ChevronRight className="h-4 w-4 text-[#B50E30]" />
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {enrolledInternal.map((enrollment) => {
             const course = getCatalogCourse(enrollment.courseId);
             if (!course) return null;
+
+            const completedLessons = enrollment.completedLessons.length;
             const totalLessons = getTotalLessons(course);
-            const completedCount = enrollment.completedLessons.length;
 
             return (
               <div
                 key={enrollment.courseId}
-                className="bg-white border border-utp-border p-5 flex flex-col justify-between gap-4"
+                className="bg-white border border-neutral-200 shadow-sm flex flex-col"
               >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] text-neutral-400 font-extrabold uppercase tracking-widest">
-                      {course.provider}
-                    </span>
-                    <span className="bg-[#B50E30] text-white font-black text-[9px] px-2 py-0.5 uppercase">
+                <div className="h-32 w-full overflow-hidden bg-neutral-200 relative">
+                  {course.image && <img src={course.image} alt={course.title} className="w-full h-full object-cover" />}
+                  <div className="absolute top-2 right-2">
+                    <span className="bg-[#B50E30] text-white font-black text-[9px] px-2 py-0.5 uppercase tracking-widest">
                       +{course.pointsAwarded} XP
                     </span>
                   </div>
-                  <h3 className="font-extrabold text-sm text-black uppercase tracking-tight">
-                    {course.title}
-                  </h3>
-                  <p className="text-[10px] text-neutral-500 font-bold uppercase">
-                    {completedCount}/{totalLessons} lecciones • {course.duration}
-                  </p>
-                  <div className="w-full bg-neutral-100 h-1.5 border border-utp-border">
-                    <div
-                      className="bg-[#B50E30] h-full transition-all"
-                      style={{ width: `${enrollment.progress}%` }}
-                    />
-                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleSelectCourse(enrollment.courseId)}
-                  className="w-full py-2.5 bg-black hover:bg-neutral-900 text-white font-black uppercase tracking-widest text-xs transition cursor-pointer flex items-center justify-center gap-1"
-                >
-                  <Play className="h-3.5 w-3.5 fill-white" />
-                  Continuar curso
-                </button>
+                <div className="p-5 flex-grow">
+                  <div className="flex items-center gap-2 mb-3">
+                    {logos[course.provider] ? (
+                      <img src={logos[course.provider]} alt={course.provider} className="h-5 object-contain" />
+                    ) : (
+                      <span className="text-[9px] text-neutral-400 font-extrabold uppercase tracking-widest">{course.provider}</span>
+                    )}
+                  </div>
+                  <h3 className="font-black text-sm text-black uppercase tracking-tight leading-snug">{course.title}</h3>
+                  <p className="text-[11px] font-bold text-neutral-600 mt-2 uppercase">
+                    {course.duration}{course.modality ? ` | ${course.modality}` : ""}
+                  </p>
+                  {course.speaker && (
+                    <p className="text-[11px] font-semibold text-neutral-500 mt-1">{course.speaker}</p>
+                  )}
+                </div>
+                <div className="px-5 pb-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold text-neutral-500">{enrollment.progress}%</span>
+                    <span className="text-[9px] font-bold text-neutral-400">{completedLessons}/{totalLessons} lecciones</span>
+                  </div>
+                  <div className="w-full bg-neutral-200 h-1.5 mb-3">
+                    <div className="bg-[#D35400] h-full transition-all" style={{ width: `${enrollment.progress}%` }} />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectCourse(enrollment.courseId)}
+                    className="w-full bg-[#B50E30] hover:bg-[#85061B] text-white py-2 text-xs font-black uppercase transition cursor-pointer border-0"
+                  >
+                    Continuar curso
+                  </button>
+                </div>
               </div>
             );
           })}

@@ -13,6 +13,9 @@ import DiagnosticoWizard from "./components/DiagnosticoWizard";
 import CvAnalyzerPanel from "./components/CvAnalyzerPanel";
 import InterviewPanel from "./components/InterviewPanel";
 import SocialHub from "./components/SocialHub";
+import NotificationBell from "./components/NotificationBell";
+import NotificationDrawer from "./components/NotificationDrawer";
+import { NotificationProvider } from "./context/NotificationContext";
 import WhatsAppPreview from "./components/WhatsAppPreview";
 import UserProfilePanel from "./components/UserProfilePanel";
 import VacanciesPanel from "./components/VacanciesPanel";
@@ -124,6 +127,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
+  const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
 
   useEffect(() => {
     const savedProfile = localStorage.getItem("sp_profile");
@@ -514,6 +518,7 @@ export default function App() {
   }
 
   return (
+    <NotificationProvider>
     <div className="min-h-screen bg-[#FFFFFF] text-black flex flex-col font-sans">
       {/* Absolute Dynamic Celebrations Banner */}
       <AnimatePresence>
@@ -635,6 +640,8 @@ export default function App() {
 
             {/* Right Stats panel */}
             <div className="flex items-center gap-3">
+              <NotificationBell onClick={() => setNotifDrawerOpen(true)} />
+
               <div className="flex items-center gap-1.5 bg-black text-white rounded-none px-3 py-1 text-xs font-extrabold uppercase tracking-wider">
                 <Zap className="h-3.5 w-3.5 fill-utp-red text-utp-red" />
                 <span>{profile.xp} XP</span>
@@ -646,6 +653,8 @@ export default function App() {
               </div>
             </div>
           </header>
+
+          <NotificationDrawer open={notifDrawerOpen} onClose={() => setNotifDrawerOpen(false)} />
 
           {/* Active Work Flow Rendering Frame */}
           <main className="flex-grow p-6 overflow-y-auto max-w-6xl w-full mx-auto flex flex-col justify-between">
@@ -871,5 +880,6 @@ export default function App() {
         </div>
       </div>
     </div>
+    </NotificationProvider>
   );
 }

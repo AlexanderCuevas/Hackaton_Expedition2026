@@ -11,7 +11,7 @@ import {
 import principalImg from "./assets/Principal.png";
 import { ImageGallery, ImageGalleryHandle } from "./ui/carousel-circular-image-gallery";
 import { UserProfile } from "../types";
-import { MOCK_STUDENTS_BY_CODE } from "../data";
+import { findStudentByCode } from "../mockStudents";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────
 interface LandingPageProps {
@@ -297,19 +297,17 @@ function Modal({
 
   const handleSubmit = () => {
     let err = false;
-    const normalized = studentCode.trim().toUpperCase();
-    if (!normalized) {
+    const student = findStudentByCode(studentCode);
+    if (!studentCode.trim()) {
       setCodeErr("El código de estudiante es obligatorio.");
       err = true;
-    } else if (!MOCK_STUDENTS_BY_CODE[normalized]) {
+    } else if (!student) {
       setCodeErr("Código no encontrado. Prueba U20213456, U22223419 o U20198765.");
       err = true;
     } else setCodeErr("");
     if (!password) { setPwErr("La contraseña es obligatoria."); err = true; }
     else setPwErr("");
-    if (err) return;
-
-    const student = MOCK_STUDENTS_BY_CODE[normalized];
+    if (err || !student) return;
     setToast({ msg: "Recuperando datos académicos desde el sistema UTP...", type: "info" });
     setTimeout(() => {
       setToast({ msg: "Acceso concedido. Redirigiendo...", type: "success" });
@@ -368,10 +366,10 @@ function Modal({
           {/* Form */}
           <div className="w-full space-y-5 mt-8">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-900 tracking-tight block">Código de estudiante UTP</label>
+              <label className="text-sm font-bold text-slate-900 tracking-tight block">Código o correo UTP</label>
               <input type="text" autoFocus value={studentCode} onChange={(e) => { setStudentCode(e.target.value); clearErr(); }} onKeyDown={handleKeyDown}
-                className={`w-full px-3.5 py-3 bg-white border ${codeErr ? "border-rose-500" : "border-slate-300"} rounded-[4px] text-slate-900 text-base outline-none font-medium transition-colors uppercase`}
-                placeholder="Ej. U20213456" />
+                className={`w-full px-3.5 py-3 bg-white border ${codeErr ? "border-rose-500" : "border-slate-300"} rounded-[4px] text-slate-900 text-base outline-none font-medium transition-colors`}
+                placeholder="Ej. U20213456 o U20213456@utp.edu.pe" />
               {codeErr && (
                 <div className="text-rose-600 text-xs font-semibold flex items-center gap-1.5">
                   <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -404,11 +402,11 @@ function Modal({
             <div className="bg-slate-50 border border-slate-100 p-3.5 rounded-lg">
               <p className="text-xs text-slate-500 leading-normal flex gap-2">
                 <ShieldAlert className="w-4 h-4 text-[#B50E30] shrink-0" />
-                <span>Usa tu <strong>código UTP</strong> (ej. U20213456). El sistema cargará tu nombre, carrera y ciclo académico.</span>
+                <span>Usa tu <strong>código UTP</strong> o correo institucional (ej. U20213456@utp.edu.pe). El sistema cargará tu nombre, carrera y ciclo académico.</span>
               </p>
             </div>
 
-            <button onClick={handleSubmit}
+            <button type="button" onClick={handleSubmit}
               className="w-full bg-[#B50E30] hover:bg-[#85061B] text-white font-bold py-3.5 px-6 rounded-full transition-all duration-200 active:scale-95 text-base tracking-normal shadow-sm flex items-center justify-center gap-2 cursor-pointer border-0">
               <span>Iniciar Sesión</span>
               <ShieldCheck className="w-4 h-4" />

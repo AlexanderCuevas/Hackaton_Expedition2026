@@ -2,6 +2,21 @@
  * Interface definitions for SkillPath AI
  */
 
+export interface CognitiveProfileItem {
+  subject: string;
+  A: number; // user score
+  B: number; // average score
+  fullMark: number;
+}
+
+export interface PersonalityTrait {
+  name: string;
+  userScore: number;
+  averageScore: number;
+  leftLabel: string;
+  rightLabel: string;
+}
+
 export interface UserProfile {
   name: string;
   career: string;
@@ -14,6 +29,9 @@ export interface UserProfile {
   xp: number; // Experience points
   level: number; // Career path level
   progressToNextLevel: number; // percentage
+  avatarUrl?: string; // base64 data URL for profile image
+  cognitiveProfile?: CognitiveProfileItem[];
+  personalityTraits?: PersonalityTrait[];
 }
 
 export type GapType = "tecnica" | "blanda" | "certificacion";
@@ -138,6 +156,10 @@ export interface CourseCatalogItem {
   linkedGap?: string;
   description: string;
   modules: CourseModule[];
+  image?: string;
+  code?: string;
+  modality?: string;
+  speaker?: string;
 }
 
 export interface EnrolledCourse {

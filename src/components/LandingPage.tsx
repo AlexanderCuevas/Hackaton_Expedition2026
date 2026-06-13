@@ -668,8 +668,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
         </div>
 
         {/* ══ HOW IT WORKS ════════════════════════════════════════════════ */}
-        <section className="py-28 px-6" style={{ background: "#FFF5F6" }}>
-          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
+        <section className="py-28 px-6 relative overflow-hidden" style={{ background: "#FFF5F6", backgroundImage: "linear-gradient(to right, rgba(181,14,48,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(181,14,48,0.06) 1px, transparent 1px)", backgroundSize: "48px 48px" }}>
+          <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
             {/* Left sticky */}
             <div className="lg:sticky lg:top-28">
               <Appear>

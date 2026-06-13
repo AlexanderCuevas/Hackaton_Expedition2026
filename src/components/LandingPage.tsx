@@ -9,6 +9,8 @@ import {
   Eye, EyeOff, ShieldAlert, ShieldCheck, CheckCircle, AlertTriangle, Info
 } from "lucide-react";
 import principalImg from "./assets/Principal.png";
+import sofiaImg from "./assets/Sofia.jpeg";
+import juanImg from "./assets/Juan.jpeg";
 import { ImageGallery, ImageGalleryHandle } from "./ui/carousel-circular-image-gallery";
 import { UserProfile } from "../types";
 import { findStudentByCode } from "../mockStudents";
@@ -55,49 +57,36 @@ const COMPANIES = ["Interbank", "BCP", "BBVA", "Rimac", "Scotiabank", "Repsol", 
 
 const STORIES = [
   {
-    id: 1, name: "Valentina Ríos", career: "Ing. de Software", age: 22, location: "Lima",
-    company: "BCP", role: "Junior Developer", result: "Oferta antes de graduarse",
-    photo: "https://images.unsplash.com/photo-1630939687530-241d630735df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800",
-    badge: "RENACYT · Investigadora", badgeIcon: "🔬",
-    bio: "Egresada UTP · Ing. de Software. Hoy investigadora RENACYT y desarrolladora de innovación en el BCP. Publicó su primer paper sobre fintech en 2025.",
+    id: 1,
+    name: "Juan Carlos Chávez Pérez",
+    campusLabel: "INGENIERÍA DE SISTEMAS E INFORMÁTICA · UTP CHIMBOTE",
+    badge: "ESTUDIANTE INVESTIGADOR",
+    subtitle: "Embajador Estudiantil Microsoft Learn · Investigador RENACYT VII",
+    photo: juanImg,
+    stat: "RENACYT VII",
+    statLabel: "Nivel de Investigador reconocido por CONCYTEC",
     journey: [
-      { icon: "😰", label: "El problema", text: "8° ciclo sin experiencia laboral ni portafolio. Sentía que el mercado era inalcanzable." },
-      { icon: "🎯", label: "Lo que hizo", text: "Completó el diagnóstico IA, optimizó su CV para ATS y practicó entrevistas con el simulador." },
-      { icon: "🏆", label: "El resultado", text: "BCP la contrató como Junior Developer antes de terminar el ciclo. Hoy registrada en RENACYT." },
+      { label: "TALENTO TEMPRANO", text: "Inició su formación académica en Sistemas en UTP Chimbote, combinando sus estudios con una profunda pasión por la investigación desde los primeros ciclos." },
+      { label: "EL HITO HISTÓRICO", text: "Alcanzó un logro que muchos persiguen por años: ser reconocido como Investigador RENACYT Nivel VII por CONCYTEC, aún siendo estudiante universitario." },
+      { label: "EJEMPLO DE ÉXITO", text: "Su historia refleja talento y perseverancia, demostrando que el éxito profesional de alto impacto puede comenzar antes de obtener el título universitario." },
     ],
-    tags: ["CV ATS optimizado", "Simulador de entrevistas", "Portafolio verificado"],
-    stat: "3 meses",
-    statLabel: "de la plataforma a su primer empleo",
+    tags: ["RENACYT", "CONCYTEC", "MICROSOFT LEARN", "INVESTIGACIÓN"],
   },
   {
-    id: 2, name: "Carlos Mendoza", career: "Ing. de Sistemas", age: 23, location: "Lima",
-    company: "Interbank", role: "Full Stack Dev", result: "Contratado en empresa top",
-    photo: "https://images.unsplash.com/photo-1716471453667-94383b1e4859?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800",
-    badge: "RENACYT · Investigador", badgeIcon: "💻",
-    bio: "Egresado UTP · Ing. de Sistemas. Full Stack Developer en Interbank y miembro RENACYT. Lidera automatización que impacta a +50,000 clientes.",
+    id: 2,
+    name: "Sofía Flores Davelouis",
+    campusLabel: "INGENIERÍA INDUSTRIAL · UTP CHIMBOTE",
+    badge: "BECA DE EXCELENCIA",
+    subtitle: "Profesional en el Área de Logística de Austral Group S.A.A. · Egresada UTP",
+    photo: sofiaImg,
+    stat: "Generación Top",
+    statLabel: "de Empleabilidad UTP",
     journey: [
-      { icon: "😰", label: "El problema", text: "9° ciclo con buen promedio pero sin experiencia real ni habilidades de entrevista." },
-      { icon: "🎯", label: "Lo que hizo", text: "Realizó misiones de proyectos reales, acumuló XP y usó el simulador de entrevistas STAR." },
-      { icon: "🏆", label: "El resultado", text: "Interbank lo contrató como Full Stack Dev. Hoy su proyecto impacta a más de 50,000 clientes." },
+      { label: "EL PUNTO DE PARTIDA", text: "Demostró que el éxito se construye desde las aulas universitarias, destacando por su excelencia académica." },
+      { label: "LA RUTA DE CRECIMIENTO", text: "Participó activamente en el programa Generación Top, fortaleciendo sus competencias con el acompañamiento de Empleabilidad UTP." },
+      { label: "EL RESULTADO", text: "Su esfuerzo y preparación le permitieron incorporarse al área de logística de una de las empresas pesqueras más importantes del país, inspirando a otros estudiantes." },
     ],
-    tags: ["Proyectos reales", "Método STAR", "Match de vacantes"],
-    stat: "4 meses",
-    statLabel: "de la plataforma a su primer empleo",
-  },
-  {
-    id: 3, name: "Diego Farfán", career: "Diseño Digital", age: 24, location: "Lima",
-    company: "Startup Lima", role: "UX/UI Designer", result: "Portafolio verificado",
-    photo: "https://images.unsplash.com/photo-1603764377193-75b991876878?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800",
-    badge: "RENACYT · Investigador", badgeIcon: "🎨",
-    bio: "Egresado UTP · Diseño Digital. UX/UI Designer en startup con +10K usuarios activos. Investigador RENACYT en inclusión digital.",
-    journey: [
-      { icon: "😰", label: "El problema", text: "Proyectos universitarios buenos pero sin visibilidad. Ningún empleador los conocía." },
-      { icon: "🎯", label: "Lo que hizo", text: "Convirtió sus proyectos en portafolio verificado por mentores y activó el match de vacantes." },
-      { icon: "🏆", label: "El resultado", text: "Una startup lo contrató antes de graduarse. Su app hoy tiene más de 10,000 usuarios activos." },
-    ],
-    tags: ["Portafolio verificado", "Mentores expertos", "Match directo"],
-    stat: "2 meses",
-    statLabel: "de la plataforma a su primer empleo",
+    tags: ["GENERACIÓN TOP", "EMPLEABILIDAD UTP", "AUSTRAL GROUP"],
   },
 ];
 
@@ -204,59 +193,93 @@ function StoriesSection() {
 
           {/* Circular image gallery */}
           <div className="relative w-full flex items-center justify-center overflow-hidden rounded-3xl" style={{ minHeight: "320px" }}>
-            <ImageGallery ref={galleryRef} onActiveChange={(i) => setActive(i)} />
+            <ImageGallery
+              ref={galleryRef}
+              slides={STORIES.map(({ name, photo }) => ({ title: name, url: photo }))}
+              onActiveChange={(i) => setActive(i)}
+            />
           </div>
 
           {/* Content right */}
-          <div className="flex flex-col gap-3 py-1">
+          <div className="flex flex-col gap-6 py-1 lg:gap-8">
 
-            {/* Name + badge header */}
-            <div className="border-b border-neutral-100 pb-3">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[#B50E30] text-[8px] font-black uppercase tracking-[0.2em] mb-0.5">{s.career} · {s.age} años · {s.location}</p>
-                  <h3 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
-                    className="text-xl font-black uppercase text-black tracking-tight leading-none">{s.name}</h3>
-                  <p className="text-neutral-400 text-[11px] font-medium mt-0.5 leading-snug">{s.bio}</p>
+            {/* Etiquetas, nombre y badge */}
+            <div className="border-b border-gray-100 pb-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-[#B50E30] text-xs font-black uppercase tracking-widest mb-2">
+                    {s.campusLabel}
+                  </p>
+                  <h3
+                    style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+                    className="text-2xl md:text-3xl font-extrabold uppercase text-black tracking-tight leading-tight"
+                  >
+                    {s.name}
+                  </h3>
+                  <p className="text-gray-600 text-sm font-medium mt-2 leading-relaxed">
+                    {s.subtitle}
+                  </p>
                 </div>
-                <span className="shrink-0 border border-[#B50E30] text-[#B50E30] text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full whitespace-nowrap">{s.badge}</span>
+                <span className="shrink-0 border border-[#B50E30] text-[#B50E30] text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full whitespace-nowrap">
+                  {s.badge}
+                </span>
               </div>
             </div>
 
-            {/* Big stat */}
-            <div className="flex items-end gap-3 border-b border-neutral-100 pb-3">
-              <p style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
-                className="text-4xl font-black text-black leading-none">{s.stat}</p>
-              <div className="mb-1 space-y-0.5">
-                <div className="h-px w-14 bg-[#B50E30]" />
-                <p className="text-neutral-400 text-[10px] font-medium">{s.statLabel}</p>
+            {/* Dato destacado */}
+            <div className="flex items-end gap-4 border-b border-gray-100 pb-4">
+              <p
+                style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+                className="text-3xl md:text-4xl font-bold text-black leading-none"
+              >
+                {s.stat}
+              </p>
+              <div className="mb-1 space-y-1">
+                <div className="h-0.5 w-16 bg-[#B50E30]" />
+                <p className="text-gray-500 text-xs font-medium">{s.statLabel}</p>
               </div>
             </div>
 
-            {/* Journey — numbered */}
-            <div className="space-y-0">
+            {/* Lista numerada */}
+            <div className="flex flex-col">
               {s.journey.map((step, i) => (
-                <div key={i} className="flex gap-3 py-2 border-b border-neutral-100 last:border-0">
-                  <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
-                    className="text-[10px] font-black text-neutral-300 shrink-0 mt-0.5 w-4">0{i + 1}</span>
+                <div
+                  key={i}
+                  className="flex gap-4 border-b border-gray-100 pb-4 pt-4 first:pt-0 last:border-0"
+                >
+                  <span
+                    style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+                    className="text-sm font-black text-gray-300 shrink-0 w-6"
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                   <div>
-                    <p className="text-[#B50E30] text-[8px] font-black uppercase tracking-widest mb-0.5">{step.label}</p>
-                    <p className="text-neutral-600 text-[11px] font-medium leading-snug">{step.text}</p>
+                    <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-widest mb-1.5">
+                      {step.label}
+                    </p>
+                    <p className="text-gray-600 text-sm font-medium leading-relaxed">
+                      {step.text}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Tags + nav */}
-            <div className="flex items-center justify-between pt-1">
-              <div className="flex flex-wrap gap-1">
+            {/* Tags + navegación */}
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex flex-wrap gap-2">
                 {s.tags.map((tag) => (
-                  <span key={tag} className="bg-neutral-100 text-neutral-500 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">{tag}</span>
+                  <span
+                    key={tag}
+                    className="bg-gray-100 text-gray-700 text-[9px] font-bold uppercase tracking-wider px-3 py-1 rounded-full"
+                  >
+                    {tag}
+                  </span>
                 ))}
               </div>
               <div className="flex items-center gap-1.5 shrink-0 ml-2">
                 {STORIES.map((_, i) => (
-                  <button key={i} onClick={() => setActive(i)}
+                  <button key={i} onClick={() => { galleryRef.current?.goTo(i); setActive(i); }}
                     className="rounded-full transition-all duration-300 cursor-pointer"
                     style={{ width: i === active ? 20 : 7, height: 7, background: i === active ? "#B50E30" : "#e5e7eb" }} />
                 ))}
@@ -870,15 +893,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
               </h2>
               <p className="text-neutral-500 text-base font-medium max-w-md mx-auto leading-relaxed mb-10">
                 Únete a los estudiantes UTP que consiguen empleo antes de graduarse. Gratis, real, verificado.
-              </p>
-              <button onClick={() => openModal("register")}
-                className="btn-primary group bg-[#B50E30] text-white text-sm font-black uppercase tracking-widest px-12 py-5 rounded-2xl inline-flex items-center gap-3 cursor-pointer border-0 shadow-2xl shadow-[#B50E30]/25">
-                Crea tu cuenta gratis
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-              <p className="text-neutral-300 text-[10px] font-bold uppercase tracking-widest mt-5">
-                Sin costo · Solo correo UTP
-              </p>
+              </p>  
             </Appear>
           </div>
         </section>

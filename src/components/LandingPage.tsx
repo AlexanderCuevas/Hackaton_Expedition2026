@@ -343,7 +343,7 @@ function StatNum({ target, suffix = "", prefix = "" }: { target: number; suffix?
 }
 
 // ─── MODAL ─────────────────────────────────────────────────────────────────
-function Modal({ onClose }: { onClose: () => void }) {
+function Modal({ onClose, onStart: handleStart }: { onClose: () => void; onStart?: (p?: Partial<UserProfile>) => void }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [career, setCareer] = useState("Ingeniería de Sistemas");
@@ -353,7 +353,20 @@ function Modal({ onClose }: { onClose: () => void }) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true);
-    setTimeout(() => { setLoading(false); onClose(); }, 900);
+    setTimeout(() => {
+      setLoading(false);
+      handleStart?.({
+        name: name.trim() || "Estudiante UTP",
+        career,
+        semester,
+        targetRole: role,
+        employabilityScore: 68,
+        xp: 320,
+        level: 2,
+        progressToNextLevel: 60
+      });
+      onClose();
+    }, 900);
   };
 
   return (
@@ -942,7 +955,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
         </footer>
 
         {/* ══ MODAL ══════════════════════════════════════════════════════ */}
-        {modal && <Modal onClose={close} />}
+        {modal && <Modal onClose={close} onStart={onStart} />}
 
       </div>
     </>

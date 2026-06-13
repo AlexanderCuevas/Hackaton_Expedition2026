@@ -155,12 +155,6 @@ export function integrateRouteWithCourses(
   return { gaps: enrichedGaps, missions };
 }
 
-export function shortenMissionLabel(title: string, maxLength = 26): string {
-  const upper = title.toUpperCase();
-  if (upper.length <= maxLength) return upper;
-  return `${upper.slice(0, maxLength - 1)}…`;
-}
-
 export interface RouteNetworkNode {
   id: string;
   label: string;
@@ -175,10 +169,10 @@ const FOUNDATION_NODES: Omit<RouteNetworkNode, "x" | "y">[] = [
   { id: "marca", label: "MARCA PERSONAL", defaultStatus: "completado" },
 ];
 
-const NODE_SPACING_X = 175;
-const CANVAS_START_X = 100;
-const CANVAS_CENTER_Y = 165;
-const CANVAS_HEIGHT = 360;
+const NODE_SPACING_X = 210;
+const CANVAS_START_X = 110;
+const CANVAS_CENTER_Y = 155;
+const CANVAS_HEIGHT = 400;
 const Y_WAVE = 36;
 
 export function buildNetworkFromMissions(missions: CareerMission[]): {
@@ -202,7 +196,7 @@ export function buildNetworkFromMissions(missions: CareerMission[]): {
 
     return {
       id: `node_${mission.id}`,
-      label: shortenMissionLabel(mission.title, 22),
+      label: mission.title.toUpperCase(),
       x: CANVAS_START_X + globalIdx * NODE_SPACING_X,
       y: CANVAS_CENTER_Y + yOffset,
       missionId: mission.id,

@@ -640,7 +640,7 @@ export default function App() {
                 { id: "interviewer", label: "Entrevistas IA", icon: MessageSquare },
                 { id: "jobs", label: "Vacantes & Match", icon: Briefcase },
                 { id: "resources", label: "Capacitaciones", icon: Award },
-                { id: "community", label: "Feed / Networking", icon: Users },
+                { id: "community", label: "Networking", icon: Users },
                 { id: "whatsapp", label: "WhatsApp Tutor", icon: PhoneCall },
               ]
                 .filter((item) => !(item.id === "diagnostico" && diagnosisCompleted))

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MessageSquare, Calendar, ChevronRight, Check, Send, PhoneCall, Sparkles, BellRing } from "lucide-react";
+import { MessageSquare, Calendar, ChevronRight, Check, Send, PhoneCall, Sparkles, BellRing, MessageCircle, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 export default function WhatsAppPreview() {
@@ -151,13 +151,13 @@ export default function WhatsAppPreview() {
           {/* Internal Phone Display */}
           <div className="bg-[#efeae2] rounded-[32px] overflow-hidden flex flex-col h-[480px] max-h-[480px] border border-neutral-900">
             {/* WhatsApp Header bar */}
-            <div className="bg-black text-white pt-6 pb-2.5 px-4 flex items-center gap-2">
-              <div className="bg-[#B50E30] h-8 w-8 rounded-none border border-white/20 flex items-center justify-center font-black text-white text-[10px] uppercase shadow-none mt-1">
-                UTP
+            <div className="bg-[#075E54] text-white pt-6 pb-2.5 px-4 flex items-center gap-2">
+              <div className="bg-[#25D366] h-8 w-8 rounded-full flex items-center justify-center shadow-none mt-1">
+                <MessageCircle className="h-5 w-5 text-white fill-white" />
               </div>
               <div className="flex flex-col mt-1">
-                <span className="text-[11px] font-black uppercase tracking-wider leading-none">Mentor UTP+ 🌟</span>
-                <span className="text-[9px] text-[#B50E30] font-bold uppercase tracking-widest leading-none mt-1">En línea</span>
+                <span className="text-[11px] font-black uppercase tracking-wider leading-none">Mentor UTP+</span>
+                <span className="text-[9px] text-[#25D366] font-bold uppercase tracking-widest leading-none mt-1">En línea</span>
               </div>
             </div>
 

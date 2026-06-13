@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import ReactMarkdown from "react-markdown";
+import { AIVoiceInput } from "./ui/ai-voice-input";
 
 interface InterviewPanelProps {
   targetRole: string;
@@ -302,7 +303,7 @@ export default function InterviewPanel({
             </div>
 
             {/* Input Footer Form */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-utp-border bg-white flex items-center gap-3">
+            <form onSubmit={handleSendMessage} className="p-4 border-t border-utp-border bg-white flex items-center gap-2">
               <input
                 type="text"
                 value={inputText}
@@ -310,6 +311,11 @@ export default function InterviewPanel({
                 disabled={loadingMsg}
                 placeholder="Escribe tu respuesta detallada aquí para evaluación..."
                 className="flex-1 px-4 py-3 bg-white border border-utp-border outline-none rounded-none focus:border-black text-xs font-semibold text-black transition"
+              />
+              <AIVoiceInput
+                compact
+                onStart={() => console.log("Voice recording started")}
+                onStop={(duration) => console.log("Voice recording stopped, duration:", duration)}
               />
               <button
                 type="submit"

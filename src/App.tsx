@@ -15,12 +15,13 @@ import InterviewPanel from "./components/InterviewPanel";
 import SocialHub from "./components/SocialHub";
 import WhatsAppPreview from "./components/WhatsAppPreview";
 import UserProfilePanel from "./components/UserProfilePanel";
+import VacanciesPanel from "./components/VacanciesPanel";
 import LandingPage from "./components/LandingPage";
 import MyCoursesPanel from "./components/MyCoursesPanel";
 
 // Mock Data
 import { INITIAL_VACANCIES, CERTIFICATIONS_AND_COURSES, UNIVERSITY_EVENTS } from "./data";
-import { integrateRouteWithCourses } from "./utils/courseMatcher";
+import { integrateRouteWithCourses, syncMissionsWithEnrollments, unlockSequentialMissions } from "./utils/courseMatcher";
 
 // Preloaded state for Hackathon demo so that it's highly populated instantly
 const MOCK_INITIAL_PROFILE: UserProfile = {
@@ -134,8 +135,18 @@ export default function App() {
 
     if (savedProfile) setProfile(JSON.parse(savedProfile));
     if (savedGaps) setGaps(JSON.parse(savedGaps));
-    if (savedMissions) setMissions(JSON.parse(savedMissions));
-    if (savedCourses) setEnrolledCourses(JSON.parse(savedCourses));
+
+    const loadedCourses: EnrolledCourse[] = savedCourses ? JSON.parse(savedCourses) : [];
+    let loadedMissions: CareerMission[] = savedMissions
+      ? JSON.parse(savedMissions)
+      : MOCK_INITIAL_MISSIONS;
+
+    if (loadedCourses.length > 0) {
+      loadedMissions = syncMissionsWithEnrollments(loadedMissions, loadedCourses).missions;
+    }
+
+    setMissions(loadedMissions);
+    setEnrolledCourses(loadedCourses);
     setIsAuthenticated(authenticated);
 
     if (authenticated) {
@@ -151,8 +162,70 @@ export default function App() {
     localStorage.setItem("sp_enrolled_courses", JSON.stringify(courses));
   };
 
+  const applyMissionXp = (xpAwarded: number) => {
+    let newLevel = profile.level;
+    let nextLevelProgress = profile.progressToNextLevel + xpAwarded / 2;
+    let didLevelUp = false;
+
+    if (nextLevelProgress >= 100) {
+      didLevelUp = true;
+      newLevel += 1;
+      nextLevelProgress -= 100;
+    }
+
+    const updatedProfile = {
+      ...profile,
+      xp: profile.xp + xpAwarded,
+      level: newLevel,
+      progressToNextLevel: Math.min(nextLevelProgress, 100),
+    };
+
+    return { updatedProfile, didLevelUp, newLevel };
+  };
+
+  const syncAndSaveMissions = (
+    currentMissions: CareerMission[],
+    courses: EnrolledCourse[],
+    notify = true
+  ) => {
+    const { missions: syncedMissions, newlyCompleted } = syncMissionsWithEnrollments(
+      currentMissions,
+      courses
+    );
+
+    const missionsChanged =
+      JSON.stringify(syncedMissions) !== JSON.stringify(currentMissions);
+
+    if (!missionsChanged && newlyCompleted.length === 0) {
+      return syncedMissions;
+    }
+
+    if (newlyCompleted.length === 0) {
+      saveState(profile, gaps, syncedMissions);
+      return syncedMissions;
+    }
+
+    const totalXp = newlyCompleted.reduce((sum, m) => sum + m.xpValue, 0);
+    const { updatedProfile, didLevelUp, newLevel } = applyMissionXp(totalXp);
+    saveState(updatedProfile, gaps, syncedMissions);
+
+    if (notify) {
+      for (const mission of newlyCompleted) {
+        triggerNotification(`🎉 ¡Misión completada: "${mission.title}"! +${mission.xpValue} XP`);
+      }
+      if (didLevelUp) {
+        setTimeout(() => {
+          triggerNotification(`🌟 ¡FELICIDADES! Subiste al Nivel de Empleabilidad Lvl ${newLevel}!`);
+        }, 1500);
+      }
+    }
+
+    return syncedMissions;
+  };
+
   const handleEnrollCourse = (courseId: string) => {
     if (enrolledCourses.some((c) => c.courseId === courseId && c.source === "internal")) {
+      syncAndSaveMissions(missions, enrolledCourses, false);
       setView("mycourses");
       return;
     }
@@ -168,8 +241,10 @@ export default function App() {
       source: "internal",
     };
 
-    saveEnrolledCourses([...enrolledCourses, newEnrollment]);
+    const updatedCourses = [...enrolledCourses, newEnrollment];
+    saveEnrolledCourses(updatedCourses);
     handleAddXpDirectly(50);
+    syncAndSaveMissions(missions, updatedCourses);
     setView("mycourses");
     triggerNotification(`📖 Inscripción confirmada en "${course.title}". ¡Continúa en Mis Cursos!`);
   };
@@ -189,6 +264,7 @@ export default function App() {
     };
 
     saveEnrolledCourses([...enrolledCourses, newEnrollment]);
+    syncAndSaveMissions(missions, [...enrolledCourses, newEnrollment]);
     triggerNotification("✅ Curso externo guardado en Mis Cursos.");
   };
 
@@ -209,7 +285,42 @@ export default function App() {
     });
 
     saveEnrolledCourses(updatedCourses);
-    handleAddXpDirectly(xpReward);
+
+    const { missions: syncedMissions, newlyCompleted } = syncMissionsWithEnrollments(
+      missions,
+      updatedCourses
+    );
+    const missionXp = newlyCompleted.reduce((sum, m) => sum + m.xpValue, 0);
+    const totalXp = xpReward + missionXp;
+
+    let newLevel = profile.level;
+    let nextLevelProgress = profile.progressToNextLevel + totalXp / 2;
+    let didLevelUp = false;
+
+    if (nextLevelProgress >= 100) {
+      didLevelUp = true;
+      newLevel += 1;
+      nextLevelProgress -= 100;
+    }
+
+    const updatedProfile = {
+      ...profile,
+      xp: profile.xp + totalXp,
+      level: newLevel,
+      progressToNextLevel: Math.min(nextLevelProgress, 100),
+    };
+
+    saveState(updatedProfile, gaps, syncedMissions);
+    triggerNotification(`🎯 ¡Ganaste +${xpReward} XP por completar la lección!`);
+
+    for (const mission of newlyCompleted) {
+      triggerNotification(`🎉 ¡Misión completada: "${mission.title}"! +${mission.xpValue} XP`);
+    }
+    if (didLevelUp) {
+      setTimeout(() => {
+        triggerNotification(`🌟 ¡FELICIDADES! Subiste al Nivel de Empleabilidad Lvl ${newLevel}!`);
+      }, 1500);
+    }
   };
 
   const saveState = (updatedProfile: UserProfile, updatedGaps: SkillGap[], updatedMissions: CareerMission[]) => {
@@ -253,21 +364,7 @@ export default function App() {
       return m;
     });
 
-    // Check if the current completed mission unlocked the adjacent one
-    const completedIndexes = updatedMissions
-      .map((m, idx) => m.status === "completado" ? idx : -1)
-      .filter(i => i !== -1);
-
-    const finalMissions = updatedMissions.map((m, idx) => {
-      if (m.status === "bloqueado") {
-        // If previous is completed, set appropriate state
-        const prev = updatedMissions[idx - 1];
-        if (prev && prev.status === "completado") {
-          return { ...m, status: "disponible" as const };
-        }
-      }
-      return m;
-    });
+    const finalMissions = unlockSequentialMissions(updatedMissions);
 
     let newXp = profile.xp + xpAwarded;
     let nextLevelProgress = profile.progressToNextLevel + (xpAwarded / 2); // incremental scale
@@ -335,6 +432,7 @@ export default function App() {
   const handleStartCourseFromMission = (mission: CareerMission) => {
     if (mission.courseId) {
       handleEnrollCourse(mission.courseId);
+      setView("mycourses");
       return;
     }
 
@@ -650,76 +748,11 @@ export default function App() {
               )}
 
               {view === "jobs" && (
-                <motion.div
-                  key="jobs_view"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="space-y-6"
-                >
-                  <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
-                    <div className="absolute right-0 top-0 w-32 h-full utp-diagonal-pattern opacity-10 pointer-events-none" />
-                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
-                    <h2 className="text-base font-black text-black uppercase tracking-widest flex items-center gap-2">
-                      <Briefcase className="h-5 w-5 text-[#B50E30]" />
-                      Match Inteligente de Vacantes UTP+
-                    </h2>
-                    <p className="text-[#64748B] text-xs font-semibold mt-1">
-                      Solo mostramos vacantes acordes a tu carrera de {profile.career || "Sistemas"}. El porcentaje indica tu nivel de compatibilidad.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {INITIAL_VACANCIES.map((vac) => {
-                      return (
-                        <div key={vac.id} className="bg-white rounded-none border border-utp-border p-6 flex flex-col justify-between gap-4">
-                          <div className="space-y-3">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <span className="bg-black text-white font-black text-[9px] px-2 py-0.5 rounded-none uppercase tracking-wider">
-                                  {vac.company}
-                                </span>
-                                <h3 className="font-extrabold text-sm text-black uppercase tracking-tight mt-1.5">{vac.role}</h3>
-                                <p className="text-[10px] text-neutral-400 font-extrabold uppercase mt-0.5 tracking-wider">Ubicación: {vac.location} • {vac.salary}</p>
-                              </div>
-                              <span className="bg-[#B50E30] text-white font-black text-xs px-2.5 py-1 rounded-none uppercase tracking-wider">
-                                {vac.matchScore}% Match
-                              </span>
-                            </div>
-
-                            <p className="text-xs text-neutral-700 leading-relaxed font-semibold">
-                              {vac.description}
-                            </p>
-
-                            <div className="space-y-1.5">
-                              <span className="text-[9px] font-black text-[#B50E30] uppercase tracking-widest block">Habilidades por adquirir:</span>
-                              <div className="flex flex-wrap gap-1">
-                                {vac.skillsMissing.map((sk) => (
-                                  <span key={sk} className="bg-neutral-50 border border-utp-border text-black text-[9px] font-bold uppercase tracking-tight px-1.5 py-0.5 rounded-none">
-                                    {sk}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="border-t border-utp-border pt-4 flex items-center justify-between text-xs gap-3">
-                            <span className="text-[10px] text-neutral-400 leading-tight font-bold uppercase tracking-tight max-w-[50%]">
-                              💡 Tip: {vac.tipsForApplying.slice(0, 75)}...
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleApplicationCompleted(vac.company, vac.role)}
-                              className="bg-black hover:bg-neutral-900 border border-black text-white font-black uppercase tracking-widest text-[10px] py-2 px-4 rounded-none transition cursor-pointer"
-                            >
-                              Postular con un clic
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </motion.div>
+                <VacanciesPanel
+                  vacancies={INITIAL_VACANCIES}
+                  career={profile.career || "Sistemas"}
+                  onApply={handleApplicationCompleted}
+                />
               )}
 
               {view === "resources" && (

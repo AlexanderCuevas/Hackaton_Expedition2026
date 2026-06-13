@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "start": "node dist/server.cjs",
+    "dev": "node init && tsx server.ts",
+    "build": "node init && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "start": "node init && node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js server.ts.js server.ts.js.map",
     "lint": "tsc --noEmit"
@@ -23,6 +23,7 @@
     "lucide-react": "^0.546.0",
     "mammoth": "^1.12.0",
     "motion": "^12.23.24",
+    "node-fetch": "^3.3.2",
     "pdfjs-dist": "^6.0.227",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",

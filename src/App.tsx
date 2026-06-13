@@ -35,7 +35,20 @@ const MOCK_INITIAL_PROFILE: UserProfile = {
   employabilityScore: 68,
   xp: 320,
   level: 2,
-  progressToNextLevel: 60
+  progressToNextLevel: 60,
+  cognitiveProfile: [
+    { subject: 'Razonamiento Lógico', A: 85, B: 65, fullMark: 100 },
+    { subject: 'Razonamiento Verbal', A: 65, B: 70, fullMark: 100 },
+    { subject: 'Razonamiento Numérico', A: 90, B: 60, fullMark: 100 },
+    { subject: 'Resolución de Problemas', A: 80, B: 68, fullMark: 100 },
+    { subject: 'Pensamiento Crítico', A: 75, B: 65, fullMark: 100 },
+  ],
+  personalityTraits: [
+    { name: "Apertura a la experiencia", userScore: 82, averageScore: 65, leftLabel: "Convencional, concreto", rightLabel: "Curioso, abstracto" },
+    { name: "Responsabilidad", userScore: 88, averageScore: 70, leftLabel: "Descuidado, indisciplinado", rightLabel: "Meticuloso, orientado a metas" },
+    { name: "Disposición al riesgo", userScore: 45, averageScore: 60, leftLabel: "Tiende a ser cauteloso", rightLabel: "Propenso a tomar riesgos" },
+    { name: "Reconocimiento emocional", userScore: 75, averageScore: 68, leftLabel: "Dificultad para identificar", rightLabel: "Gran habilidad de lectura" }
+  ]
 };
 
 const MOCK_INITIAL_GAPS: SkillGap[] = [
@@ -133,7 +146,10 @@ export default function App() {
     const authenticated = localStorage.getItem("sp_authenticated") === "true";
     const diagnosisCompleted = localStorage.getItem("sp_diagnosis_completed") === "true";
 
-    if (savedProfile) setProfile(JSON.parse(savedProfile));
+    if (savedProfile) {
+      const parsed = JSON.parse(savedProfile);
+      setProfile({ ...MOCK_INITIAL_PROFILE, ...parsed });
+    }
     if (savedGaps) setGaps(JSON.parse(savedGaps));
 
     const loadedCourses: EnrolledCourse[] = savedCourses ? JSON.parse(savedCourses) : [];
@@ -633,18 +649,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Right Stats panel */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 bg-black text-white rounded-none px-3 py-1 text-xs font-extrabold uppercase tracking-wider">
-                <Zap className="h-3.5 w-3.5 fill-utp-red text-utp-red" />
-                <span>{profile.xp} XP</span>
-              </div>
-
-              <div className="flex items-center gap-1.5 border border-black rounded-none px-3 py-1 text-xs font-black text-black uppercase tracking-wider">
-                <Award className="h-3.5 w-3.5 text-utp-red" />
-                <span>Score: {profile.employabilityScore}%</span>
-              </div>
-            </div>
+            {/* Right Stats panel (removed — shown in profile) */}
           </header>
 
           {/* Active Work Flow Rendering Frame */}

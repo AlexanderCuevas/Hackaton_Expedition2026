@@ -1,38 +1,49 @@
 import React, { useState } from "react";
 import { Sparkles, ArrowRight, CheckCircle2, Shield, GraduationCap, Briefcase, FileText, ChevronRight, TrendingUp, X } from "lucide-react";
 import { UserProfile } from "../types";
+import { UTP_CAREERS, getDefaultTargetRole } from "../data";
 
 interface LandingPageProps {
-  onStart: (profileData?: Partial<UserProfile>) => void;
+  onStart: (profileData: Partial<UserProfile>, isNewUser: boolean) => void;
   currentProfileName: string;
 }
 
 export default function LandingPage({ onStart, currentProfileName }: LandingPageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"register" | "login">("register");
 
   const [name, setName] = useState(currentProfileName || "");
-  const [career, setCareer] = useState("Ingeniería de Sistemas");
-  const [semester, setSemester] = useState<number>(7);
-  const [targetRole, setTargetRole] = useState("Junior Client Side Web Engineer");
+  const [career, setCareer] = useState<string>(UTP_CAREERS[0]);
+  const [semester, setSemester] = useState<number>(1);
+  const [targetRole, setTargetRole] = useState(getDefaultTargetRole(UTP_CAREERS[0]));
   const [email, setEmail] = useState("");
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const openModal = (mode: "register" | "login") => {
+    setAuthMode(mode);
+    setIsModalOpen(true);
+  };
+
+  const handleCareerChange = (chosen: string) => {
+    setCareer(chosen);
+    setTargetRole(getDefaultTargetRole(chosen));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitted(true);
 
     setTimeout(() => {
-      onStart({
-        name: name.trim() || "Estudiante UTP",
-        career,
-        semester,
-        targetRole: targetRole || "Junior Full Stack Developer",
-        employabilityScore: 68,
-        xp: 320,
-        level: 2,
-        progressToNextLevel: 60
-      });
+      onStart(
+        {
+          name: name.trim() || "Estudiante UTP",
+          career,
+          semester,
+          targetRole: targetRole || getDefaultTargetRole(career),
+        },
+        authMode === "register"
+      );
       setIsSubmitted(false);
       setIsModalOpen(false);
     }, 800);
@@ -55,14 +66,14 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
           <div className="flex items-center gap-4">
             <button
               type="button"
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => openModal("login")}
               className="text-black text-xs font-bold uppercase tracking-wider hover:text-[#B50E30] transition duration-200 cursor-pointer hidden sm:inline-block px-3 py-1.5"
             >
               Iniciar Sesión
             </button>
             <button
               type="button"
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => openModal("register")}
               className="bg-[#B50E30] text-white text-xs font-black uppercase tracking-widest px-4 py-2.5 rounded-md hover:bg-[#85061B] transition duration-200 shadow-sm inline-block cursor-pointer border-0"
             >
               Regístrate
@@ -94,7 +105,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => openModal("register")}
                   className="bg-[#B50E30] hover:bg-[#85061B] text-white text-center text-xs font-black uppercase tracking-widest px-6 py-4 rounded-md transition duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer border-0"
                 >
                   Comienza tu Ruta Gratis
@@ -331,7 +342,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
 
             <button
               type="button"
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => openModal("register")}
               className="bg-[#B50E30] hover:bg-[#85061B] text-white text-xs font-black uppercase tracking-widest px-8 py-4 rounded-md transition duration-200 inline-flex items-center gap-2 shadow-md hover:shadow-lg cursor-pointer border-0"
             >
               <span>Crea tu cuenta gratuita</span>
@@ -385,10 +396,16 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
 
             <div className="p-8">
               <div className="space-y-1 mb-6">
-                <span className="text-[#B50E30] text-[9px] uppercase font-black tracking-widest block">Acceso inmediato</span>
-                <h2 className="text-xl font-black text-black uppercase tracking-tight">Únete a la plataforma</h2>
+                <span className="text-[#B50E30] text-[9px] uppercase font-black tracking-widest block">
+                  {authMode === "register" ? "Acceso inmediato" : "Bienvenido de nuevo"}
+                </span>
+                <h2 className="text-xl font-black text-black uppercase tracking-tight">
+                  {authMode === "register" ? "Únete a la plataforma" : "Inicia sesión"}
+                </h2>
                 <p className="text-neutral-500 text-[10px] font-bold uppercase tracking-wider">
-                  Configura tu simulación estudiantil con la cuenta académica UTP+
+                  {authMode === "register"
+                    ? "Configura tu perfil académico UTP+ y genera tu ruta con IA"
+                    : "Retoma tu ruta de empleabilidad personalizada"}
                 </p>
               </div>
 
@@ -423,14 +440,12 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                     <label className="text-[9px] font-black uppercase text-black tracking-wider block">Carrera Profesional</label>
                     <select
                       value={career}
-                      onChange={(e) => setCareer(e.target.value)}
+                      onChange={(e) => handleCareerChange(e.target.value)}
                       className="w-full bg-white px-3 py-2.5 border border-neutral-300 rounded-md text-xs font-semibold focus:border-black outline-none text-black font-bold h-10"
                     >
-                      <option value="Ingeniería de Sistemas">Ingeniería de Sistemas</option>
-                      <option value="Ingeniería de Software">Ingeniería de Software</option>
-                      <option value="Diseño Publicitario">Diseño Publicitario</option>
-                      <option value="Psicología Organizacional">Psicología Organizacional</option>
-                      <option value="Negocios Internacionales">Negocios Internacionales</option>
+                      {UTP_CAREERS.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
                     </select>
                   </div>
 
@@ -473,9 +488,14 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                       </svg>
                       Generando Ruta UTP+ ...
                     </>
+                  ) : authMode === "register" ? (
+                    <>
+                      Comenzar Diagnóstico IA
+                      <ArrowRight className="h-4 w-4 text-white" />
+                    </>
                   ) : (
                     <>
-                      Comenzar Simulación UTP+
+                      Entrar a SkillPath AI
                       <ArrowRight className="h-4 w-4 text-white" />
                     </>
                   )}

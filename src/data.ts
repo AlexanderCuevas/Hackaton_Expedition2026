@@ -1,4 +1,4 @@
-import { Vacancy, NetworkingContact, SocialPost } from "./types";
+import { Vacancy, NetworkingContact, SocialPost, CourseCatalogItem, ExternalCourseSuggestion } from "./types";
 
 export const INITIAL_VACANCIES: Vacancy[] = [
   {
@@ -150,44 +150,255 @@ export const INITIAL_COMMUNITY_POSTS: SocialPost[] = [
   }
 ];
 
-export const CERTIFICATIONS_AND_COURSES = [
+export const CERTIFICATIONS_AND_COURSES: CourseCatalogItem[] = [
   {
+    id: "course_sql_01",
     title: "SQL y Gestión de Datos",
     provider: "SkillPath AI Academy",
     badge: "Básico - Intermedio",
     duration: "12 horas",
     pointsAwarded: 150,
     cost: "Gratis con UTP Account",
-    url: "#"
+    url: "#",
+    source: "internal",
+    linkedGap: "Modelamiento de Bases de Datos SQL",
+    description: "Domina consultas SQL, modelamiento relacional y optimización de queries para entrevistas técnicas en banca y fintech.",
+    modules: [
+      {
+        id: "sql_m1",
+        title: "Fundamentos de Bases de Datos",
+        lessons: [
+          { id: "sql_l1", title: "Introducción al modelamiento relacional", duration: "25 min" },
+          { id: "sql_l2", title: "Tipos de datos y restricciones", duration: "30 min" },
+          { id: "sql_l3", title: "Diagramas ER en la práctica", duration: "35 min" },
+        ],
+      },
+      {
+        id: "sql_m2",
+        title: "Consultas y Joins",
+        lessons: [
+          { id: "sql_l4", title: "SELECT, WHERE y ORDER BY", duration: "40 min" },
+          { id: "sql_l5", title: "INNER y LEFT JOIN multi-tabla", duration: "45 min" },
+          { id: "sql_l6", title: "Subconsultas y agregaciones", duration: "50 min" },
+        ],
+      },
+    ],
   },
   {
+    id: "course_aws_01",
     title: "AWS Certified Cloud Practitioner Pathway",
     provider: "AWS Educate",
     badge: "Oficial Internacional",
     duration: "20 horas",
     pointsAwarded: 300,
     cost: "Voucher Estudiantil disponible",
-    url: "#"
+    url: "#",
+    source: "partner",
+    linkedGap: "AWS Certified Cloud Practitioner",
+    description: "Ruta oficial para comprender servicios core de AWS, facturación y arquitecturas cloud orientadas a certificación.",
+    modules: [
+      {
+        id: "aws_m1",
+        title: "Cloud Concepts",
+        lessons: [
+          { id: "aws_l1", title: "¿Qué es la computación en la nube?", duration: "20 min" },
+          { id: "aws_l2", title: "Modelos IaaS, PaaS y SaaS", duration: "25 min" },
+        ],
+      },
+      {
+        id: "aws_m2",
+        title: "Servicios AWS Core",
+        lessons: [
+          { id: "aws_l3", title: "EC2, S3 y RDS en producción", duration: "55 min" },
+          { id: "aws_l4", title: "IAM y seguridad básica", duration: "40 min" },
+        ],
+      },
+    ],
   },
   {
+    id: "course_figma_01",
     title: "Figma Masterclass: UX Design Fundamentals",
     provider: "Coursera & Google",
     badge: "Especialización Profesional",
     duration: "18 horas",
     pointsAwarded: 200,
     cost: "Subvencionado por Rectorado",
-    url: "#"
+    url: "#",
+    source: "partner",
+    description: "Aprende investigación de usuarios, wireframes y prototipos de alta fidelidad con estándares de la industria.",
+    modules: [
+      {
+        id: "fig_m1",
+        title: "Research & Wireframing",
+        lessons: [
+          { id: "fig_l1", title: "Entrevistas de usuario", duration: "30 min" },
+          { id: "fig_l2", title: "Wireframes de baja fidelidad", duration: "35 min" },
+        ],
+      },
+    ],
   },
   {
+    id: "course_scrum_01",
     title: "Comunicación de Impacto y Storytelling",
     provider: "Xpedition Soft Skills Bootcamps",
     badge: "Taller Práctico",
     duration: "6 horas",
     pointsAwarded: 100,
     cost: "100% de beca activa",
-    url: "#"
-  }
+    url: "#",
+    source: "internal",
+    linkedGap: "Metodologías Ágiles (Scrum)",
+    description: "Desarrolla habilidades de comunicación ejecutiva y storytelling para entrevistas y presentaciones de proyectos.",
+    modules: [
+      {
+        id: "comm_m1",
+        title: "Comunicación Profesional",
+        lessons: [
+          { id: "comm_l1", title: "Estructura STAR para entrevistas", duration: "20 min" },
+          { id: "comm_l2", title: "Storytelling con datos", duration: "25 min" },
+        ],
+      },
+    ],
+  },
 ];
+
+export const EXTERNAL_COURSE_SUGGESTIONS: ExternalCourseSuggestion[] = [
+  {
+    id: "ext_udemy_sql",
+    platform: "Udemy",
+    title: "SQL para Análisis de Datos: De Cero a Experto",
+    instructor: "Juan Pérez",
+    price: "S/. 34.90",
+    originalPrice: "S/. 199.90",
+    rating: 4.7,
+    students: "12,400+",
+    linkedGap: "Modelamiento de Bases de Datos SQL",
+    url: "https://www.udemy.com/course/sql-data-analysis/",
+    highlight: "82% de descuento esta semana. Ideal para cerrar tu brecha en consultas multi-tabla exigidas por BCP e Interbank.",
+  },
+  {
+    id: "ext_udemy_scrum",
+    platform: "Udemy",
+    title: "Scrum Master: Metodologías Ágiles desde Cero",
+    instructor: "Ana Rodríguez",
+    price: "S/. 29.90",
+    originalPrice: "S/. 179.90",
+    rating: 4.6,
+    students: "8,900+",
+    linkedGap: "Metodologías Ágiles (Scrum)",
+    url: "https://www.udemy.com/course/scrum-master-agile/",
+    highlight: "Curso práctico con simulaciones de sprint. Complementa lo que no cubre el convenio universitario.",
+  },
+  {
+    id: "ext_udemy_aws",
+    platform: "Udemy",
+    title: "AWS Cloud Practitioner CLF-C02 — Español",
+    instructor: "Cloud Academy LATAM",
+    price: "S/. 39.90",
+    originalPrice: "S/. 219.90",
+    rating: 4.8,
+    students: "21,000+",
+    linkedGap: "AWS Certified Cloud Practitioner",
+    url: "https://www.udemy.com/course/aws-cloud-practitioner-es/",
+    highlight: "Incluye simulacros del examen oficial. Más económico que el voucher estándar si no tienes beca AWS Academy.",
+  },
+  {
+    id: "ext_linkedin_scrum",
+    platform: "LinkedIn Learning",
+    title: "Fundamentos de Scrum",
+    instructor: "Kelley O'Connell",
+    price: "Incluido con cuenta UTP",
+    rating: 4.5,
+    students: "45,000+",
+    linkedGap: "Metodologías Ágiles (Scrum)",
+    url: "https://www.linkedin.com/learning/scrum-fundamentals",
+    highlight: "Acceso gratuito con tu correo @utp.edu.pe. Recomendado antes de invertir en cursos de pago.",
+  },
+  {
+    id: "ext_udemy_figma",
+    platform: "Udemy",
+    title: "Figma UI UX Design Essentials",
+    instructor: "Daniel Walter Scott",
+    price: "S/. 32.90",
+    originalPrice: "S/. 189.90",
+    rating: 4.7,
+    students: "18,500+",
+    linkedGap: "Diseño Gráfico / UX-UI",
+    url: "https://www.udemy.com/course/figma-ui-ux-design/",
+    highlight: "Ideal para carreras de diseño y comunicación. Prototipado profesional a buen precio.",
+  },
+  {
+    id: "ext_udemy_analytics",
+    platform: "Udemy",
+    title: "Google Analytics 4 — De Cero a Experto",
+    instructor: "MarketLab PE",
+    price: "S/. 27.90",
+    originalPrice: "S/. 159.90",
+    rating: 4.5,
+    students: "6,200+",
+    linkedGap: "Google Analytics 4 & Data Studio",
+    url: "https://www.udemy.com/course/google-analytics-4/",
+    highlight: "Perfecto para Marketing y Negocios. Cierra brechas de analítica digital demandadas en agencias.",
+  },
+  {
+    id: "ext_linkedin_negotiation",
+    platform: "LinkedIn Learning",
+    title: "Negociación y Resolución de Conflictos",
+    instructor: "Lisa Gates",
+    price: "Incluido con cuenta UTP",
+    rating: 4.6,
+    students: "32,000+",
+    linkedGap: "Negociación y Resolución de Conflictos",
+    url: "https://www.linkedin.com/learning/negotiation-foundations",
+    highlight: "Recurso gratuito para carreras de Administración, Derecho y Negocios Internacionales.",
+  },
+];
+
+export const UTP_CAREERS = [
+  "Ingeniería de Sistemas",
+  "Ingeniería de Software",
+  "Administración",
+  "Marketing",
+  "Diseño Gráfico / UX-UI",
+  "Diseño Publicitario",
+  "Arquitectura",
+  "Derecho",
+  "Negocios Internacionales",
+  "Psicología Organizacional",
+  "Ciencias de la Comunicación",
+] as const;
+
+export const CAREER_TYPICAL_SKILLS: Record<string, string[]> = {
+  "Ingeniería de Sistemas": ["HTML/CSS", "JavaScript", "SQL Server", "TypeScript", "Python", "React", "Node.js", "Git/GitHub", "Metodologías Ágiles", "AWS Basic"],
+  "Ingeniería de Software": ["HTML/CSS", "JavaScript", "TypeScript", "React", "Node.js", "Git/GitHub", "Scrum", "Testing", "APIs REST"],
+  "Administración": ["Excel Intermedio", "Power BI básico", "Gestión de Proyectos", "Presupuestos", "Scrum", "Inglés Intermedio", "Liderazgo"],
+  "Marketing": ["Google Analytics", "Facebook Ads", "Copywriting", "SEO/SEM", "Canva/Photoshop", "Email Marketing", "Estrategia Digital"],
+  "Diseño Gráfico / UX-UI": ["Figma", "Adobe Illustrator", "Prototipado", "Design Thinking", "Adobe Photoshop", "User Research", "Wireframing"],
+  "Diseño Publicitario": ["Figma", "Adobe Illustrator", "Photoshop", "Branding", "Copywriting", "Redes Sociales", "Motion Graphics"],
+  "Arquitectura": ["AutoCAD", "Revit", "Sketchup", "Renderizado 3D", "Control de Obras", "Diseño Sostenible"],
+  "Derecho": ["Redacción Jurídica", "Litigación Oral", "Investigación Legal", "Mediación", "Derecho Corporativo"],
+  "Negocios Internacionales": ["Excel Financiero", "Logística Internacional", "Aduanas", "Inglés Comercial", "Negociación"],
+  "Psicología Organizacional": ["Selección de Personal", "Clima Laboral", "Coaching", "Evaluación de Desempeño", "Comunicación Asertiva"],
+  "Ciencias de la Comunicación": ["Redacción Creativa", "Edición de Video", "Community Management", "Relaciones Públicas", "Fotografía"],
+};
+
+export const CAREER_SUGGESTED_ROLES: Record<string, string[]> = {
+  "Ingeniería de Sistemas": ["Full Stack Developer Junior", "Analista de Datos", "Backend Developer Trainee", "DevOps Engineer Junior", "QA Analyst"],
+  "Ingeniería de Software": ["Junior Software Engineer", "Frontend Developer Trainee", "Full Stack Developer Junior", "Mobile Developer Junior"],
+  "Administración": ["Analista de Procesos", "Asistente de Recursos Humanos", "Project Manager Junior", "Administrador de Operaciones"],
+  "Marketing": ["Social Media Analyst", "Growth Marketing Specialist", "Asistente de Marketing Digital", "SEO Copywriter"],
+  "Diseño Gráfico / UX-UI": ["Diseñador UX/UI Trainee", "Product Designer Junior", "Diseñador Gráfico Digital", "Content Creator"],
+  "Diseño Publicitario": ["Diseñador Gráfico Junior", "Art Director Trainee", "Community Manager Visual", "Motion Designer Junior"],
+  "Arquitectura": ["Asistente de Diseñador Arquitectónico", "Modelador BIM Junior", "Supervisor de Obras Junior"],
+  "Derecho": ["Asistente Legal Corporativo", "Consultor Contractual Junior", "Practicante Judicial"],
+  "Negocios Internacionales": ["Asistente de Comercio Exterior", "Analista de Inteligencia Comercial", "Supply Chain Trainee"],
+  "Psicología Organizacional": ["Analista de Talento Humano", "Asistente de Selección", "Coordinador de Clima Laboral"],
+  "Ciencias de la Comunicación": ["Redactor Creativo", "Especialista en PR / Comunicaciones", "Coordinador de Audiovisuales"],
+};
+
+export function getDefaultTargetRole(career: string): string {
+  return CAREER_SUGGESTED_ROLES[career]?.[0] ?? "Practicante Profesional";
+}
 
 export const UNIVERSITY_EVENTS = [
   {

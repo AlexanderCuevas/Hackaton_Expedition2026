@@ -1,16 +1,12 @@
-/**
- * LandingPage.tsx — Ruta de Empleabilidad
- * Self-contained single file. Copy-paste into VSCode.
- * Dependencies: react, lucide-react (already in project)
- * Fonts: Bricolage Grotesque (display) + Plus Jakarta Sans (body) via Google Fonts
- */
+
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   ArrowRight, X, Instagram, Linkedin, MessageCircle, Mail,
   Sparkles, FileText, Briefcase, Target, Zap, Award,
   ChevronDown, Check, MapPin, Building2, Play, Star,
-  TrendingUp, BarChart3, Shield, ChevronRight, ChevronLeft
+  TrendingUp, BarChart3, Shield, ChevronRight, ChevronLeft,
+  Eye, EyeOff, ShieldAlert, ShieldCheck, CheckCircle, AlertTriangle, Info
 } from "lucide-react";
 import principalImg from "./assets/Principal.png";
 import { ImageGallery, ImageGalleryHandle } from "./ui/carousel-circular-image-gallery";
@@ -288,43 +284,42 @@ function StatNum({ target, suffix = "", prefix = "" }: { target: number; suffix?
 function Modal({
   onClose,
   onStart: handleStart,
-  authMode,
-  initialName,
 }: {
   onClose: () => void;
   onStart: (profileData: Partial<UserProfile>, isNewUser: boolean) => void;
-  authMode: "register" | "login";
-  initialName: string;
 }) {
-  const [name, setName] = useState(initialName);
   const [email, setEmail] = useState("");
-  const [career, setCareer] = useState<string>(UTP_CAREERS[0]);
-  const [semester, setSemester] = useState(1);
-  const [role, setRole] = useState(getDefaultTargetRole(UTP_CAREERS[0]));
-  const [loading, setLoading] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [emailErr, setEmailErr] = useState("");
+  const [pwErr, setPwErr] = useState("");
+  const [toast, setToast] = useState<{msg: string; type: "success" | "info" | "error"} | null>(null);
 
-  const handleCareerChange = (chosen: string) => {
-    setCareer(chosen);
-    setRole(getDefaultTargetRole(chosen));
-  };
+  const isValidUtp = (e: string) => /^[a-zA-Z0-9._%+-]+@(utp\.edu\.pe|utp\.pe)$/i.test(e.trim());
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = () => {
+    let err = false;
+    if (!email.trim()) { setEmailErr("El correo electrónico es obligatorio."); err = true; }
+    else if (!isValidUtp(email)) { setEmailErr("Introduce un correo institucional válido (@utp.edu.pe o @utp.pe)"); err = true; }
+    else setEmailErr("");
+    if (!password) { setPwErr("La contraseña es obligatoria."); err = true; }
+    else setPwErr("");
+    if (err) return;
+    setToast({ msg: "Verificando identidad en el servidor UTP...", type: "info" });
     setTimeout(() => {
-      setLoading(false);
-      handleStart(
-        {
-          name: name.trim() || "Estudiante UTP",
-          career,
-          semester,
-          targetRole: role || getDefaultTargetRole(career),
-        },
-        authMode === "register"
-      );
-      onClose();
-    }, 800);
+      setToast({ msg: "Acceso Concedido. Redirigiendo a tu Ruta de Empleabilidad...", type: "success" });
+      setTimeout(() => {
+        handleStart({ name: "Estudiante UTP", career: "", semester: 1, targetRole: "" }, false);
+        onClose();
+      }, 1200);
+    }, 1800);
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") { e.preventDefault(); handleSubmit(); }
+  };
+
+  const clearErr = () => { setEmailErr(""); setPwErr(""); };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -332,79 +327,91 @@ function Modal({
       <div className="relative z-10 bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden"
         style={{ animation: "modalIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
         <div className="h-1 bg-[#B50E30]" />
-        <button onClick={onClose} className="absolute top-4 right-4 h-8 w-8 bg-neutral-100 hover:bg-neutral-200 rounded-full flex items-center justify-center text-neutral-500 hover:text-black transition cursor-pointer">
+        <button onClick={onClose} className="absolute top-4 right-4 h-8 w-8 bg-neutral-100 hover:bg-neutral-200 rounded-full flex items-center justify-center text-neutral-500 hover:text-black transition cursor-pointer z-10">
           <X className="h-3.5 w-3.5" />
         </button>
-        <div className="p-7">
-          <p className="text-[#B50E30] text-[9px] font-black uppercase tracking-[0.22em] mb-1">
-            {authMode === "register" ? "Acceso inmediato" : "Bienvenido de nuevo"}
-          </p>
-          <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }} className="text-2xl font-black text-black uppercase tracking-tight mb-1">
-            {authMode === "register" ? "Únete a la plataforma" : "Inicia sesión"}
-          </h2>
-          <p className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider mb-6">
-            {authMode === "register"
-              ? "Configura tu perfil académico UTP+ y genera tu ruta con IA"
-              : "Retoma tu ruta de empleabilidad personalizada"}
-          </p>
-
-          <form onSubmit={submit} className="space-y-3">
-            {[
-              { label: "Nombre completo", value: name, set: setName, type: "text", placeholder: "Ej. Valentina Ríos", mono: false },
-              { label: "Correo UTP", value: email, set: setEmail, type: "email", placeholder: "u12345678@utp.edu.pe", mono: true },
-            ].map((f) => (
-              <div key={f.label}>
-                <label className="text-neutral-400 text-[9px] font-black uppercase tracking-widest block mb-1">{f.label}</label>
-                <input required type={f.type} placeholder={f.placeholder} value={f.value}
-                  onChange={(e) => f.set(e.target.value)}
-                  className={`w-full bg-neutral-50 border border-neutral-200 text-black placeholder-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-medium focus:border-[#B50E30] focus:bg-white outline-none transition ${f.mono ? "font-mono" : ""}`} />
-              </div>
-            ))}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-neutral-400 text-[9px] font-black uppercase tracking-widest block mb-1">Carrera</label>
-                <select value={career} onChange={(e) => handleCareerChange(e.target.value)}
-                  className="w-full bg-neutral-50 border border-neutral-200 text-black px-3.5 py-2.5 rounded-xl text-xs font-medium focus:border-[#B50E30] outline-none h-[42px]">
-                  {UTP_CAREERS.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-neutral-400 text-[9px] font-black uppercase tracking-widest block mb-1">Ciclo</label>
-                <select value={semester} onChange={(e) => setSemester(+e.target.value)}
-                  className="w-full bg-neutral-50 border border-neutral-200 text-black px-3.5 py-2.5 rounded-xl text-xs font-medium focus:border-[#B50E30] outline-none h-[42px]">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((s) => <option key={s} value={s}>{s}° Ciclo</option>)}
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="text-neutral-400 text-[9px] font-black uppercase tracking-widest block mb-1">Puesto objetivo</label>
-              <input required type="text" placeholder="Ej. Junior Full Stack Developer" value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full bg-neutral-50 border border-neutral-200 text-black placeholder-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-medium focus:border-[#B50E30] focus:bg-white outline-none transition" />
-            </div>
-            <button type="submit" disabled={loading}
-              className="w-full mt-2 bg-[#B50E30] hover:bg-[#85061B] text-white text-xs font-black uppercase tracking-widest py-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer border-0 shadow-lg shadow-[#B50E30]/20">
-              {loading ? (
-                <>
-                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Generando Ruta UTP+ ...
-                </>
-              ) : authMode === "register" ? (
-                <>Comenzar Diagnóstico IA <ArrowRight className="h-4 w-4" /></>
-              ) : (
-                <>Entrar a SkillPath AI <ArrowRight className="h-4 w-4" /></>
-              )}
-            </button>
-            <p className="text-neutral-300 text-[9px] text-center font-bold uppercase tracking-wider">
-              {authMode === "register"
-                ? "Al registrarte, declaras pertenecer activamente a la comunidad de egreso de la UTP."
-                : "Gratis · Solo necesitas tu correo UTP"}
+        <div className="p-7 flex flex-col items-center">
+          {/* Logo */}
+          <div className="flex items-center gap-2.5 cursor-default">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250" className="h-9 w-9 shrink-0">
+              <g fill="none" stroke="#B50E30" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M 40,210 C 40,160 80,160 80,130 L 80,105" />
+                <path d="M 55,105 C 55,125 105,125 105,105" />
+                <polygon points="80,45 135,65 80,85 25,65" fill="#fff" strokeWidth="10" />
+                <path d="M 108,75 L 120,85 C 122,88 122,95 120,98" strokeWidth="8" />
+              </g>
+              <circle cx="120" cy="102" r="7" fill="#B50E30" />
+            </svg>
+            <p style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }} className="font-black text-[15px] uppercase tracking-tight leading-none text-black">
+              Ruta de <span className="text-[#B50E30]">Empleabilidad</span>
             </p>
-          </form>
+          </div>
+          <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }} className="text-[34px] sm:text-[40px] font-black tracking-tighter text-center leading-tight text-slate-900 mt-6">
+            ¡Hola de nuevo!
+          </h1>
+          <p className="text-xs font-semibold text-slate-400 mt-2 tracking-wide uppercase">Portal de Acceso UTP</p>
+
+          {/* Form */}
+          <div className="w-full space-y-5 mt-8">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-900 tracking-tight block">Correo electrónico institucional</label>
+              <input type="email" autoFocus value={email} onChange={(e) => { setEmail(e.target.value); clearErr(); }} onKeyDown={handleKeyDown}
+                className={`w-full px-3.5 py-3 bg-white border ${emailErr ? "border-rose-500" : "border-slate-300"} rounded-[4px] text-slate-900 text-base outline-none font-medium transition-colors`}
+                placeholder="nombre@utp.edu.pe" />
+              {emailErr && (
+                <div className="text-rose-600 text-xs font-semibold flex items-center gap-1.5">
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span>{emailErr}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-bold text-slate-900 tracking-tight">Contraseña institucional</label>
+                <span className="text-xs font-semibold text-[#B50E30] hover:underline cursor-pointer">¿Olvidaste tu contraseña?</span>
+              </div>
+              <div className="relative">
+                <input type={showPw ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); clearErr(); }} onKeyDown={handleKeyDown}
+                  className={`w-full pl-3.5 pr-11 py-3 bg-white border ${pwErr ? "border-rose-500" : "border-slate-300"} rounded-[4px] text-slate-900 text-base outline-none font-medium transition-colors`}
+                  placeholder="Ingresa tu contraseña" />
+                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-950 transition-colors cursor-pointer">
+                  {showPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              {pwErr && (
+                <div className="text-rose-600 text-xs font-semibold flex items-center gap-1.5">
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span>{pwErr}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-slate-50 border border-slate-100 p-3.5 rounded-lg">
+              <p className="text-xs text-slate-500 leading-normal flex gap-2">
+                <ShieldAlert className="w-4 h-4 text-[#B50E30] shrink-0" />
+                <span>Acceso exclusivo para estudiantes y docentes con cuentas de dominio <strong>@utp.edu.pe</strong> o <strong>@utp.pe</strong>.</span>
+              </p>
+            </div>
+
+            <button onClick={handleSubmit}
+              className="w-full bg-[#B50E30] hover:bg-[#85061B] text-white font-bold py-3.5 px-6 rounded-full transition-all duration-200 active:scale-95 text-base tracking-normal shadow-sm flex items-center justify-center gap-2 cursor-pointer border-0">
+              <span>Iniciar Sesión</span>
+              <ShieldCheck className="w-4 h-4" />
+            </button>
+          </div>
         </div>
+
+        {/* Toast */}
+        {toast && (
+          <div className="absolute bottom-4 left-4 right-4 z-20">
+            <div className={`p-4 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-xl border bg-white ${toast.type === "success" ? "border-emerald-100" : toast.type === "error" ? "border-rose-100" : "border-slate-200"}`}>
+              {toast.type === "success" ? <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" /> : toast.type === "error" ? <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0" /> : <Info className="w-5 h-5 text-[#B50E30] shrink-0" />}
+              <span className="text-slate-800 flex-1">{toast.msg}</span>
+              <button onClick={() => setToast(null)} className="text-slate-400 hover:text-slate-900 cursor-pointer"><X className="w-4 h-4" /></button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -559,11 +566,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
             <Logo />
             <nav className="hidden md:flex items-center gap-8" />
             <div className="flex items-center gap-3">
-              <button onClick={() => openModal("login")} className="hidden sm:block text-neutral-500 hover:text-black text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer">
+              <button onClick={() => openModal("login")} className="bg-[#B50E30] hover:bg-[#85061B] text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl cursor-pointer border-0 shadow-md shadow-[#B50E30]/20">
                 Iniciar sesión
-              </button>
-              <button onClick={() => openModal("register")} className="btn-primary bg-[#B50E30] hover:bg-[#85061B] text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl cursor-pointer border-0 shadow-md shadow-[#B50E30]/20">
-                Empieza gratis
               </button>
             </div>
           </div>
@@ -942,8 +946,6 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
           <Modal
             onClose={close}
             onStart={onStart}
-            authMode={authMode}
-            initialName={currentProfileName}
           />
         )}
 

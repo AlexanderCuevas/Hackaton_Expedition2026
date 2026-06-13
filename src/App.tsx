@@ -805,8 +805,6 @@ export default function App() {
                     gaps={gaps}
                     currentSkills={profile.currentSkills}
                     savedAnalysis={cvAnalysis ?? undefined}
-                    cvInfo={cvMeta ?? undefined}
-                    cvText={cvText || undefined}
                     onNavigateToDiagnostico={() => setView("diagnostico")}
                     onAnalysisResult={(res) => {
                       setCvAnalysis(res);

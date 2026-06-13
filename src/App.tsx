@@ -20,7 +20,7 @@ import MyCoursesPanel from "./components/MyCoursesPanel";
 
 // Mock Data
 import { INITIAL_VACANCIES, CERTIFICATIONS_AND_COURSES, UNIVERSITY_EVENTS } from "./data";
-import { integrateRouteWithCourses } from "./utils/courseMatcher";
+import { integrateRouteWithCourses, syncMissionsWithEnrollments, unlockSequentialMissions } from "./utils/courseMatcher";
 
 // Preloaded state for Hackathon demo so that it's highly populated instantly
 const MOCK_INITIAL_PROFILE: UserProfile = {
@@ -134,8 +134,18 @@ export default function App() {
 
     if (savedProfile) setProfile(JSON.parse(savedProfile));
     if (savedGaps) setGaps(JSON.parse(savedGaps));
-    if (savedMissions) setMissions(JSON.parse(savedMissions));
-    if (savedCourses) setEnrolledCourses(JSON.parse(savedCourses));
+
+    const loadedCourses: EnrolledCourse[] = savedCourses ? JSON.parse(savedCourses) : [];
+    let loadedMissions: CareerMission[] = savedMissions
+      ? JSON.parse(savedMissions)
+      : MOCK_INITIAL_MISSIONS;
+
+    if (loadedCourses.length > 0) {
+      loadedMissions = syncMissionsWithEnrollments(loadedMissions, loadedCourses).missions;
+    }
+
+    setMissions(loadedMissions);
+    setEnrolledCourses(loadedCourses);
     setIsAuthenticated(authenticated);
 
     if (authenticated) {
@@ -151,8 +161,70 @@ export default function App() {
     localStorage.setItem("sp_enrolled_courses", JSON.stringify(courses));
   };
 
+  const applyMissionXp = (xpAwarded: number) => {
+    let newLevel = profile.level;
+    let nextLevelProgress = profile.progressToNextLevel + xpAwarded / 2;
+    let didLevelUp = false;
+
+    if (nextLevelProgress >= 100) {
+      didLevelUp = true;
+      newLevel += 1;
+      nextLevelProgress -= 100;
+    }
+
+    const updatedProfile = {
+      ...profile,
+      xp: profile.xp + xpAwarded,
+      level: newLevel,
+      progressToNextLevel: Math.min(nextLevelProgress, 100),
+    };
+
+    return { updatedProfile, didLevelUp, newLevel };
+  };
+
+  const syncAndSaveMissions = (
+    currentMissions: CareerMission[],
+    courses: EnrolledCourse[],
+    notify = true
+  ) => {
+    const { missions: syncedMissions, newlyCompleted } = syncMissionsWithEnrollments(
+      currentMissions,
+      courses
+    );
+
+    const missionsChanged =
+      JSON.stringify(syncedMissions) !== JSON.stringify(currentMissions);
+
+    if (!missionsChanged && newlyCompleted.length === 0) {
+      return syncedMissions;
+    }
+
+    if (newlyCompleted.length === 0) {
+      saveState(profile, gaps, syncedMissions);
+      return syncedMissions;
+    }
+
+    const totalXp = newlyCompleted.reduce((sum, m) => sum + m.xpValue, 0);
+    const { updatedProfile, didLevelUp, newLevel } = applyMissionXp(totalXp);
+    saveState(updatedProfile, gaps, syncedMissions);
+
+    if (notify) {
+      for (const mission of newlyCompleted) {
+        triggerNotification(`🎉 ¡Misión completada: "${mission.title}"! +${mission.xpValue} XP`);
+      }
+      if (didLevelUp) {
+        setTimeout(() => {
+          triggerNotification(`🌟 ¡FELICIDADES! Subiste al Nivel de Empleabilidad Lvl ${newLevel}!`);
+        }, 1500);
+      }
+    }
+
+    return syncedMissions;
+  };
+
   const handleEnrollCourse = (courseId: string) => {
     if (enrolledCourses.some((c) => c.courseId === courseId && c.source === "internal")) {
+      syncAndSaveMissions(missions, enrolledCourses, false);
       setView("mycourses");
       return;
     }
@@ -168,8 +240,10 @@ export default function App() {
       source: "internal",
     };
 
-    saveEnrolledCourses([...enrolledCourses, newEnrollment]);
+    const updatedCourses = [...enrolledCourses, newEnrollment];
+    saveEnrolledCourses(updatedCourses);
     handleAddXpDirectly(50);
+    syncAndSaveMissions(missions, updatedCourses);
     setView("mycourses");
     triggerNotification(`📖 Inscripción confirmada en "${course.title}". ¡Continúa en Mis Cursos!`);
   };
@@ -189,6 +263,7 @@ export default function App() {
     };
 
     saveEnrolledCourses([...enrolledCourses, newEnrollment]);
+    syncAndSaveMissions(missions, [...enrolledCourses, newEnrollment]);
     triggerNotification("✅ Curso externo guardado en Mis Cursos.");
   };
 
@@ -209,7 +284,42 @@ export default function App() {
     });
 
     saveEnrolledCourses(updatedCourses);
-    handleAddXpDirectly(xpReward);
+
+    const { missions: syncedMissions, newlyCompleted } = syncMissionsWithEnrollments(
+      missions,
+      updatedCourses
+    );
+    const missionXp = newlyCompleted.reduce((sum, m) => sum + m.xpValue, 0);
+    const totalXp = xpReward + missionXp;
+
+    let newLevel = profile.level;
+    let nextLevelProgress = profile.progressToNextLevel + totalXp / 2;
+    let didLevelUp = false;
+
+    if (nextLevelProgress >= 100) {
+      didLevelUp = true;
+      newLevel += 1;
+      nextLevelProgress -= 100;
+    }
+
+    const updatedProfile = {
+      ...profile,
+      xp: profile.xp + totalXp,
+      level: newLevel,
+      progressToNextLevel: Math.min(nextLevelProgress, 100),
+    };
+
+    saveState(updatedProfile, gaps, syncedMissions);
+    triggerNotification(`🎯 ¡Ganaste +${xpReward} XP por completar la lección!`);
+
+    for (const mission of newlyCompleted) {
+      triggerNotification(`🎉 ¡Misión completada: "${mission.title}"! +${mission.xpValue} XP`);
+    }
+    if (didLevelUp) {
+      setTimeout(() => {
+        triggerNotification(`🌟 ¡FELICIDADES! Subiste al Nivel de Empleabilidad Lvl ${newLevel}!`);
+      }, 1500);
+    }
   };
 
   const saveState = (updatedProfile: UserProfile, updatedGaps: SkillGap[], updatedMissions: CareerMission[]) => {
@@ -253,21 +363,7 @@ export default function App() {
       return m;
     });
 
-    // Check if the current completed mission unlocked the adjacent one
-    const completedIndexes = updatedMissions
-      .map((m, idx) => m.status === "completado" ? idx : -1)
-      .filter(i => i !== -1);
-
-    const finalMissions = updatedMissions.map((m, idx) => {
-      if (m.status === "bloqueado") {
-        // If previous is completed, set appropriate state
-        const prev = updatedMissions[idx - 1];
-        if (prev && prev.status === "completado") {
-          return { ...m, status: "disponible" as const };
-        }
-      }
-      return m;
-    });
+    const finalMissions = unlockSequentialMissions(updatedMissions);
 
     let newXp = profile.xp + xpAwarded;
     let nextLevelProgress = profile.progressToNextLevel + (xpAwarded / 2); // incremental scale
@@ -335,6 +431,7 @@ export default function App() {
   const handleStartCourseFromMission = (mission: CareerMission) => {
     if (mission.courseId) {
       handleEnrollCourse(mission.courseId);
+      setView("mycourses");
       return;
     }
 

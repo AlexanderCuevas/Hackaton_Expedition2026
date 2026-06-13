@@ -107,6 +107,7 @@ export default function RouteDashboard({
   const handleScrollPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const container = scrollContainerRef.current;
     if (!container || e.button !== 0) return;
+    if ((e.target as HTMLElement).closest("[data-route-node]")) return;
 
     dragRef.current = {
       active: true,
@@ -162,8 +163,18 @@ export default function RouteDashboard({
       return;
     }
 
+    if (!node.missionId) return;
+
+    const mission = missions.find((m) => m.id === node.missionId);
+    if (!mission) return;
+
     const status = getNodeStatus(node);
-    if (status === "disponible" && node.missionId) {
+    if (status === "disponible") {
+      handleMissionAction(mission, onNavigateToView, onStartCourseFromMission);
+      return;
+    }
+
+    if (status === "completado") {
       setSelectedMissionId(node.missionId);
     }
   };
@@ -354,6 +365,7 @@ export default function RouteDashboard({
             const isCompleted = status === "completado";
             const isAvailable = status === "disponible";
             const isLocked = status === "bloqueado";
+            const isClickable = isAvailable || isCompleted;
             const mission = node.missionId
               ? missions.find((m) => m.id === node.missionId)
               : null;
@@ -363,10 +375,12 @@ export default function RouteDashboard({
               <button
                 key={node.id}
                 type="button"
-                disabled={!isAvailable}
+                data-route-node
+                disabled={!isClickable}
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={() => handleNodeClick(node)}
                 className={`absolute flex flex-col items-center gap-2 -translate-x-1/2 -translate-y-1/2 transition-transform z-10 ${
-                  isAvailable
+                  isClickable
                     ? "pointer-events-auto cursor-pointer hover:scale-105"
                     : "pointer-events-none"
                 } ${isDragging ? "cursor-grabbing" : ""}`}

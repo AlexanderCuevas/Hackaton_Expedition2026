@@ -1,4 +1,4 @@
-import { CareerMission, SkillGap } from "../types";
+import { CareerMission, EnrolledCourse, SkillGap } from "../types";
 import {
   CERTIFICATIONS_AND_COURSES,
   EXTERNAL_COURSE_SUGGESTIONS,
@@ -222,3 +222,74 @@ export function buildNetworkFromMissions(missions: CareerMission[]): {
 }
 
 export const ROUTE_NETWORK_CANVAS_HEIGHT = CANVAS_HEIGHT;
+
+export function unlockSequentialMissions(missions: CareerMission[]): CareerMission[] {
+  return missions.map((mission, idx) => {
+    if (mission.status !== "bloqueado") return mission;
+    const prev = missions[idx - 1];
+    if (prev?.status === "completado") {
+      return { ...mission, status: "disponible" };
+    }
+    return mission;
+  });
+}
+
+export function syncMissionsWithEnrollments(
+  missions: CareerMission[],
+  enrolledCourses: EnrolledCourse[]
+): { missions: CareerMission[]; newlyCompleted: CareerMission[] } {
+  const newlyCompleted: CareerMission[] = [];
+
+  const updated = missions.map((mission) => {
+    if (mission.type !== "aprendizaje") return mission;
+
+    const enrollment = mission.courseId
+      ? enrolledCourses.find((e) => e.courseId === mission.courseId && e.source === "internal")
+      : mission.externalSuggestionId
+        ? enrolledCourses.find(
+            (e) => e.courseId === mission.externalSuggestionId && e.source === "external"
+          )
+        : undefined;
+
+    if (!enrollment) return mission;
+
+    const lessonCount = enrollment.completedLessons.length;
+    const progress = enrollment.progress;
+
+    let subtasks = mission.subtasks;
+    if (mission.courseId) {
+      if (progress >= 100) {
+        subtasks = mission.subtasks.map((sub) => ({ ...sub, done: true }));
+      } else {
+        subtasks = mission.subtasks.map((sub, idx) => {
+          if (idx === 0) return { ...sub, done: true };
+          if (idx === 1) return { ...sub, done: lessonCount >= 2 };
+          if (idx === 2) return { ...sub, done: progress >= 50 };
+          return sub;
+        });
+      }
+    } else if (mission.externalSuggestionId) {
+      subtasks = mission.subtasks.map((sub, idx) => {
+        if (idx === 0) return { ...sub, done: lessonCount >= 1 || progress > 0 };
+        if (idx === 1) return { ...sub, done: true };
+        if (idx === 2) return { ...sub, done: progress >= 30 };
+        return sub;
+      });
+    }
+
+    const allDone = subtasks.every((s) => s.done);
+    const wasCompleted = mission.status === "completado";
+    const status = allDone ? "completado" : mission.status;
+
+    const nextMission = { ...mission, subtasks, status };
+    if (allDone && !wasCompleted) {
+      newlyCompleted.push(nextMission);
+    }
+    return nextMission;
+  });
+
+  return {
+    missions: unlockSequentialMissions(updated),
+    newlyCompleted,
+  };
+}

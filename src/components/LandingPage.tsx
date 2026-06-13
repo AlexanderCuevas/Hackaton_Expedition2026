@@ -9,8 +9,8 @@ import {
   Eye, EyeOff, ShieldAlert, ShieldCheck, CheckCircle, AlertTriangle, Info
 } from "lucide-react";
 import principalImg from "./assets/Principal.png";
-import sofiaImg from "./assets/Sofia.jpeg";
-import juanImg from "./assets/Juan.jpeg";
+import sofiaImg from "./assets/Sofia.png";
+import juanImg from "./assets/Juan.png";
 import { ImageGallery, ImageGalleryHandle } from "./ui/carousel-circular-image-gallery";
 import { UserProfile } from "../types";
 import { findStudentByCode } from "../mockStudents";

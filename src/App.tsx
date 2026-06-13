@@ -711,8 +711,10 @@ export default function App() {
                 >
                   <CvAnalyzerPanel 
                     targetRole={profile.targetRole}
+                    gaps={gaps}
+                    currentSkills={profile.currentSkills}
+                    onNavigateToDiagnostico={() => setView("diagnostico")}
                     onAnalysisResult={(res) => {
-                      // Boost score based on CV results dynamically
                       const scoreIncrease = Math.max(0, Math.floor((res.score - profile.employabilityScore) / 4));
                       if (scoreIncrease > 0) {
                         const newScore = Math.min(100, profile.employabilityScore + scoreIncrease);

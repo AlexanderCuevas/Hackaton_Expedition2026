@@ -883,7 +883,7 @@ export default function App() {
                       };
                       return (
                         <div key={cert.id} className="bg-white border border-neutral-200 shadow-sm flex flex-col">
-                          <div className="h-32 w-full overflow-hidden bg-neutral-200">
+                          <div className="h-64 w-full overflow-hidden bg-neutral-200">
                             {cert.image && <img src={cert.image} alt={cert.title} className="w-full h-full object-cover" />}
                           </div>
                           <div className="p-5 flex-grow">

@@ -9,8 +9,8 @@ import {
   Eye, EyeOff, ShieldAlert, ShieldCheck, CheckCircle, AlertTriangle, Info
 } from "lucide-react";
 import principalImg from "./assets/Principal.png";
-import sofiaImg from "./assets/Sofia.png";
-import juanImg from "./assets/Juan.png";
+import sofiaImg from "./assets/Sofia.jpeg";
+import juanImg from "./assets/Juan.jpeg";
 import { ImageGallery, ImageGalleryHandle } from "./ui/carousel-circular-image-gallery";
 import { UserProfile } from "../types";
 import { findStudentByCode } from "../mockStudents";
@@ -192,7 +192,7 @@ function StoriesSection() {
           style={{ opacity: inView ? 1 : 0, transition: "opacity 0.8s ease 0.15s" }}>
 
           {/* Circular image gallery */}
-          <div className="relative w-full flex items-center justify-center overflow-hidden rounded-3xl" style={{ minHeight: "320px" }}>
+          <div className="relative w-full flex items-center justify-center overflow-hidden rounded-3xl" style={{ minHeight: "420px" }}>
             <ImageGallery
               ref={galleryRef}
               slides={STORIES.map(({ name, photo }) => ({ title: name, url: photo }))}

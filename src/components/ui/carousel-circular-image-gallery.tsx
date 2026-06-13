@@ -125,7 +125,7 @@ export const ImageGallery = forwardRef<
 
   return (
     <div className="flex items-center justify-center w-full">
-      <div className="relative w-full max-w-[500px] h-[320px] overflow-hidden rounded-[20px]">
+      <div className="relative w-full max-w-[500px] h-[420px] overflow-hidden rounded-[20px]">
         {gsapReady &&
           slides.map((image, i) => (
             <div
@@ -193,7 +193,7 @@ function GalleryImage({ url, title, open, inPlace, id, onInPlace, total }: Galle
   const defaults = { transformOrigin: "center center" }
   const duration = 0.4
   const width = 600
-  const height = 400
+  const height = 500
   const scale = 700
 
   const bigSize = circleRadius * scale
@@ -297,7 +297,7 @@ function Tabs({ images, onSelect }: TabsProps) {
   const gap = 10
   const circleRadius = 7
   const width = 600
-  const height = 400
+  const height = 500
 
   const getPosX = (i: number) =>
     width / 2 - (images.length * (circleRadius * 2 + gap) - gap) / 2 + i * (circleRadius * 2 + gap)

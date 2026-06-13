@@ -18,6 +18,89 @@ const ALLOWED_TYPES = [
 ];
 const ALLOWED_EXTENSIONS = [".pdf", ".docx"];
 
+function cleanExtractedText(text: string): string {
+  return text
+    .replace(/\r/g, "")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function formatCvTextAsMarkdown(text: string): string {
+  const lines = text.split("\n").map(l => l.trim());
+  const result: string[] = [];
+  let inBulletSection = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line) {
+      if (inBulletSection) { result.push(""); inBulletSection = false; }
+      result.push("");
+      continue;
+    }
+
+    const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(line);
+    const isUrl = /^(https?:\/\/|www\.)/i.test(line) || /linkedin|github/i.test(line);
+    const isPhone = /^[\+\(]?\d{1,4}[\)\-\s]?\d{6,}/.test(line);
+    const isNameLine = i === 0 && !line.startsWith("##") && !isEmail && !isUrl && !isPhone && line.length > 0 && line.length < 60;
+    const upperLine = line.toUpperCase().trim();
+
+    const sectionHeaders = [
+      /^PERFIL/, /^DATOS PERSONALES/i, /^ESTUDIOS/, /^EDUCACIÓN/i,
+      /^EXPERIENCIA/, /^PROYECTOS/, /^HABILIDADES/i, /^CERTIFICACIONES/i,
+      /^IDIOMAS/i, /^FORMACIÓN/i, /^RESUMEN/i, /^OBJETIVO/i, /^REFERENCIAS/i,
+      /^LOGROS/i, /^PUBLICACIONES/i, /^CURSOS/i, /^COMPETENCIAS/i
+    ];
+
+    const isSectionHeader = sectionHeaders.some(rx => rx.test(upperLine)) && line.length < 50;
+
+    if (isNameLine) {
+      result.push(line);
+      continue;
+    }
+
+    if (isSectionHeader) {
+      if (inBulletSection) { inBulletSection = false; }
+      result.push("");
+      result.push("## " + line);
+      result.push("");
+      continue;
+    }
+
+    if (line.startsWith("•") || line.startsWith("-") || line.startsWith("*") || /^\d+[\.\)]/.test(line)) {
+      if (!inBulletSection) { inBulletSection = true; }
+      const bulletText = line.replace(/^[•\-*\d\)\.]+\s*/, "");
+      result.push("- " + bulletText);
+      continue;
+    }
+
+    if (line.startsWith("###")) {
+      result.push("");
+      result.push(line);
+      continue;
+    }
+
+    if (isEmail || isUrl) {
+      if (inBulletSection) { result.push(""); inBulletSection = false; }
+      const lower = line.toLowerCase();
+      const label = isEmail ? "Correo:" : lower.startsWith("http") && line.includes("linkedin") ? "LinkedIn:" : lower.startsWith("http") && line.includes("github") ? "GitHub:" : "";
+      result.push(label ? `${label} ${line}` : line);
+      continue;
+    }
+
+    if (isPhone) {
+      if (inBulletSection) { result.push(""); inBulletSection = false; }
+      result.push("Teléfono: " + line);
+      continue;
+    }
+
+    if (inBulletSection) { inBulletSection = false; }
+    result.push(line);
+  }
+
+  return result.join("\n").replace(/\n{4,}/g, "\n\n").trim();
+}
+
 async function extractTextFromPDF(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await getDocument({ data: arrayBuffer }).promise;
@@ -25,16 +108,25 @@ async function extractTextFromPDF(file: File): Promise<string> {
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const pageText = content.items.map((item: any) => item.str).join(" ");
+    const items = content.items.map((item: any) => item.str);
+    const lastY = (content.items[0] as any)?.transform?.[5] ?? 0;
+    let pageText = "";
+    let prevY = lastY;
+    for (const item of content.items as any[]) {
+      const y = item.transform[5];
+      if (Math.abs(y - prevY) > 5) pageText += "\n";
+      pageText += item.str + " ";
+      prevY = y;
+    }
     pages.push(pageText);
   }
-  return pages.join("\n").replace(/\s+/g, " ").trim();
+  return cleanExtractedText(pages.join("\n\n"));
 }
 
 async function extractTextFromDOCX(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
   const result = await mammoth.extractRawText({ arrayBuffer });
-  return result.value.replace(/\s+/g, " ").trim();
+  return cleanExtractedText(result.value);
 }
 
 const TEMPLATE_MOCK_CVS = [
@@ -75,39 +167,50 @@ function getFileExtension(filename: string): string {
   return filename.split(".").pop()?.toUpperCase() || "";
 }
 
-function generateRecommendations(analysis: CvAnalysis, cvText: string): string[] {
+function generateRecommendations(analysis: CvAnalysis, cvText: string, career: string, targetRole: string, semester: number): string[] {
+  const ctx = getCareerContext(career);
   const recs: string[] = [];
+  const lower = cvText.toLowerCase();
+  const area = ctx.area;
 
+  const hasKeywords = analysis.keywordsFound.length > 2;
   if (analysis.keywordsMissing.length > 0) {
-    recs.push("Agregar palabras clave de la vacante objetivo en tu CV, especialmente: " + analysis.keywordsMissing.slice(0, 5).join(", ") + ".");
+    recs.push(`Agregar palabras clave de la vacante objetivo en tu CV, especialmente: ${analysis.keywordsMissing.slice(0, 5).join(", ")}.`);
   }
 
-  if (analysis.score < 60) {
-    recs.push("Reescribir el perfil profesional orientado al puesto objetivo, usando verbos de acción y logros medibles.");
+  if (!hasKeywords) {
+    const examples = ctx.tools.slice(0, 4).join(", ");
+    recs.push(`Incluir competencias técnicas clave para ${area}: ${examples}. Revisa la descripción de la vacante y agrega las herramientas que dominas.`);
   }
 
-  const hasProjects = /proyecto/i.test(cvText);
-  if (!hasProjects) {
-    recs.push("Agregar un proyecto frontend con tecnologías usadas (React, HTML, CSS, SQL) para demostrar experiencia práctica.");
+  const hasEvidence = ctx.evidenceTypes.some(ev => lower.includes(ev.toLowerCase().slice(0, 8)));
+  if (!hasEvidence) {
+    const evType = ctx.evidenceTypes[0] || "proyectos o prácticas";
+    recs.push(`Agregar ${evType.toLowerCase()} como evidencia de tus capacidades. Los reclutadores buscan resultados demostrables, no solo listas de cursos.`);
   }
 
-  const hasGithub = /github|gitlab|portafolio/i.test(cvText);
-  if (!hasGithub) {
-    recs.push("Incluir enlace a GitHub o portafolio profesional donde muestres tus proyectos académicos y personales.");
+  const hasPortfolio = /portafolio|linkedin|github|behance|drive/i.test(lower);
+  if (!hasPortfolio && area !== "General") {
+    recs.push(`Incluir enlace a tu portafolio, LinkedIn o repositorio donde muestres tus ${ctx.evidenceTypes[1]?.toLowerCase() || "trabajos"}.`);
   }
 
-  if (analysis.strengths.length === 0) {
-    recs.push("Convertir actividades académicas en logros demostrables con métricas y resultados concretos.");
+  const hasMetrics = /\d+%\|\d+ años|\d+ proyectos|increment|reduj|aument|logré|resultó/i.test(lower);
+  if (!hasMetrics) {
+    recs.push("Cuantificar tus logros con números concretos: cambia 'participé en un proyecto' por 'lideré un proyecto que redujo costos en 15%'.");
   }
 
-  recs.push("Añadir sección de certificaciones y cursos relevantes al puesto (cursos de especialización tecnológica).");
-
-  const hasSoftSkills = /trabajo en equipo|liderazgo|comunicación/i.test(cvText);
+  const hasSoftSkills = /trabajo en equipo|liderazgo|comunicación|organización|adaptabilidad/i.test(lower);
   if (!hasSoftSkills) {
-    recs.push("Incorporar habilidades blandas clave (trabajo en equipo, liderazgo, comunicación efectiva) alineadas con la cultura organizacional.");
+    const soft = ctx.softSkills.slice(0, 3).join(", ");
+    recs.push(`Incorporar habilidades blandas clave para ${area}: ${soft}. Los reclutadores valoran estas competencias tanto como las técnicas.`);
   }
 
-  return recs.slice(0, 6);
+  if (semester >= 7 && !/práctic|experien/i.test(lower)) {
+    const role = ctx.sampleEntryLevelRoles[0] || targetRole;
+    recs.push(`Si estás en ciclo ${semester}, es importante mostrar experiencia preprofesional. Agrega prácticas, proyectos o voluntariado relacionado con ${role}.`);
+  }
+
+  return recs.slice(0, 5);
 }
 
 function generateBeforeAfter(cvText: string, analysis: CvAnalysis): { before: string; after: string } {
@@ -139,11 +242,12 @@ const detectExperienceLevel = (cvText: string): "basico" | "intermedio" | "avanz
   return "basico";
 };
 
-const getRouteImpactData = (score: number, optimizedScore: number) => {
+const getRouteImpactData = (score: number, optimizedScore: number, career: string) => {
+  const ctx = getCareerContext(career);
   const impact = optimizedScore - score;
   let nextMission = "Simular entrevista técnico-comportamental";
-  if (impact < 5) nextMission = "Reforzar experiencia práctica con proyectos";
-  else if (impact < 12) nextMission = "Certificar competencias técnicas";
+  if (impact < 5) nextMission = `Buscar prácticas en ${ctx.area}`;
+  else if (impact < 12) nextMission = "Obtener certificación relevante al área";
   return {
     compatibilityBefore: score,
     compatibilityAfter: optimizedScore,
@@ -153,14 +257,119 @@ const getRouteImpactData = (score: number, optimizedScore: number) => {
   };
 };
 
+interface CareerContext {
+  area: string;
+  tools: string[];
+  softSkills: string[];
+  evidenceTypes: string[];
+  sectionKeywords: string[];
+  sampleEntryLevelRoles: string[];
+}
+
+function getCareerContext(career: string): CareerContext {
+  const c = career.toLowerCase();
+  if (c.includes("sistemas") || c.includes("informática") || c.includes("computación") || c.includes("software") || c.includes("datos") || c.includes("redes") || c.includes("ciber")) {
+    return {
+      area: "Tecnología",
+      tools: ["Lenguajes de programación", "Bases de datos", "Git/GitHub", "APIs REST", "Frameworks", "Metodologías ágiles", "Testing", "Cloud", "CI/CD", "Arquitectura de software"],
+      softSkills: ["Resolución de problemas", "Pensamiento lógico", "Trabajo en equipo técnico", "Comunicación técnica", "Autogestión"],
+      evidenceTypes: ["Proyectos personales o académicos", "Repositorios en GitHub", "Hackathones", "Certificaciones técnicas", "Prácticas profesionales"],
+      sectionKeywords: ["Lenguajes", "Proyectos", "Educación", "Certificaciones", "Habilidades técnicas"],
+      sampleEntryLevelRoles: ["Backend Developer Trainee", "Frontend Developer Junior", "Soporte Técnico", "Analista de Datos"],
+    };
+  }
+  if (c.includes("industrial")) {
+    return {
+      area: "Ingeniería y Operaciones",
+      tools: ["Excel avanzado", "Power BI", "ERP/SAP", "AutoCAD", "Lean Manufacturing", "Six Sigma", "Indicadores/KPIs", "Diagramas de flujo", "Gestión de procesos"],
+      softSkills: ["Análisis de datos", "Organización", "Mejora continua", "Trabajo en equipo", "Comunicación efectiva"],
+      evidenceTypes: ["Proyectos de mejora", "Prácticas preprofesionales", "Reportes de indicadores", "Diagramas de procesos", "Certificaciones"],
+      sectionKeywords: ["Experiencia", "Proyectos", "Habilidades", "Educación", "Logros"],
+      sampleEntryLevelRoles: ["Practicante de Procesos", "Asistente de Operaciones", "Analista de Mejora Continua", "Practicante de Logística"],
+    };
+  }
+  if (c.includes("administra") || c.includes("gestión") || c.includes("negocios") || c.includes("empresarial")) {
+    return {
+      area: "Administración y Negocios",
+      tools: ["Excel", "ERP", "Gestión documental", "Redacción administrativa", "Power BI", "CRM", "Indicadores de gestión"],
+      softSkills: ["Organización", "Comunicación", "Atención al cliente", "Trabajo en equipo", "Planificación"],
+      evidenceTypes: ["Reportes académicos", "Prácticas", "Casos de estudio", "Organización de eventos", "Proyectos de investigación"],
+      sectionKeywords: ["Experiencia", "Educación", "Habilidades", "Logros", "Prácticas"],
+      sampleEntryLevelRoles: ["Asistente Administrativo", "Practicante de Gestión", "Analista de Operaciones", "Coordinador Junior"],
+    };
+  }
+  if (c.includes("contab") || c.includes("finanzas") || c.includes("tribut")) {
+    return {
+      area: "Contabilidad y Finanzas",
+      tools: ["Excel avanzado", "ERP contable", "SUNAT", "Estados financieros", "Conciliaciones bancarias", "Análisis de cuentas", "Normativa contable"],
+      softSkills: ["Atención al detalle", "Ética profesional", "Análisis numérico", "Organización", "Confidencialidad"],
+      evidenceTypes: ["Prácticas contables", "Reportes financieros", "Casos prácticos", "Declaraciones tributarias", "Conciliaciones"],
+      sectionKeywords: ["Experiencia", "Educación", "Habilidades", "Certificaciones", "Logros"],
+      sampleEntryLevelRoles: ["Practicante Contable", "Asistente de Finanzas", "Analista Contable Junior", "Asistente de Tributación"],
+    };
+  }
+  if (c.includes("marketing") || c.includes("publicidad") || c.includes("comunic")) {
+    return {
+      area: "Marketing y Comunicaciones",
+      tools: ["Redes sociales", "Meta Ads", "Google Ads", "Canva", "SEO", "Copywriting", "Analítica digital", "Branding"],
+      softSkills: ["Creatividad", "Comunicación", "Storytelling", "Trabajo en equipo", "Investigación de mercado"],
+      evidenceTypes: ["Campañas académicas", "Portafolio de contenido", "Redes sociales", "Casos de marketing", "Proyectos de branding"],
+      sectionKeywords: ["Experiencia", "Proyectos", "Habilidades", "Logros", "Educación"],
+      sampleEntryLevelRoles: ["Practicante de Marketing Digital", "Community Manager Junior", "Asistente de Comunicaciones", "Analista de Redes"],
+    };
+  }
+  if (c.includes("psicolog") || c.includes("recursos humanos") || c.includes("rrhh")) {
+    return {
+      area: "Psicología y Gestión Humana",
+      tools: ["Reclutamiento y selección", "Entrevistas", "Evaluación psicológica", "Clima laboral", "Capacitación", "Gestión del talento", "Legislación laboral"],
+      softSkills: ["Empatía", "Comunicación", "Escucha activa", "Trabajo en equipo", "Confidencialidad"],
+      evidenceTypes: ["Prácticas en RRHH", "Reportes de clima", "Entrevistas realizadas", "Talleres facilitados", "Proyectos de investigación"],
+      sectionKeywords: ["Experiencia", "Educación", "Habilidades", "Logros", "Prácticas"],
+      sampleEntryLevelRoles: ["Practicante de RRHH", "Asistente de Selección", "Analista de Clima Laboral", "Practicante de Capacitación"],
+    };
+  }
+  if (c.includes("derecho") || c.includes("legal") || c.includes("abog")) {
+    return {
+      area: "Derecho y Asesoría Legal",
+      tools: ["Redacción legal", "Análisis normativo", "Investigación jurídica", "Contratos", "Argumentación", "Derecho laboral/civil/administrativo"],
+      softSkills: ["Análisis crítico", "Argumentación", "Comunicación escrita", "Ética", "Investigación"],
+      evidenceTypes: ["Escritos legales", "Casos de estudio", "Prácticas en estudio", "Investigaciones", "Moot court"],
+      sectionKeywords: ["Experiencia", "Educación", "Habilidades", "Logros", "Publicaciones"],
+      sampleEntryLevelRoles: ["Practicante Legal", "Asistente Legal", "Analista Normativo Junior", "Practicante de Estudio Jurídico"],
+    };
+  }
+  if (c.includes("arquitect") || c.includes("diseño") || c.includes("urban")) {
+    return {
+      area: "Arquitectura y Diseño",
+      tools: ["AutoCAD", "Revit", "SketchUp", "Lumion", "Figma", "Adobe Suite", "Modelado 3D", "Lectura de planos"],
+      softSkills: ["Creatividad visual", "Atención al detalle", "Comunicación visual", "Trabajo en equipo", "Presentación"],
+      evidenceTypes: ["Portafolio de proyectos", "Planos", "Modelos 3D", "Diseños UI/UX", "Proyectos académicos"],
+      sectionKeywords: ["Proyectos", "Portafolio", "Habilidades", "Educación", "Experiencia"],
+      sampleEntryLevelRoles: ["Practicante de Arquitectura", "Diseñador Junior", "Asistente de Diseño", "Modelador 3D Junior"],
+    };
+  }
+  return {
+    area: "General",
+    tools: ["Herramientas ofimáticas", "Comunicación efectiva", "Trabajo en equipo", "Organización", "Redacción profesional"],
+    softSkills: ["Comunicación", "Trabajo en equipo", "Organización", "Responsabilidad", "Aprendizaje continuo"],
+    evidenceTypes: ["Prácticas preprofesionales", "Proyectos académicos", "Voluntariado", "Certificaciones", "Logros académicos"],
+    sectionKeywords: ["Experiencia", "Educación", "Habilidades", "Logros", "Proyectos"],
+    sampleEntryLevelRoles: ["Practicante Profesional", "Asistente Junior", "Analista de Soporte", "Coordinador de Área"],
+  };
+}
+
 interface CvAnalyzerPanelProps {
   targetRole: string;
+  career: string;
+  semester: number;
   onAnalysisResult: (analysis: CvAnalysis) => void;
   savedAnalysis?: CvAnalysis;
 }
 
 export default function CvAnalyzerPanel({
   targetRole,
+  career,
+  semester,
   onAnalysisResult,
   savedAnalysis
 }: CvAnalyzerPanelProps) {
@@ -212,7 +421,9 @@ export default function CvAnalyzerPanel({
       }
 
       if (text && text.trim().length > 20) {
-        setCvText(text);
+        const cleaned = cleanExtractedText(text);
+        const formatted = formatCvTextAsMarkdown(cleaned);
+        setCvText(formatted);
         setErrorStr(null);
       } else {
         setCvText("");
@@ -281,7 +492,7 @@ export default function CvAnalyzerPanel({
       const response = await fetch("/api/cv/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cvText, targetRole })
+        body: JSON.stringify({ cvText, targetRole, career, semester })
       });
 
       if (!response.ok) {
@@ -292,9 +503,10 @@ export default function CvAnalyzerPanel({
       setAnalysis(data);
       onAnalysisResult(data);
 
+      const ctx = getCareerContext(career);
       const optScore = mockOptimizedScore(data.score);
       setOptimizedScore(optScore);
-      const recs = generateRecommendations(data, cvText);
+      const recs = generateRecommendations(data, cvText, career, targetRole, semester);
       setRecommendations(recs);
       const ba = generateBeforeAfter(cvText, data);
       setBeforeAfter(ba);
@@ -317,7 +529,7 @@ export default function CvAnalyzerPanel({
     setErrorStr(null);
   };
 
-  const routeImpact = analysis ? getRouteImpactData(analysis.score, optimizedScore) : null;
+  const routeImpact = analysis ? getRouteImpactData(analysis.score, optimizedScore, career) : null;
 
   const renderFilePreview = () => {
     if (!file) return null;
@@ -373,6 +585,7 @@ export default function CvAnalyzerPanel({
               CV Analyzer IA - Escaneo ATS
             </h2>
             <p className="text-neutral-500 text-xs font-semibold">
+              <span className="text-[#B50E30] font-black uppercase tracking-wider text-[10px] mr-1.5">{getCareerContext(career).area}</span>
               Sube o copia tu CV para evaluar la compatibilidad técnica con tu puesto objetivo: <strong className="text-black">{targetRole || "general"}</strong>.
             </p>
           </div>
@@ -510,13 +723,16 @@ export default function CvAnalyzerPanel({
                             {showText && (
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-[10px] font-black uppercase tracking-wider text-black">Contenido del CV</span>
+                                  <div>
+                                    <span className="text-[10px] font-black uppercase tracking-wider text-black">Contenido del CV en formato editable</span>
+                                    <p className="text-[10px] text-neutral-400 font-semibold mt-0.5">El texto fue ordenado automáticamente para facilitar la revisión. Puedes corregirlo antes del análisis.</p>
+                                  </div>
                                   <span className="text-[9px] text-neutral-400 font-extrabold uppercase">{cvText.length.toLocaleString()} caracteres</span>
                                 </div>
                                 <textarea
                                   value={cvText}
                                   onChange={(e) => setCvText(e.target.value)}
-                                  rows={8}
+                                  rows={10}
                                   className="w-full p-5 bg-neutral-50 rounded-none border border-utp-border outline-none focus:border-black text-xs font-semibold text-black transition leading-7 font-mono"
                                 />
                               </div>
@@ -600,6 +816,24 @@ export default function CvAnalyzerPanel({
                       className="w-full p-4 bg-neutral-50 rounded-none border border-utp-border outline-none focus:border-black text-xs font-semibold text-black transition leading-relaxed font-mono"
                     />
 
+                    {cvText.trim().length > 10 && (
+                      <div className="flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const cleaned = cleanExtractedText(cvText);
+                            const formatted = formatCvTextAsMarkdown(cleaned);
+                            setCvText(formatted);
+                          }}
+                          className="text-[11px] text-black font-black uppercase tracking-wider hover:text-[#B50E30] transition flex items-center gap-1 cursor-pointer"
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                          Ordenar texto
+                        </button>
+                        <span className="text-[9px] text-neutral-400 font-extrabold uppercase">{cvText.length.toLocaleString()} caracteres</span>
+                      </div>
+                    )}
+
                     <div className="text-center">
                       <button
                         type="button"
@@ -648,7 +882,7 @@ export default function CvAnalyzerPanel({
             <div className="bg-white rounded-none border border-utp-border p-6 space-y-4">
               <div>
                 <h3 className="text-xs font-black text-black uppercase tracking-widest">Ejemplos de Prueba</h3>
-                <p className="text-[11px] text-neutral-500 mt-1 font-semibold">Carga formatos desfavorables para simular la evaluación ATS y ver el poder de optimización de la IA:</p>
+                <p className="text-[11px] text-neutral-500 mt-1 font-semibold">Carga formatos desfavorables para simular la evaluación ATS. La IA analizará según tu área: <strong className="text-black">{getCareerContext(career).area}</strong>.</p>
               </div>
 
               <div className="space-y-2">
@@ -671,15 +905,15 @@ export default function CvAnalyzerPanel({
               <ul className="space-y-2 text-black text-[11px] font-semibold">
                 <li className="flex items-start gap-1.5">
                   <CheckCircle className="h-3.5 w-3.5 text-[#B50E30] mt-0.5 shrink-0" />
-                  <span><strong>Compatibilidad ATS</strong>: Legibilidad analógica y organización del currículum.</span>
+                  <span><strong>Compatibilidad ATS</strong>: Organización, redacción y palabras clave según tu área.</span>
                 </li>
                 <li className="flex items-start gap-1.5">
                   <CheckCircle className="h-3.5 w-3.5 text-[#B50E30] mt-0.5 shrink-0" />
-                  <span><strong>Palabras Clave</strong>: Integración de lenguajes o herramientas esenciales en el mercado.</span>
+                  <span><strong>Competencias de {getCareerContext(career).area}</strong>: Herramientas y conocimientos propios de tu carrera.</span>
                 </li>
                 <li className="flex items-start gap-1.5">
                   <Shield className="h-3.5 w-3.5 text-[#B50E30] mt-0.5 shrink-0" />
-                  <span><strong>Escaneo ATS</strong>: Detección de formato óptimo para filtros automatizados.</span>
+                  <span><strong>Evidencias</strong>: Proyectos, prácticas o casos que demuestren lo que sabes hacer.</span>
                 </li>
               </ul>
             </div>
@@ -726,7 +960,7 @@ export default function CvAnalyzerPanel({
                     {analysis.score >= 80 ? "CV sobresaliente" : analysis.score >= 60 ? "CV aceptable, requiere ajustes" : "CV en riesgo de ser descartado"}
                   </h3>
                   <div className="text-xs text-neutral-600 font-semibold space-y-0.5">
-                    <p>Vacante objetivo: <strong className="text-black">{targetRole}</strong></p>
+                    <p><span className="text-[10px] font-black text-[#B50E30] uppercase tracking-wider mr-1">{getCareerContext(career).area}</span> Vacante objetivo: <strong className="text-black">{targetRole}</strong></p>
                     <p>Impacto en ruta: <strong className="text-[#B50E30]">+{optimizedScore - analysis.score}% compatibilidad</strong></p>
                   </div>
                   <span className="inline-block bg-black text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider mt-1">

@@ -13,6 +13,7 @@ import {
   TrendingUp, BarChart3, Shield, ChevronRight, ChevronLeft
 } from "lucide-react";
 import principalImg from "./assets/Principal.png";
+import { ImageGallery, ImageGalleryHandle } from "./ui/carousel-circular-image-gallery";
 import { UserProfile } from "../types";
 import { UTP_CAREERS, getDefaultTargetRole } from "../data";
 
@@ -163,50 +164,18 @@ function Logo({ dark = false }: { dark?: boolean }) {
 // ─── STORIES SECTION (inline) ──────────────────────────────────────────────
 function StoriesSection() {
   const [active, setActive] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(500);
   const s = STORIES[active];
   const { ref, inView } = useInView(0.1);
+  const galleryRef = useRef<ImageGalleryHandle>(null);
 
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const update = () => setContainerWidth(el.offsetWidth);
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setActive((i) => (i + 1) % STORIES.length);
-    }, 4000);
-    return () => clearInterval(id);
-  }, []);
-
-  function getImageStyle(index: number): React.CSSProperties {
-    const gap = Math.min(containerWidth * 0.18, 80);
-    const n = STORIES.length;
-    const isActive = index === active;
-    const isLeft = (active - 1 + n) % n === index;
-    const isRight = (active + 1) % n === index;
-    if (isActive) return {
-      zIndex: 3, opacity: 1, pointerEvents: "auto",
-      transform: "translateX(0) translateY(0) scale(1) rotateY(0deg)",
-      transition: "all 0.8s cubic-bezier(.4,2,.3,1)",
-    };
-    if (isLeft) return {
-      zIndex: 2, opacity: 1, pointerEvents: "auto",
-      transform: `translateX(-${gap}px) translateY(-${gap * 0.55}px) scale(0.82) rotateY(18deg)`,
-      transition: "all 0.8s cubic-bezier(.4,2,.3,1)",
-    };
-    if (isRight) return {
-      zIndex: 2, opacity: 1, pointerEvents: "auto",
-      transform: `translateX(${gap}px) translateY(-${gap * 0.55}px) scale(0.82) rotateY(-18deg)`,
-      transition: "all 0.8s cubic-bezier(.4,2,.3,1)",
-    };
-    return { zIndex: 1, opacity: 0, pointerEvents: "none", transition: "all 0.8s cubic-bezier(.4,2,.3,1)" };
-  }
+  const handlePrev = () => {
+    galleryRef.current?.prev();
+    setActive((i) => (i - 1 + STORIES.length) % STORIES.length);
+  };
+  const handleNext = () => {
+    galleryRef.current?.next();
+    setActive((i) => (i + 1) % STORIES.length);
+  };
 
   return (
     <section ref={ref} className="bg-white border-t border-neutral-100 py-24 px-6 overflow-hidden" id="historias">
@@ -222,11 +191,11 @@ function StoriesSection() {
             </h2>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => setActive((i) => (i - 1 + STORIES.length) % STORIES.length)}
+            <button onClick={handlePrev}
               className="h-11 w-11 rounded-full border-2 border-neutral-200 hover:border-[#B50E30] text-neutral-400 hover:text-[#B50E30] flex items-center justify-center transition-all cursor-pointer bg-white">
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <button onClick={() => setActive((i) => (i + 1) % STORIES.length)}
+            <button onClick={handleNext}
               className="h-11 w-11 rounded-full bg-[#B50E30] hover:bg-[#85061B] text-white flex items-center justify-center transition-all cursor-pointer">
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -237,34 +206,9 @@ function StoriesSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center"
           style={{ opacity: inView ? 1 : 0, transition: "opacity 0.8s ease 0.15s" }}>
 
-          {/* Circular image carousel */}
-          <div className="relative w-full overflow-hidden rounded-3xl" style={{ height: "340px" }}>
-            <div ref={containerRef} className="absolute inset-0" style={{ perspective: "1000px" }}>
-            {STORIES.map((story, i) => (
-              <div
-                key={story.id}
-                onClick={() => setActive(i)}
-                className="absolute inset-0 rounded-3xl overflow-hidden cursor-pointer"
-                style={getImageStyle(i)}
-              >
-                <img src={story.photo} alt={story.name} className="w-full h-full object-cover object-top" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" />
-                <div className="absolute top-4 left-4">
-                  <span className="bg-[#B50E30] text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">{story.result}</span>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 p-5 space-y-1.5">
-                  <p style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }} className="text-white font-black text-xl leading-tight">{story.name}</p>
-                  <p className="text-white/60 text-[10px] font-bold">{story.career} · {story.age} años</p>
-                  <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/15 rounded-full px-3 py-1">
-                    <Building2 className="h-3 w-3 text-[#B50E30]" />
-                    <span className="text-white text-[10px] font-black">{story.company}</span>
-                    <span className="text-white/40 mx-0.5">·</span>
-                    <span className="text-white/70 text-[10px]">{story.role}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-            </div>
+          {/* Circular image gallery */}
+          <div className="relative w-full flex items-center justify-center overflow-hidden rounded-3xl" style={{ minHeight: "320px" }}>
+            <ImageGallery ref={galleryRef} onActiveChange={(i) => setActive(i)} />
           </div>
 
           {/* Content right */}
@@ -724,8 +668,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
         </div>
 
         {/* ══ HOW IT WORKS ════════════════════════════════════════════════ */}
-        <section className="py-28 px-6" style={{ background: "#FFF5F6" }}>
-          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
+        <section className="py-28 px-6 relative overflow-hidden" style={{ background: "#FFF5F6", backgroundImage: "linear-gradient(to right, rgba(181,14,48,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(181,14,48,0.06) 1px, transparent 1px)", backgroundSize: "48px 48px" }}>
+          <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
             {/* Left sticky */}
             <div className="lg:sticky lg:top-28">
               <Appear>

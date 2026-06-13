@@ -642,7 +642,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                 alt="Ecosistema de Competencias Ruta de Empleabilidad"
                 className="hero-card relative w-full h-auto object-contain"
                 style={{
-                  maxHeight: "580px",
+                  maxHeight: "720px",
                   animation: "floatA 5s ease-in-out infinite",
                   filter: "drop-shadow(0 20px 40px rgba(181,14,48,0.12))",
                 }}

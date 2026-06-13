@@ -115,6 +115,7 @@ export default function SocialHub() {
   const [activeSegment, setActiveSegment] = useState<"comunidad" | "networking">("comunidad");
 
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
 
   const openProfile = (name: string, fallbackData?: any) => {
     let cleanName = name.replace(" (Tú)", "").trim();
@@ -423,10 +424,61 @@ export default function SocialHub() {
                     }}
                   />
                 </div>
+              ) : filteredPosts.length === 0 ? (
+              <div className="bg-white rounded-none border border-utp-border p-8 text-center space-y-4">
+                <div className="text-neutral-300 mx-auto">
+                  {activeCategory === "todo" ? (
+                    <MessageSquare className="h-10 w-10 mx-auto" />
+                  ) : activeCategory === "proyecto" ? (
+                    <Briefcase className="h-10 w-10 mx-auto" />
+                  ) : activeCategory === "logro" ? (
+                    <Trophy className="h-10 w-10 mx-auto" />
+                  ) : activeCategory === "ayuda" ? (
+                    <HeartHandshake className="h-10 w-10 mx-auto" />
+                  ) : activeCategory === "evento" ? (
+                    <Sparkles className="h-10 w-10 mx-auto" />
+                  ) : (
+                    <Tag className="h-10 w-10 mx-auto" />
+                  )}
+                </div>
+                <p className="text-xs font-black uppercase text-neutral-400">
+                  {activeCategory === "todo"
+                    ? "Aún no hay publicaciones en el foro"
+                    : `No hay publicaciones en "${activeCategory}"`}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(true)}
+                  className="inline-flex items-center gap-1.5 bg-[#B50E30] hover:bg-[#85061B] text-white text-[11px] font-black uppercase tracking-widest px-4 py-2.5 transition cursor-pointer rounded-none"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Compartir un logro
+                </button>
+              </div>
               ) : (
-              <div className="space-y-4">
-                {filteredPosts.map((post) => (
-                  <div key={post.id} className="bg-white rounded-none border border-utp-border p-6 space-y-4">
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+                className="space-y-4"
+              >
+                {filteredPosts.map((post) => {
+                  const categoryColors: Record<string, string> = {
+                    proyecto: "bg-black text-white",
+                    logro: "bg-[#B50E30] text-white",
+                    ayuda: "bg-amber-600 text-white",
+                    evento: "bg-emerald-700 text-white",
+                    general: "bg-neutral-500 text-white",
+                  };
+                  const catColor = categoryColors[post.category] || "bg-black text-[#B50E30]";
+                  const isExpanded = expandedComments[post.id] ?? (post.comments.length > 0);
+
+                  return (
+                  <motion.div
+                    key={post.id}
+                    variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }}
+                    className="bg-white rounded-none border border-utp-border p-6 space-y-4"
+                  >
                     {/* Header */}
                     <div className="flex items-center justify-between">
                       <div 
@@ -434,13 +486,15 @@ export default function SocialHub() {
                         className="flex items-center gap-3 cursor-pointer group"
                         title="Ver Perfil Profesional"
                       >
-                        <div className="h-10 w-10 bg-black border border-black flex items-center justify-center text-white text-xs font-black uppercase transition-transform group-hover:scale-105 rounded-none">
-                          {post.authorName.replace(" (Tú)", "").slice(0, 2)}
-                        </div>
+                        <img
+                          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(post.authorName.replace(" (Tú)", ""))}&background=000&color=fff&size=80`}
+                          alt={post.authorName}
+                          className="h-10 w-10 bg-black border border-black object-cover rounded-none transition-transform group-hover:scale-105"
+                        />
                         <div>
                           <div className="text-xs font-extrabold text-black uppercase tracking-wide flex items-center gap-1.5 transition-colors">
                             <span>{post.authorName}</span>
-                            <span className="bg-black text-[#B50E30] text-[8px] font-black px-1.5 py-0.5 rounded-none">
+                            <span className={`${catColor} text-[8px] font-black px-1.5 py-0.5 rounded-none`}>
                               {post.category.toUpperCase()}
                             </span>
                           </div>
@@ -468,55 +522,97 @@ export default function SocialHub() {
                             post.likedByUser ? "text-[#B50E30]" : ""
                           }`}
                         >
-                          <ThumbsUp className={`h-4 w-4 ${post.likedByUser ? "fill-[#B50E30] text-[#B50E30]" : ""}`} />
+                          <motion.span whileTap={{ scale: 1.3 }} className="flex items-center gap-1.5">
+                            <ThumbsUp className={`h-4 w-4 ${post.likedByUser ? "fill-[#B50E30] text-[#B50E30]" : ""}`} />
+                          </motion.span>
                           <span>{post.likes} Likes</span>
                         </button>
 
-                        <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedComments(prev => ({ ...prev, [post.id]: !isExpanded }))}
+                          className="flex items-center gap-1.5 hover:text-black transition cursor-pointer"
+                        >
                           <MessageSquare className="h-4 w-4 text-[#B50E30]" />
                           <span>{post.comments.length} Comentarios</span>
-                        </div>
+                        </button>
                       </div>
                     </div>
 
-                    {/* Comments List Panel */}
-                    <div className="bg-neutral-50 p-4 rounded-none border border-utp-border space-y-3">
-                      {post.comments.map((comm, cIdx) => (
-                        <div key={cIdx} className="text-xs space-y-1 pb-2.5 border-b border-utp-border last:border-b-0 last:pb-0">
-                          <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-wider">
-                            <span 
-                              onClick={() => openProfile(comm.authorName)}
-                              className="font-black text-black hover:text-[#B50E30] hover:underline cursor-pointer transition-colors"
-                              title="Ver Perfil Profesional"
-                            >
-                              {comm.authorName}
-                            </span>
-                            <span className="text-neutral-400">{comm.date}</span>
-                          </div>
-                          <p className="text-neutral-700 font-semibold pl-1">{comm.content}</p>
-                        </div>
-                      ))}
+                    {/* Preview last comment (when collapsed) */}
+                    {!isExpanded && post.comments.length > 0 && (
+                      <div
+                        onClick={() => setExpandedComments(prev => ({ ...prev, [post.id]: true }))}
+                        className="bg-neutral-50 px-4 py-2.5 border border-utp-border cursor-pointer hover:bg-neutral-100 transition"
+                      >
+                        <span className="text-[10px] text-neutral-400 font-bold uppercase">
+                          Último comentario por <strong className="text-black">{post.comments[post.comments.length - 1].authorName}</strong>
+                        </span>
+                        <p className="text-[11px] text-neutral-600 font-semibold truncate mt-0.5">
+                          {post.comments[post.comments.length - 1].content}
+                        </p>
+                      </div>
+                    )}
 
-                      {/* Add comment form */}
-                      <form onSubmit={(e) => handleCommentSubmit(e, post.id)} className="flex items-center gap-2 pt-2">
-                        <input
-                          type="text"
-                          value={commentInputs[post.id] || ""}
-                          onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                          placeholder="Añadir comentario académico de apoyo..."
-                          className="flex-1 bg-white outline-none border border-utp-border rounded-none px-3 py-2 text-xs font-semibold text-black"
-                        />
-                        <button
-                          type="submit"
-                          className="bg-black hover:bg-neutral-900 text-white shrink-0 p-2.5 rounded-none transition flex items-center justify-center cursor-pointer"
+                    {/* Comments List Panel */}
+                    <AnimatePresence initial={false}>
+                      {isExpanded && (
+                        <motion.div
+                          key="comments"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: "easeInOut" }}
+                          className="bg-neutral-50 rounded-none border border-utp-border overflow-hidden"
                         >
-                          <Send className="h-3.5 w-3.5 text-white" />
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                          <div className="p-4 space-y-3">
+                            {post.comments.length === 0 && (
+                              <p className="text-[10px] text-neutral-400 font-bold uppercase text-center py-2">
+                                Sin comentarios aún. ¡Sé el primero en apoyar!
+                              </p>
+                            )}
+                            {post.comments.map((comm, cIdx) => (
+                              <div key={cIdx} className="text-xs space-y-1 pb-2.5 border-b border-utp-border last:border-b-0 last:pb-0">
+                                <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-wider">
+                                  <span 
+                                    onClick={() => openProfile(comm.authorName)}
+                                    className="font-black text-black hover:text-[#B50E30] hover:underline cursor-pointer transition-colors"
+                                    title="Ver Perfil Profesional"
+                                  >
+                                    {comm.authorName}
+                                  </span>
+                                  <span className="text-neutral-400">{comm.date}</span>
+                                </div>
+                                <p className="text-neutral-700 font-semibold pl-1">{comm.content}</p>
+                              </div>
+                            ))}
+
+                            {/* Add comment form */}
+                            <form onSubmit={(e) => handleCommentSubmit(e, post.id)} className="pt-1">
+                              <div className="flex items-end gap-2">
+                                <textarea
+                                  value={commentInputs[post.id] || ""}
+                                  onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                                  placeholder="Escribe un comentario de apoyo académico..."
+                                  className="flex-1 bg-white outline-none border border-utp-border rounded-none px-3 py-2 text-xs font-semibold text-black resize-none"
+                                  rows={2}
+                                />
+                                <button
+                                  type="submit"
+                                  className="bg-[#B50E30] hover:bg-[#85061B] text-white shrink-0 p-2.5 rounded-none transition flex items-center justify-center cursor-pointer"
+                                >
+                                  <Send className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </form>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                  );
+                })}
+              </motion.div>
             )}
             </div>
 

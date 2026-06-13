@@ -407,7 +407,7 @@ export default function RouteDashboard({
                   )}
                 </div>
                 <span
-                  className={`text-[9px] font-black uppercase tracking-tight text-center max-w-[110px] leading-tight ${
+                  className={`block w-[180px] text-[9px] font-black uppercase tracking-tight text-center leading-snug whitespace-normal break-words ${
                     isAvailable
                       ? "text-[#B50E30]"
                       : isCompleted

@@ -726,6 +726,7 @@ export default function App() {
 
             {/* Right side — notification bell & profile */}
             <div className="flex items-center gap-2">
+              <NotificationBell onClick={() => setNotifDrawerOpen(true)} />
               <button
                 type="button"
                 onClick={() => setView("profile")}
@@ -733,7 +734,6 @@ export default function App() {
               >
                 <User className="h-4 w-4" />
               </button>
-              <NotificationBell onClick={() => setNotifDrawerOpen(true)} />
             </div>
           </header>
 

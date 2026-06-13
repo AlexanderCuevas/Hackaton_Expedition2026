@@ -770,48 +770,66 @@ export default function App() {
                   exit={{ opacity: 0 }}
                   className="space-y-6"
                 >
-                  <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
-                    <div className="absolute right-0 top-0 w-32 h-full utp-diagonal-pattern opacity-10 pointer-events-none" />
-                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
-                    <h2 className="text-base font-black text-black uppercase tracking-widest flex items-center gap-2">
-                      <Award className="h-5 w-5 text-[#B50E30]" />
-                      Beca UTP+: Certificaciones & Cursos
-                    </h2>
-                    <p className="text-[#64748B] text-xs font-semibold mt-1">
-                      Para mitigar las brechas del mercado, hemos convenido con plataformas líderes estos accesos gratuitos con tu cuenta universitaria:
-                    </p>
+                  <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden flex items-center justify-between">
+                    <div>
+                      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
+                      <h2 className="text-base font-black text-black uppercase tracking-widest flex items-center gap-2">
+                        <Award className="h-5 w-5 text-[#B50E30]" />
+                        Beca UTP+: Certificaciones & Cursos
+                      </h2>
+                      <p className="text-[#64748B] text-xs font-semibold mt-1 ml-7">
+                        Para mitigar las brechas del mercado, hemos convenido con plataformas líderes estos accesos gratuitos con tu cuenta universitaria:
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {CERTIFICATIONS_AND_COURSES.map((cert) => (
-                      <div key={cert.id} className="bg-white rounded-none border border-utp-border p-6 flex flex-col justify-between gap-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] text-neutral-400 font-extrabold uppercase tracking-widest">{cert.provider}</span>
-                            <span className="bg-[#B50E30] text-white font-black text-[9px] px-2 py-0.5 rounded-none uppercase tracking-widest">
-                              +{cert.pointsAwarded} XP
-                            </span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {CERTIFICATIONS_AND_COURSES.map((cert) => {
+                      const isEnrolled = enrolledCourses.some((c) => c.courseId === cert.id && c.source === "internal");
+                      const enrollment = enrolledCourses.find((c) => c.courseId === cert.id);
+                      const logos: Record<string, string> = {
+                        "Google": "https://e7.pngegg.com/pngimages/704/688/png-clipart-google-google-thumbnail.png",
+                        "Microsoft": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/3840px-Microsoft_logo.svg.png",
+                        "UTP": "https://i.scdn.co/image/ab6765630000ba8af770691237911d7e512de37c",
+                      };
+                      return (
+                        <div key={cert.id} className="bg-white border border-neutral-200 shadow-sm flex flex-col">
+                          <div className="h-32 w-full overflow-hidden bg-neutral-200">
+                            {cert.image && <img src={cert.image} alt={cert.title} className="w-full h-full object-cover" />}
                           </div>
-                          <h3 className="font-extrabold text-sm text-black uppercase tracking-tight mt-1">{cert.title}</h3>
-                          <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Duración: {cert.duration} • Beneficio: {cert.cost}</p>
-                          {cert.linkedGap && (
-                            <p className="text-[10px] text-[#B50E30] font-bold uppercase tracking-tight">
-                              Cierra brecha: {cert.linkedGap}
-                            </p>
-                          )}
+                          <div className="p-5 flex-grow">
+                            <div className="mb-3">
+                              {logos[cert.provider] ? (
+                                <img src={logos[cert.provider]} alt={cert.provider} className="h-6 object-contain" />
+                              ) : (
+                                <span className="text-[9px] text-neutral-400 font-extrabold uppercase tracking-widest">{cert.provider}</span>
+                              )}
+                            </div>
+                            <h3 className="font-black text-sm text-black uppercase tracking-tight leading-snug">{cert.title}</h3>
+                            <p className="text-[11px] font-bold text-neutral-600 mt-2 uppercase">{cert.duration}{cert.modality ? ` | ${cert.modality}` : ""}</p>
+                            {cert.speaker && (
+                              <p className="text-[11px] font-semibold text-neutral-500 mt-1">{cert.speaker}</p>
+                            )}
+                          </div>
+                          <div className="px-5 pb-5">
+                            {isEnrolled && enrollment && (
+                              <div className="w-full bg-neutral-200 h-1.5 mb-3 relative">
+                                <div className="bg-[#D35400] h-full transition-all" style={{ width: `${enrollment.progress}%` }} />
+                                <span className="absolute -top-5 text-[10px] font-black text-[#D35400]" style={{ left: `${Math.max(0, enrollment.progress - 5)}%` }}>
+                                  {enrollment.progress}%
+                                </span>
+                              </div>
+                            )}
+                            <button
+                              onClick={() => handleEnrollCourse(cert.id)}
+                              className="w-full bg-black text-white py-2 text-xs font-black uppercase hover:bg-neutral-800 transition cursor-pointer border-0"
+                            >
+                              {isEnrolled ? "Continuar curso" : "Llevar curso"}
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleEnrollCourse(cert.id)}
-                          className="w-full py-2.5 bg-black hover:bg-neutral-900 text-white font-black uppercase tracking-widest text-xs rounded-none transition cursor-pointer flex items-center justify-center gap-1 border border-black"
-                        >
-                          {enrolledCourses.some((c) => c.courseId === cert.id && c.source === "internal")
-                            ? "Continuar curso"
-                            : "Llevar curso"}
-                          <ChevronRight className="h-4 w-4 text-[#B50E30]" />
-                        </button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </motion.div>
               )}

@@ -156,6 +156,10 @@ export interface CourseCatalogItem {
   linkedGap?: string;
   description: string;
   modules: CourseModule[];
+  image?: string;
+  code?: string;
+  modality?: string;
+  speaker?: string;
 }
 
 export interface EnrolledCourse {

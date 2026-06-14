@@ -10,7 +10,6 @@ import principalImg from "./assets/Principal.png";
 import sofiaImg from "./assets/Sofia.jpeg";
 import juanImg from "./assets/Juan.jpeg";
 import { UserProfile } from "../types";
-import UvpIcon from "./ui/UvpIcon";
 import { findStudentByCode } from "../mockStudents";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────
@@ -78,15 +77,6 @@ const STORY_CARDS = [
     accent: "#155434",
     accentLight: "#EEF6F1",
   },
-];
-
-const FEATURES = [
-  { icon: <UvpIcon name="test-evaluaciones" size={24} />, title: "Diagnóstico IA", desc: "Escaneo inmediato de tu perfil. Identifica vacíos en código, metodologías ágiles y habilidades blandas." },
-  { icon: <UvpIcon name="plantillas-cv" size={24} />, title: "CV ATS Optimizer", desc: "Optimiza tu currículum para superar los filtros automáticos de las grandes empresas del Perú." },
-  { icon: <UvpIcon name="habilidades-blandas" size={24} />, title: "Simulador de Entrevistas", desc: "Practica con escenarios reales. Feedback instantáneo con IA entrenada por reclutadores expertos." },
-  { icon: <UvpIcon name="decisiones-proposito" size={24} />, title: "Ruta STAR Gamificada", desc: "Misiones, XP y niveles que convierten tu desarrollo profesional en un juego que sí importa." },
-  { icon: <UvpIcon name="logros-inspiran" size={24} />, title: "Portafolio Verificado", desc: "Credenciales avaladas por mentores reales. Diferénciate con evidencia, no con promesas." },
-  { icon: <UvpIcon name="conexion-empresas" size={24} />, title: "Match de Vacantes", desc: "Tu perfil verificado conecta directamente con empresas que ya confían en el sistema UTP." },
 ];
 
 // ─── ANIMATED SECTION WRAPPER ──────────────────────────────────────────────
@@ -563,15 +553,6 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
 
         .pulse-dot { animation: pulseRing 2s ease-in-out infinite; }
 
-        .card-hover {
-          transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
-        }
-        .card-hover:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 20px 40px rgba(181,14,48,0.08);
-          border-color: rgba(181,14,48,0.3);
-        }
-
         .btn-primary {
           transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
         }
@@ -708,36 +689,6 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
 
         {/* ══ STORIES ════════════════════════════════════════════════════ */}
         <StoriesSection onCtaClick={() => openModal("register")} />
-
-        {/* ══ FEATURES BENTO ═════════════════════════════════════════════ */}
-        <section className="border-t border-neutral-100 py-28 px-6" style={{ background: "#F7F8FA" }}>
-          <div className="max-w-7xl mx-auto space-y-14">
-            <Appear>
-              <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.22em] mb-3">Herramientas incluidas</p>
-              <h2 className="text-5xl font-black uppercase text-black tracking-tight leading-[0.95]"
-               >
-                Todo lo que necesitas<br />para ser <span className="text-[#B50E30]">contratado.</span>
-              </h2>
-            </Appear>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {FEATURES.map((f, i) => (
-                <Appear key={i} delay={i * 60}>
-                  <div className="card-hover bg-white border border-neutral-200 rounded-2xl p-6 h-full group relative overflow-hidden cursor-default">
-                    {/* Top accent line */}
-                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#B50E30] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-t-2xl" />
-                    <div className="h-12 w-12 bg-black group-hover:bg-[#B50E30] text-white rounded-2xl flex items-center justify-center mb-5 transition-all duration-300">
-                      {f.icon}
-                    </div>
-                    <h3 className="font-black text-base uppercase tracking-tight text-black mb-2"
-                     >{f.title}</h3>
-                    <p className="text-neutral-500 text-sm font-medium leading-relaxed">{f.desc}</p>
-                  </div>
-                </Appear>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* ══ STATS RED BAND ═════════════════════════════════════════════ */}
         <section className="bg-[#B50E30] py-16 px-6 relative overflow-hidden">

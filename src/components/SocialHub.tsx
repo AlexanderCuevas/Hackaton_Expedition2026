@@ -4,7 +4,8 @@ import { useNotification } from "../context/NotificationContext";
 import { 
   Users, MessageSquare, ThumbsUp, Sparkles, Send, Tag, Share2, 
   Search, PlusCircle, Check, Briefcase, GraduationCap, Trophy,
-  User, HeartHandshake, X, List
+  User, HeartHandshake, X, List, ArrowUpRight, Linkedin, Github, Globe,
+  MessageCircle, UserPlus, Zap, FolderGit2, MapPin, Radio
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { INITIAL_COMMUNITY_POSTS, INITIAL_NETWORKING_CONTACTS } from "../data";
@@ -257,6 +258,344 @@ export default function SocialHub() {
   const filteredPosts = activeCategory === "todo" 
     ? posts 
     : posts.filter(p => p.category === activeCategory);
+
+  /* ─── Profile Modal Content ─── */
+  function ProfileModalContent({
+    profile,
+    onClose,
+  }: {
+    profile: any;
+    onClose: () => void;
+  }) {
+    const rawName = profile.name?.replace(" (Tú)", "").replace("Ing. ", "").replace("Lic. ", "") || "";
+    const nameParts = rawName.trim().split(" ");
+    const initials = nameParts.map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+    const role = profile.targetRole || "";
+    const skills: string[] = profile.skills || [];
+    const stack = skills.slice(0, 5).join(" · ") + (skills.length > 5 ? " · +" + (skills.length - 5) : "");
+    const career = profile.career || "";
+    const semester = profile.semester || 1;
+    const type = profile.type || "Estudiante UTP";
+    const xp = profile.xp || 0;
+    const level = profile.level || 1;
+    const bio = profile.bio || "";
+    const isSelf = profile.name?.includes("Tú") || false;
+    const isAlreadyConnected = connectedProfiles[profile.name] || false;
+    const projectCount = posts.filter(p => p.category === "proyecto" && p.authorName.includes(rawName)).length;
+    const logroCount = posts.filter(p => p.category === "logro" && p.authorName.includes(rawName)).length;
+    const conexCount = contacts.filter(c => c.isConnected).length;
+    const userPosts = posts.filter(p => p.authorName.includes(rawName));
+    const recentPosts = userPosts.length > 0
+      ? userPosts.slice(0, 5).map(p => p.content || "")
+      : ["Proyecto de API REST con autenticación JWT", "Logro: Certificación en React Avanzado", "Nuevo proyecto: Dashboard en tiempo real"];
+    const contactList = contacts.map(c => ({
+      name: c.name,
+      role: c.role + " · " + c.company,
+      level: (c.name.length * 7 + 3) % 15 + 3,
+    }));
+
+    const TABS = ["Perfil", "Actividad", "Conexiones"] as const;
+    type Tab = (typeof TABS)[number];
+    const [tab, setTab] = useState<Tab>("Perfil");
+
+    function Label({ children }: { children: React.ReactNode }) {
+      return <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#B50E30]">{children}</span>;
+    }
+    function Divider() {
+      return <div className="h-px w-full bg-neutral-200" />;
+    }
+    function StatBlock({ value, label }: { value: string | number; label: string }) {
+      return (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-3xl font-black text-neutral-900 leading-none tracking-tighter">{value}</span>
+          <Label>{label}</Label>
+        </div>
+      );
+    }
+    function SectionRow({ label, count, children }: { label: string; count?: number; children?: React.ReactNode }) {
+      return (
+        <div className="flex items-center gap-3 mb-4">
+          <Label>{label}</Label>
+          <div className="flex-1 h-px bg-neutral-100" />
+          {count !== undefined && <span className="text-[9px] font-black text-neutral-300">{count}</span>}
+          {children}
+        </div>
+      );
+    }
+
+    /* left panel */
+    const LeftPanel = () => (
+      <div
+        className="relative flex flex-col w-64 shrink-0 overflow-hidden overflow-y-auto"
+        style={{ background: "linear-gradient(160deg, #fdf4f4 0%, #fafafa 60%, #fdf6f5 100%)", borderRight: "1px solid #e2e0dd", scrollbarWidth: "none" }}
+      >
+        <div className="h-[3px] w-full shrink-0" style={{ background: "linear-gradient(90deg, #B50E30, transparent)" }} />
+        <div className="px-8 pt-10 pb-6 shrink-0">
+          <div className="relative w-fit">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1, type: "spring", damping: 16, stiffness: 200 }}
+              className="h-20 w-20 flex items-center justify-center text-white text-2xl font-black"
+              style={{ background: "linear-gradient(135deg, #B50E30 0%, #7a091f 100%)" }}
+            >
+              {initials}
+            </motion.div>
+            <div className="absolute -bottom-1 -right-1 h-4 w-4 flex items-center justify-center" style={{ background: "#fafafa" }}>
+              <Radio className="h-3 w-3 text-emerald-400" style={{ fill: "rgba(52,211,153,0.3)" }} />
+            </div>
+          </div>
+        </div>
+        <Divider />
+        <div className="px-8 py-6 flex flex-col gap-1 shrink-0">
+          <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+            <p className="text-[28px] font-black text-neutral-900 leading-none tracking-tighter uppercase">{firstName}</p>
+            <p className="text-[28px] font-black leading-none tracking-tighter uppercase" style={{ color: "#B50E30" }}>{lastName}</p>
+          </motion.div>
+          <div className="mt-2 flex flex-col gap-0.5">
+            <span className="text-xs font-semibold text-neutral-700">{role}</span>
+            <span className="text-[11px] text-neutral-400 font-medium">{stack}</span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5">
+            <MapPin className="h-3 w-3 text-neutral-400" />
+            <span className="text-[11px] text-neutral-400 font-medium">Lima, Perú</span>
+          </div>
+        </div>
+        <Divider />
+        <div className="px-8 py-4 flex flex-col gap-2 shrink-0">
+          <Label>Rol</Label>
+          <span className="text-[10px] font-black tracking-widest text-white px-2 py-1 w-fit whitespace-nowrap" style={{ background: "#B50E30" }}>
+            {type}
+          </span>
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] text-emerald-500 font-bold">Disponible</span>
+          </div>
+        </div>
+        <Divider />
+        <div className="px-8 py-5 grid grid-cols-2 gap-x-4 gap-y-5 shrink-0">
+          <StatBlock value={xp.toLocaleString()} label="XP Total" />
+          <StatBlock value={`L${level}`} label="Nivel" />
+          <StatBlock value={conexCount} label="Contactos" />
+          <StatBlock value={`${semester}°`} label="Ciclo" />
+        </div>
+        <Divider />
+        <div className="px-8 py-5 flex flex-col gap-2.5 shrink-0">
+          <Label>Redes</Label>
+          {[
+            { icon: <Linkedin className="h-3.5 w-3.5" />, label: "LinkedIn" },
+            { icon: <Github className="h-3.5 w-3.5" />, label: "GitHub" },
+            { icon: <Globe className="h-3.5 w-3.5" />, label: "Portafolio" },
+          ].map(({ icon, label }) => (
+            <button key={label} className="flex items-center justify-between text-neutral-500 hover:text-neutral-900 text-xs font-semibold transition-colors duration-150 group">
+              <span className="flex items-center gap-2">{icon}{label}</span>
+              <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          ))}
+        </div>
+        <div className="mt-auto px-8 py-4 border-t border-neutral-200 shrink-0">
+          <span className="text-[9px] font-black tracking-widest text-neutral-400">UTP-{xp + 1092}</span>
+        </div>
+      </div>
+    );
+
+    /* tabs */
+    const TabPerfil = () => (
+      <motion.div key="perfil" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }} className="flex flex-col gap-8">
+        <section>
+          <SectionRow label="Acerca de" />
+          <p className="text-neutral-600 leading-relaxed text-sm">{bio}</p>
+          <div className="mt-4 flex items-center gap-3 text-[11px] text-neutral-400 font-medium">
+            <span>{career}</span>
+            <span style={{ color: "#B50E30" }}>·</span>
+            <span>{semester}° Ciclo</span>
+          </div>
+        </section>
+        <section>
+          <SectionRow label="Habilidades" count={skills.length} />
+          <div className="flex flex-wrap gap-2">
+            {skills.map((s: string, i: number) => (
+              <motion.span
+                key={s}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04 }}
+                className="text-xs font-bold text-neutral-600 hover:text-white hover:bg-[#B50E30] hover:border-[#B50E30] cursor-default transition-all duration-150 hover:-translate-y-px"
+                style={{ border: "1px solid #e4e4e7", padding: "6px 14px", background: "#fafafa" }}
+              >
+                {s}
+              </motion.span>
+            ))}
+          </div>
+        </section>
+        <section>
+          <SectionRow label="Progresión" />
+          <div className="flex flex-col gap-2 p-5" style={{ background: "#fafafa", border: "1px solid #e4e4e7" }}>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-neutral-900">NIVEL {level}</span>
+              <span className="text-xs font-black" style={{ color: "#B50E30" }}>→ NIVEL {level + 1}</span>
+            </div>
+            <div className="h-1 w-full bg-neutral-200">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.round(((xp % 500) / 500) * 100)}%` }}
+                transition={{ delay: 0.4, duration: 0.9, ease: "easeOut" }}
+                className="h-full"
+                style={{ background: "linear-gradient(90deg, #B50E30, #e8294f)" }}
+              />
+            </div>
+            <span className="text-[10px] font-bold text-neutral-400">{500 - (xp % 500)} XP restantes</span>
+          </div>
+        </section>
+      </motion.div>
+    );
+
+    const TabActividad = () => (
+      <motion.div key="actividad" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }} className="flex flex-col gap-6">
+        <SectionRow label="Métricas de actividad" />
+        <div className="grid grid-cols-3 gap-3 -mt-2">
+          {[
+            { icon: <FolderGit2 className="h-5 w-5" />, value: projectCount, label: "Proyectos" },
+            { icon: <Trophy className="h-5 w-5" />, value: logroCount, label: "Logros" },
+            { icon: <Users className="h-5 w-5" />, value: conexCount, label: "Conexiones" },
+            { icon: <Zap className="h-5 w-5" />, value: xp, label: "XP Total" },
+          ].map(({ icon, value, label }) => (
+            <div key={label} className="flex flex-col gap-3 p-5 transition-all duration-150 hover:border-[#B50E30]/40" style={{ background: "#fafafa", border: "1px solid #e4e4e7" }}>
+              <div className="text-neutral-300">{icon}</div>
+              <div>
+                <div className="text-2xl font-black text-neutral-900 tracking-tighter leading-none">{value}</div>
+                <Label>{label}</Label>
+              </div>
+            </div>
+          ))}
+        </div>
+        <SectionRow label="Publicaciones recientes" />
+        <div className="flex flex-col gap-2 -mt-2">
+          {recentPosts.map((post: string, i: number) => (
+            <div key={i} className="flex items-center gap-4 p-4 transition-colors duration-150 hover:border-neutral-300 cursor-default group" style={{ border: "1px solid #ebebeb", background: "#fafafa" }}>
+              <div className="text-[10px] font-black tabular-nums shrink-0" style={{ color: "#B50E30" }}>
+                {String(i + 1).padStart(2, "0")}
+              </div>
+              <span className="text-xs text-neutral-500 group-hover:text-neutral-800 transition-colors flex-1">{post}</span>
+              <ArrowUpRight className="h-3.5 w-3.5 text-neutral-300 group-hover:text-neutral-500 transition-colors shrink-0" />
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    );
+
+    const TabConexiones = () => (
+      <motion.div key="conexiones" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }} className="flex flex-col gap-3">
+        <SectionRow label="Red de contactos" count={conexCount} />
+        {contactList.map((c: any, i: number) => (
+          <motion.div
+            key={c.name}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.06 }}
+            className="flex items-center gap-4 p-4 group cursor-default transition-all duration-150 hover:border-neutral-300"
+            style={{ border: "1px solid #ebebeb", background: "#fafafa" }}
+          >
+            <div className="h-9 w-9 shrink-0 flex items-center justify-center text-[11px] font-black text-white" style={{ background: i % 2 === 0 ? "#B50E30" : "#1a1a1a" }}>
+              {c.name.split(" ").map((n: string) => n[0]).join("")}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-neutral-700 group-hover:text-neutral-900 transition-colors">{c.name}</p>
+              <p className="text-[10px] text-neutral-400">{c.role}</p>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[9px] font-black" style={{ color: "#B50E30" }}>LVL {c.level}</span>
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+    );
+
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-6"
+        style={{ background: "rgba(0,0,0,0.45)" }}
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96, y: 32 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.96, y: 32 }}
+          transition={{ type: "spring", damping: 30, stiffness: 300 }}
+          onClick={(e) => e.stopPropagation()}
+          className="w-full max-w-5xl flex overflow-hidden"
+          style={{ height: "min(88vh, 640px)", background: "#f8f7f5", border: "1px solid #e2e0dd" }}
+        >
+          <LeftPanel />
+          <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex items-center justify-between px-8 py-4 shrink-0 bg-white" style={{ borderBottom: "1px solid #e2e0dd" }}>
+              <div className="flex items-center">
+                {TABS.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTab(t)}
+                    className="relative px-4 py-2 text-xs font-bold transition-colors duration-150"
+                    style={{ color: tab === t ? "#111" : "#a1a1aa" }}
+                  >
+                    {t}
+                    {tab === t && (
+                      <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-[2px]" style={{ background: "#B50E30" }} />
+                    )}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                {isSelf ? (
+                  <div className="px-3 py-1.5 text-[11px] font-black text-neutral-400" style={{ border: "1px solid #d4d4d8" }}>
+                    Tú (Estudiante)
+                  </div>
+                ) : isAlreadyConnected ? (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-black text-emerald-600" style={{ border: "1px solid rgba(16,185,129,0.3)", background: "rgba(16,185,129,0.06)" }}>
+                    <Check className="h-3 w-3 stroke-[3]" />
+                    Conectados
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleUserProfileConnect(profile.name)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-black text-white transition-all duration-150 hover:opacity-80"
+                    style={{ background: "#B50E30" }}
+                  >
+                    <UserPlus className="h-3 w-3" />
+                    Conectar
+                  </button>
+                )}
+                <button className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-neutral-500 hover:text-neutral-900 transition-colors duration-150" style={{ border: "1px solid #d4d4d8" }}>
+                  <MessageCircle className="h-3 w-3" />
+                  Mensaje
+                </button>
+                <button
+                  onClick={onClose}
+                  className="h-8 w-8 flex items-center justify-center text-neutral-400 hover:text-neutral-900 transition-colors duration-150 ml-2"
+                  style={{ border: "1px solid #d4d4d8" }}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto px-8 py-7 bg-white" style={{ scrollbarWidth: "none" }}>
+              <AnimatePresence mode="wait">
+                {tab === "Perfil" && <TabPerfil />}
+                {tab === "Actividad" && <TabActividad />}
+                {tab === "Conexiones" && <TabConexiones />}
+              </AnimatePresence>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -576,290 +915,10 @@ export default function SocialHub() {
       {/* PROFESSIONAL PROFILE POPUP MODAL */}
       <AnimatePresence>
         {selectedUserProfile && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
-            onClick={() => setSelectedUserProfile(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.92, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.92, y: 20, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-[98vw] max-w-6xl"
-            >
-              <div className="w-full bg-white shadow-2xl border border-neutral-200 relative overflow-hidden">
-                {/* Close Button */}
-                <button
-                  type="button"
-                  onClick={() => setSelectedUserProfile(null)}
-                  className="absolute top-3 right-3 z-20 h-8 w-8 flex items-center justify-center bg-white/90 backdrop-blur-sm text-neutral-500 hover:text-black hover:bg-white border border-neutral-200 transition-all duration-200 cursor-pointer shadow-sm"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-
-                {/* Cover Banner */}
-                <div className="h-32 relative overflow-hidden bg-black">
-                  <img
-                    src={`https://images.unsplash.com/photo-${
-                      selectedUserProfile.type?.includes("Reclutador")
-                        ? "1573496359142-b8d87734a5a2?w=1000&q=80"
-                        : selectedUserProfile.type?.includes("Mentor")
-                        ? "1522071820081-009f0129c71c?w=1000&q=80"
-                        : "1517245386807-bb43f82c33c4?w=1000&q=80"
-                    }`}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                  <div className="absolute inset-0 utp-diagonal-pattern opacity-[0.05]" />
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#B50E30] via-[#B50E30]/60 to-transparent" />
-                </div>
-
-                {/* Avatar - overlapping cover */}
-                <div className="relative px-10">
-                  <div className="flex items-end gap-6 -mt-14">
-                    <motion.div
-                      initial={{ scale: 0, rotate: -8 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ type: "spring", damping: 13, stiffness: 230, delay: 0.1 }}
-                      className="relative shrink-0"
-                    >
-                      <div className="absolute -inset-[4px] bg-gradient-to-br from-[#B50E30] via-white/30 to-black rounded-full shadow-2xl" />
-                      <img
-                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUserProfile.name.replace(" (Tú)", "").replace("Ing. ", "").replace("Lic. ", ""))}&background=000&color=fff&size=200&bold=true&font-size=0.35`}
-                        alt={selectedUserProfile.name}
-                        className="relative h-28 w-28 rounded-full border-[4px] border-white bg-white object-cover shadow-xl"
-                      />
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", damping: 10, stiffness: 180, delay: 0.35 }}
-                        className="absolute -bottom-1 -right-1 h-9 w-9 bg-gradient-to-br from-[#B50E30] to-black flex items-center justify-center text-sm font-black text-white shadow-lg border-[3px] border-white rounded-full"
-                      >
-                        {selectedUserProfile.level}
-                      </motion.div>
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.45 }}
-                        className="absolute top-1 right-1 h-3.5 w-3.5 bg-emerald-500 border-[3px] border-white rounded-full shadow-lg"
-                      />
-                    </motion.div>
-
-                    <div className="min-w-0 flex-1 pt-10 pb-1">
-                      <motion.h2
-                        initial={{ opacity: 0, x: -15 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="text-xl font-black text-black truncate tracking-tight"
-                      >
-                        {selectedUserProfile.name}
-                      </motion.h2>
-                      <motion.p
-                        initial={{ opacity: 0, x: -15 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.25 }}
-                        className="text-sm font-black text-[#B50E30] mt-0.5 truncate"
-                      >
-                        {selectedUserProfile.targetRole}
-                      </motion.p>
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                        className="flex items-center gap-3 mt-0.5"
-                      >
-                        <span className="text-xs text-neutral-500 font-semibold">
-                          {selectedUserProfile.career} • {selectedUserProfile.semester}º Ciclo
-                        </span>
-                        <span className="text-[10px] font-bold text-neutral-400">ID: UTP-{selectedUserProfile.xp + 1092}</span>
-                      </motion.div>
-                    </div>
-                  </div>
-
-                  {/* Badge + Status row */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="flex items-center gap-3 mt-3 pb-4 border-b border-neutral-200"
-                  >
-                    <span className={`text-[11px] font-black tracking-widest px-4 py-1.5 ${
-                      selectedUserProfile.type?.includes("Reclutador")
-                        ? "bg-[#B50E30] text-white"
-                        : selectedUserProfile.type?.includes("Mentor")
-                        ? "bg-black text-white"
-                        : "bg-neutral-700 text-white"
-                    }`}>
-                      {selectedUserProfile.type}
-                    </span>
-                    <span className="flex items-center gap-1.5 text-[11px] font-black text-emerald-700 bg-emerald-50 px-3 py-1.5 border border-emerald-200/60">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      Disponible para conectar
-                    </span>
-                  </motion.div>
-                </div>
-
-                {/* Content */}
-                <div className="px-10 pt-5 pb-3 grid grid-cols-1 md:grid-cols-5 gap-6">
-                  {/* Left col — Bio + Skills + Social */}
-                  <div className="md:col-span-3 space-y-5">
-                    <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.25 }}
-                    >
-                      <h4 className="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                        <InfoSvg className="h-3.5 w-3.5 text-[#B50E30]" />
-                        Acerca de
-                      </h4>
-                      <div className="bg-neutral-50 p-4 border-l-[3px] border-[#B50E30]">
-                        <p className="text-sm text-neutral-700 leading-relaxed font-[425] italic">
-                          &ldquo;{selectedUserProfile.bio}&rdquo;
-                        </p>
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      <h4 className="text-[10px] text-black font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                        <SkillsSvg className="h-3.5 w-3.5 text-[#B50E30]" />
-                        Habilidades
-                      </h4>
-                      <div className="flex flex-wrap gap-1.5">
-                        {selectedUserProfile.skills.map((s: string) => (
-                          <motion.span
-                            key={s}
-                            whileHover={{ scale: 1.06, y: -2 }}
-                            className="bg-white text-black border border-neutral-300 text-[10px] font-bold px-3 py-1.5 transition-all duration-200 hover:bg-[#B50E30] hover:text-white hover:border-[#B50E30] hover:shadow-md cursor-default"
-                          >
-                            {s}
-                          </motion.span>
-                        ))}
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.35 }}
-                    >
-                      <h4 className="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                        <Share2 className="h-3.5 w-3.5 text-[#B50E30]" />
-                        Redes
-                      </h4>
-                      <div className="flex flex-wrap gap-1.5">
-                        <span className="inline-flex items-center gap-1 bg-[#0077B5]/10 text-[#0077B5] border border-[#0077B5]/20 text-[10px] font-bold px-2.5 py-1 hover:bg-[#0077B5] hover:text-white transition-all duration-200 cursor-default">
-                          <ProfileSvg className="h-3 w-3" /> LinkedIn
-                        </span>
-                        <span className="inline-flex items-center gap-1 bg-neutral-100 text-neutral-700 border border-neutral-200 text-[10px] font-bold px-2.5 py-1 hover:bg-neutral-800 hover:text-white transition-all duration-200 cursor-default">
-                          <ConfigSvg className="h-3 w-3" /> GitHub
-                        </span>
-                        <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-bold px-2.5 py-1 hover:bg-purple-700 hover:text-white transition-all duration-200 cursor-default">
-                          <DownloadSvg className="h-3 w-3" /> Portafolio
-                        </span>
-                      </div>
-                    </motion.div>
-                  </div>
-
-                  {/* Right col — Stats + Activity + CTA */}
-                  <div className="md:col-span-2 space-y-4">
-                    <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.25 }}
-                      className="grid grid-cols-2 gap-3"
-                    >
-                      <div className="bg-neutral-50 border border-neutral-200 p-4 text-center space-y-1 shadow-sm hover:shadow-md transition-shadow">
-                        <GrowthSvg className="h-6 w-6 text-[#B50E30] mx-auto" />
-                        <div className="text-xl font-black text-black">{selectedUserProfile.xp}</div>
-                        <div className="text-[9px] text-neutral-400 font-black uppercase tracking-widest">XP Total</div>
-                      </div>
-                      <div className="bg-neutral-50 border border-neutral-200 p-4 text-center space-y-1 shadow-sm hover:shadow-md transition-shadow">
-                        <StarSvg className="h-6 w-6 text-[#B50E30] mx-auto" />
-                        <div className="text-xl font-black text-[#B50E30]">LVL {selectedUserProfile.level}</div>
-                        <div className="text-[9px] text-neutral-400 font-black uppercase tracking-widest">Rango</div>
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
-                      className="bg-neutral-50 border border-neutral-200 p-4 space-y-3 shadow-sm"
-                    >
-                      <h4 className="text-[9px] text-neutral-500 font-black uppercase tracking-widest flex items-center gap-1.5">
-                        <Briefcase className="h-3 w-3 text-[#B50E30]" />
-                        Actividad
-                      </h4>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { label: "Proyectos", value: posts.filter(p => p.category === "proyecto" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length, icon: <TargetSvg className="h-4 w-4 text-[#B50E30]" /> },
-                          { label: "Logros", value: posts.filter(p => p.category === "logro" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length, icon: <StarSvg className="h-4 w-4 text-[#B50E30]" /> },
-                          { label: "Conexiones", value: contacts.filter(c => c.isConnected).length, icon: <NetworkSvg className="h-4 w-4 text-[#B50E30]" /> },
-                        ].map((item, i) => (
-                          <div key={i} className="text-center py-2.5 bg-white border border-neutral-100 hover:border-[#B50E30]/30 transition-colors">
-                            <div className="mb-1 flex justify-center">{item.icon}</div>
-                            <span className="text-base font-black text-black block">{item.value}</span>
-                            <span className="text-[8px] text-neutral-400 font-black uppercase tracking-widest">{item.label}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.35 }}
-                    >
-                      {selectedUserProfile.name.includes("Tú") ? (
-                        <div className="w-full py-2.5 bg-neutral-100 text-neutral-400 border border-neutral-200 text-[10px] font-black tracking-wider text-center select-none">
-                          Tú (Estudiante)
-                        </div>
-                      ) : connectedProfiles[selectedUserProfile.name] || selectedUserProfile.name.includes("Andrea Salazar") ? (
-                        <div className="w-full py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black tracking-wider flex items-center justify-center gap-2 select-none">
-                          <Check className="h-3.5 w-3.5 text-emerald-600 stroke-[3]" />
-                          Conectados
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => handleUserProfileConnect(selectedUserProfile.name)}
-                          className="w-full py-2.5 bg-gradient-to-r from-[#B50E30] to-[#85061B] hover:from-[#85061B] hover:to-black text-white text-[10px] font-black tracking-wider flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg"
-                        >
-                          <HeartHandshake className="h-3.5 w-3.5" />
-                          Conectar
-                        </button>
-                      )}
-                    </motion.div>
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="px-10 py-3 flex justify-end border-t border-neutral-200 bg-neutral-50/50"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedUserProfile(null)}
-                    className="px-4 py-2 border border-neutral-300 text-[10px] font-black tracking-wider text-neutral-500 hover:bg-white hover:text-black hover:border-neutral-400 transition-all duration-200 cursor-pointer"
-                  >
-                    Cerrar
-                  </button>
-                </motion.div>
-              </div>
-            </motion.div>
-          </motion.div>
+          <ProfileModalContent
+            profile={selectedUserProfile}
+            onClose={() => setSelectedUserProfile(null)}
+          />
         )}
       </AnimatePresence>
     </div>

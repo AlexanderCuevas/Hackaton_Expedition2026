@@ -606,7 +606,7 @@ export default function SocialHub() {
           onClick={() => setActiveSegment("comunidad")}
           className={`flex-1 py-3.5 text-xs font-black uppercase tracking-wider rounded-none transition flex items-center justify-center gap-1.5 cursor-pointer ${
             activeSegment === "comunidad"
-              ? "bg-[#B50E30] text-white"
+              ? "bg-[#EFF6FF] text-[#000F37]"
               : "text-black hover:bg-neutral-50"
           }`}
         >
@@ -618,7 +618,7 @@ export default function SocialHub() {
           onClick={() => setActiveSegment("networking")}
           className={`flex-1 py-3.5 text-xs font-black uppercase tracking-wider rounded-none transition flex items-center justify-center gap-1.5 cursor-pointer ${
             activeSegment === "networking"
-              ? "bg-[#B50E30] text-white"
+              ? "bg-[#EFF6FF] text-[#000F37]"
               : "text-black hover:bg-neutral-50"
           }`}
         >
@@ -658,7 +658,7 @@ export default function SocialHub() {
                   <button
                     type="button"
                     onClick={() => setShowCreateModal(true)}
-                    className="bg-[#B50E30] hover:bg-[#85061B] text-white text-[11px] font-black uppercase tracking-widest px-4 py-2.5 flex items-center gap-1.5 transition cursor-pointer rounded-none"
+                    className="bg-[#EFF6FF] hover:bg-[#dbeafe] text-[#000F37] text-[11px] font-black uppercase tracking-widest px-4 py-2.5 flex items-center gap-1.5 transition cursor-pointer rounded-none"
                   >
                     <PlusCircle className="h-4 w-4" />
                     Compartir un logro
@@ -749,7 +749,7 @@ export default function SocialHub() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(true)}
-                  className="inline-flex items-center gap-1.5 bg-[#B50E30] hover:bg-[#85061B] text-white text-[11px] font-black uppercase tracking-widest px-4 py-2.5 transition cursor-pointer rounded-none"
+                  className="inline-flex items-center gap-1.5 bg-[#EFF6FF] hover:bg-[#dbeafe] text-[#000F37] text-[11px] font-black uppercase tracking-widest px-4 py-2.5 transition cursor-pointer rounded-none"
                 >
                   <PlusCircle className="h-4 w-4" />
                   Compartir un logro

@@ -17,7 +17,7 @@ function mockQuery(prompt: string): string {
       return response;
     }
   }
-  return "¡Hola! Soy tu mentor profesional IA de SkillPath. Estoy aquí para ayudarte con tu desarrollo profesional. Puedes preguntarme sobre:\n\n- **Habilidades** que deberías reforzar\n- **Preparación para entrevistas**\n- **Optimización de tu CV**\n- **Certificaciones recomendadas**\n- **Tu ruta de carrera**\n\n¿En qué puedo ayudarte hoy? 😊";
+  return "¡Hola! Soy tu mentor profesional IA de Despega UTP. Estoy aquí para ayudarte con tu desarrollo profesional. Puedes preguntarme sobre:\n\n- **Habilidades** que deberías reforzar\n- **Preparación para entrevistas**\n- **Optimización de tu CV**\n- **Certificaciones recomendadas**\n- **Tu ruta de carrera**\n\n¿En qué puedo ayudarte hoy? 😊";
 }
 
 export async function queryAi(

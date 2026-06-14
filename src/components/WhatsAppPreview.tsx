@@ -28,7 +28,7 @@ export default function WhatsAppPreview() {
   >([
     {
       sender: "system",
-      content: "🛡️ Bienvenido a la Ruta de Empleabilidad UTP. Mentor IA enlazado.",
+      content: "🛡️ Bienvenido a Despega UTP. Mentor IA enlazado.",
     },
   ]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -42,7 +42,7 @@ export default function WhatsAppPreview() {
       setChatMessages([
         {
           sender: "system",
-          content: "🛡️ Bienvenido a la Ruta de Empleabilidad UTP. Mentor IA enlazado.",
+          content: "🛡️ Bienvenido a Despega UTP. Mentor IA enlazado.",
         },
       ]);
     }
@@ -111,7 +111,7 @@ export default function WhatsAppPreview() {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Settings Form Column */}
       <div className="lg:col-span-6 space-y-6">
-        <div className="bg-white rounded-none border border-utp-border p-6 space-y-5">
+        <div className="bg-white rounded-none border border-utp-border p-4 sm:p-6 space-y-5">
           <div className="space-y-1">
             <h2 className="heading-sm text-black tracking-widest flex items-center gap-2">
               <MessageCircle className="h-4.5 w-4.5 text-[#B50E30]" />

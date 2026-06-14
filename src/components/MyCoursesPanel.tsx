@@ -204,8 +204,8 @@ export default function MyCoursesPanel({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-5 min-h-[500px]">
-            <div className="lg:col-span-2 border-r border-neutral-100 bg-neutral-50/50 p-4 space-y-3 overflow-y-auto max-h-[580px]">
+          <div className="grid grid-cols-1 lg:grid-cols-5 min-h-0 lg:min-h-[500px]">
+            <div className="lg:col-span-2 lg:border-r border-neutral-100 bg-neutral-50/50 p-4 space-y-3 overflow-y-auto max-h-[45vh] lg:max-h-[580px]">
               {activeCourse.modules.map((mod) => {
                 const completedInModule = mod.lessons.filter(l => activeEnrollment.completedLessons.includes(l.id)).length;
                 const isExpanded = expandedModules[mod.id] !== false;
@@ -298,13 +298,13 @@ export default function MyCoursesPanel({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 border-b border-neutral-100">
+                    <div className="flex items-center gap-2 sm:gap-3 border-b border-neutral-100 overflow-x-auto scrollbar-none">
                       {(["descripcion", "materiales", "discusion"] as const).map((tab) => (
                         <button
                           key={tab}
                           type="button"
                           onClick={() => setActiveTab(tab)}
-                          className={`text-[10px] font-black uppercase tracking-widest px-4 py-3 transition cursor-pointer border-b-2 ${
+                          className={`text-[10px] font-black uppercase tracking-widest px-3 sm:px-4 py-3 transition cursor-pointer border-b-2 shrink-0 whitespace-nowrap ${
                             activeTab === tab
                               ? "text-[#B50E30] border-[#B50E30]"
                               : "text-neutral-400 border-transparent hover:text-black"

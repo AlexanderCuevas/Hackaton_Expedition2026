@@ -12,6 +12,7 @@ import {
   SkillGap,
 } from "../types";
 import { CERTIFICATIONS_AND_COURSES, EXTERNAL_COURSE_SUGGESTIONS } from "../data";
+import UvpIcon from "./ui/UvpIcon";
 
 interface MyCoursesPanelProps {
   enrolledCourses: EnrolledCourse[];
@@ -634,7 +635,7 @@ export default function MyCoursesPanel({
         <div className="absolute right-0 top-0 w-32 h-full utp-diagonal-pattern opacity-10 pointer-events-none" />
         <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
         <h2 className="heading-lg text-black tracking-widest flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-[#B50E30]" />
+          <UvpIcon name="capacitacion-talleres" size={20} className="text-[#B50E30]" />
           Mis Cursos
         </h2>
         <p className="text-[#64748B] text-xs font-semibold mt-1">

@@ -1,7 +1,8 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Briefcase, MapPin, DollarSign, Zap, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Vacancy } from "../types";
+import UvpIcon from "./ui/UvpIcon";
 
 interface VacanciesPanelProps {
   vacancies: Vacancy[];
@@ -68,7 +69,7 @@ export default function VacanciesPanel({ vacancies, career, onApply }: Vacancies
         <div className="absolute right-0 top-0 w-32 h-full utp-diagonal-pattern opacity-10 pointer-events-none" />
         <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
         <h2 className="heading-lg text-black tracking-widest flex items-center gap-2">
-          <Briefcase className="h-5 w-5 text-[#B50E30]" />
+          <UvpIcon name="bolsa-trabajo" size={20} className="text-[#B50E30]" />
           Match Inteligente de Vacantes UTP+
         </h2>
         <p className="text-[#64748B] text-xs font-semibold mt-1">
@@ -104,11 +105,11 @@ export default function VacanciesPanel({ vacancies, career, onApply }: Vacancies
 
             <div className="flex flex-wrap items-center gap-3 text-gray-400 font-bold text-[10px] md:text-xs uppercase tracking-wider mb-4">
               <span className="flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-[#B50E30]" />
+                <UvpIcon name="buscar" size={14} className="text-[#B50E30]" />
                 {vac.location}
               </span>
               <span className="flex items-center gap-1">
-                <DollarSign className="w-3.5 h-3.5 text-[#B50E30]" />
+                <UvpIcon name="oportunidades-para-ti" size={14} className="text-[#B50E30]" />
                 {vac.salary}
               </span>
             </div>
@@ -137,7 +138,7 @@ export default function VacanciesPanel({ vacancies, career, onApply }: Vacancies
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-auto">
               <div className="flex items-start gap-2 text-gray-400 text-[10px] md:text-xs uppercase font-bold tracking-wide md:max-w-[60%] leading-relaxed group-hover:text-gray-600 transition-colors">
-                <Zap className="w-4 h-4 text-[#B50E30] shrink-0 mt-0.5" />
+                <UvpIcon name="creatividad-innovacion" size={16} className="text-[#B50E30] shrink-0 mt-0.5" />
                 <span>{vac.tipsForApplying.slice(0, 80)}...</span>
               </div>
 

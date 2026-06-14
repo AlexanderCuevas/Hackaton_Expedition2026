@@ -26,7 +26,7 @@ import MyCoursesPanel from "./components/MyCoursesPanel";
 import { INITIAL_VACANCIES, CERTIFICATIONS_AND_COURSES, UNIVERSITY_EVENTS } from "./data";
 import { integrateRouteWithCourses, syncMissionsWithEnrollments, unlockSequentialMissions } from "./utils/courseMatcher";
 import { MockStudent } from "./mockStudents";
-import { buildHtmlCv } from "./utils/cvGenerator";
+
 
 // Preloaded state for Hackathon demo so that it's highly populated instantly
 const MOCK_INITIAL_PROFILE: UserProfile = {
@@ -148,6 +148,7 @@ export default function App() {
   const [cvAnalysis, setCvAnalysis] = useState<CvAnalysis | null>(null);
   const [cvMeta, setCvMeta] = useState<CvMeta | null>(null);
   const [cvText, setCvText] = useState<string>("");
+  const [currentStudentCode, setCurrentStudentCode] = useState<string | null>(null);
 
   useEffect(() => {
     const savedProfile = localStorage.getItem("sp_profile");
@@ -501,18 +502,18 @@ export default function App() {
     localStorage.setItem("sp_authenticated", "true");
     setIsAuthenticated(true);
 
-    // ── Caso 1: Usuario con CV ya cargado (hasCv = true) ──
+    // ── Caso 1: Usuario con CV ya cargado (hasCv = true) — va al wizard con datos simulados ──
     if (hasCv && student) {
-      const completeProfile: UserProfile = {
+      const studentProfile: UserProfile = {
         name: student.name,
         career: student.career,
         semester: student.semester,
-        experienceLevel: student.experienceLevel || "",
+        experienceLevel: "",
         targetRole: student.targetRole || "",
-        currentSkills: student.hardSkills || [],
-        softSkills: student.softSkills || [],
+        currentSkills: [],
+        softSkills: [],
         interests: student.interests || [],
-        employabilityScore: 45,
+        employabilityScore: 0,
         xp: 0,
         level: 1,
         progressToNextLevel: 0,
@@ -522,37 +523,28 @@ export default function App() {
         github: student.github,
       };
 
-      const cvHtml = buildHtmlCv({
-        name: student.name,
-        career: student.career,
-        email: student.email,
-        phone: student.phone,
-        linkedin: student.linkedin,
-        cvResumen: student.cvResumen,
-        formacionCarrera: student.career,
-        formacionCiclo: `${student.semester}° ciclo`,
-        hardSkills: student.hardSkills,
-        softSkills: student.softSkills,
-        experienceLevel: student.experienceLevel,
-        targetRole: student.targetRole,
-      });
-
-      setProfile(completeProfile);
+      setProfile(studentProfile);
+      setCurrentStudentCode(student.code);
       setGaps([]);
       setMissions([]);
       setEnrolledCourses([]);
-      setDiagnosisCompleted(true);
+      setDiagnosisCompleted(false);
+      setCvAnalysis(null);
+      setCvMeta(null);
+      setCvText("");
 
-      localStorage.setItem("sp_profile", JSON.stringify(completeProfile));
+      localStorage.setItem("sp_profile", JSON.stringify(studentProfile));
       localStorage.setItem("sp_gaps", JSON.stringify([]));
       localStorage.setItem("sp_missions", JSON.stringify([]));
       localStorage.setItem("sp_enrolled_courses", JSON.stringify([]));
-      localStorage.setItem("sp_diagnosis_completed", "true");
-      localStorage.setItem("sp_cv_html", cvHtml);
+      localStorage.removeItem("sp_diagnosis_completed");
+      localStorage.removeItem("sp_cv_analysis");
+      localStorage.removeItem("sp_cv_meta");
+      localStorage.removeItem("sp_cv_text");
 
-      setView("dashboard");
+      setView("diagnostico");
       triggerNotification(
-        `🚀 ¡Bienvenido, ${student.name}! Tu CV está listo. Explora tu ruta de empleabilidad.`
+        `👋 ¡Bienvenido, ${student.name}! Usa "Extraer con IA" para cargar tus datos simulados.`
       );
       return;
     }
@@ -579,6 +571,7 @@ export default function App() {
 
     if (isNewUser) {
       setProfile(studentProfile);
+      setCurrentStudentCode(student?.code || null);
       setGaps([]);
       setMissions([]);
       setEnrolledCourses([]);
@@ -607,6 +600,7 @@ export default function App() {
       ? { ...JSON.parse(savedProfile), name: studentProfile.name, career: studentProfile.career, semester: studentProfile.semester }
       : studentProfile;
     setProfile({ ...MOCK_INITIAL_PROFILE, ...merged });
+    setCurrentStudentCode(student?.code || null);
 
     const diagnosisDone = localStorage.getItem("sp_diagnosis_completed") === "true";
     setDiagnosisCompleted(diagnosisDone);
@@ -654,6 +648,7 @@ export default function App() {
         <DiagnosticoWizard
           currentProfile={profile}
           onComplete={handleDiagnosisComplete}
+          studentCode={currentStudentCode ?? undefined}
         />
       </>
     );

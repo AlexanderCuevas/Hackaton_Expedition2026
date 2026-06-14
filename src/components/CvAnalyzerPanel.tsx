@@ -430,17 +430,35 @@ export default function CvAnalyzerPanel({
   const handleGuideClose = () => setGuideActive(false);
   const handleCreateRoute = () => {};
 
-  const getCvData = () => ({
-    name: profile?.name || "Estudiante UTP",
-    career: profile?.career || "",
-    email: profile?.email,
-    phone: profile?.phone,
-    linkedin: profile?.linkedin,
-    hardSkills: incomingSkills || skills,
-    softSkills: profile?.softSkills,
-    experienceLevel: profile?.experienceLevel,
-    targetRole: targetRole,
-  });
+  const getStructured = () => {
+    const stored = localStorage.getItem("sp_cv_structured");
+    if (!stored) return null;
+    try { return JSON.parse(stored); } catch { return null; }
+  };
+
+  const getCvData = () => {
+    const structured = getStructured();
+    return {
+      name: profile?.name || "Estudiante UTP",
+      career: profile?.career || "",
+      email: profile?.email,
+      phone: profile?.phone,
+      linkedin: profile?.linkedin,
+      hardSkills: incomingSkills || skills,
+      softSkills: profile?.softSkills ?? structured?.softSkills,
+      experienceLevel: profile?.experienceLevel,
+      targetRole: targetRole,
+      cvResumen: structured?.cvResumen,
+      formacionUniversidad: structured?.formacion?.universidad,
+      formacionCarrera: structured?.formacion?.carrera,
+      formacionCiclo: structured?.formacion?.ciclo,
+      formacionFechaInicio: structured?.formacion?.fechaInicio,
+      formacionFechaFin: structured?.formacion?.fechaFin,
+      formacionLogros: structured?.formacion?.logros,
+      experiencia: structured?.experiencia,
+      proyectos: structured?.proyectos,
+    };
+  };
 
   const getOrBuildCvHtml = () => {
     return localStorage.getItem("sp_cv_html") || buildHtmlCv(getCvData());

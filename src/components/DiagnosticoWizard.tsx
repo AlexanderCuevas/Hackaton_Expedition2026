@@ -27,7 +27,6 @@ import {
   GENERIC_SOFT_SKILLS,
 } from "../data";
 
-/* ───────── Month / Year dropdowns ───────── */
 const MONTHS = [
   { v: "01", l: "Enero" }, { v: "02", l: "Febrero" }, { v: "03", l: "Marzo" },
   { v: "04", l: "Abril" }, { v: "05", l: "Mayo" }, { v: "06", l: "Junio" },
@@ -117,7 +116,6 @@ export default function DiagnosticoWizard({
   const careerSkills = CAREER_TYPICAL_SKILLS[career] ?? [];
   const specializationPool = CAREER_SPECIALIZATION_TAGS[career] ?? [];
 
-  // Paso 1 — CV
   const [cvMode, setCvMode] = useState<"upload" | "harvard">("upload");
   const [cvFileName, setCvFileName] = useState("");
   const [cvText, setCvText] = useState("");
@@ -132,7 +130,6 @@ export default function DiagnosticoWizard({
     formacionLogros: "",
   });
 
-  // Proyectos (hasta 3)
   const [proyectos, setProyectos] = useState([
     { id: 1, nombre: "", fechaInicio: "", fechaFin: "", descripcion: "", logros: [""] },
   ]);
@@ -140,24 +137,19 @@ export default function DiagnosticoWizard({
 
   const [completed, setCompleted] = useState(false);
 
-  // Experiencia Profesional (hasta 2)
   const [experiencias, setExperiencias] = useState<CvExperiencia[]>([
     { rol: "", descripcion: "", ubicacion: "", fechaInicio: "", fechaFin: "", logros: [""] },
   ]);
 
-  // Contacto
   const [contactEmail, setContactEmail] = useState(currentProfile.email || "");
   const [contactPhone, setContactPhone] = useState(currentProfile.phone || "");
   const [contactLinkedin, setContactLinkedin] = useState(currentProfile.linkedin || "");
 
-  // Paso 2 — Experiencia
   const [experienceLevel, setExperienceLevel] = useState("");
 
-  // Paso 3 — Especialización (multi-select)
   const [specializations, setSpecializations] = useState<string[]>([]);
   const [specInput, setSpecInput] = useState("");
 
-  // Paso 4 — Habilidades
   const [hardSkills, setHardSkills] = useState<string[]>([]);
   const [softSkills, setSoftSkills] = useState<string[]>([]);
   const [hardInput, setHardInput] = useState("");
@@ -356,7 +348,6 @@ export default function DiagnosticoWizard({
 
     localStorage.setItem("sp_cv_html", cvHtml);
 
-    // Store the data so the completion screen can reference it
     localStorage.setItem("sp_profile", JSON.stringify(updatedProfile));
     localStorage.setItem("sp_cv_text", finalCvText);
     localStorage.setItem("sp_cv_meta", JSON.stringify(cvMeta));
@@ -366,7 +357,6 @@ export default function DiagnosticoWizard({
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header fijo */}
       <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
           <div className="font-black text-sm tracking-tight">
@@ -405,7 +395,6 @@ export default function DiagnosticoWizard({
               exit={{ opacity: 0, y: -12 }}
               className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6"
             >
-              {/* PASO 1: CV */}
               {step === 1 && (
                 <div className="space-y-5">
                   <div>
@@ -453,7 +442,6 @@ export default function DiagnosticoWizard({
                         )}
                       </div>
 
-                      {/* Contacto — visible en ambos modos, aquí en upload */}
                       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
                         <h3 className="text-sm font-black text-black flex items-center gap-2">
                           <Mail className="h-4 w-4 text-[#B50E30]" />
@@ -524,7 +512,6 @@ export default function DiagnosticoWizard({
                         ← Volver a subir PDF
                       </button>
 
-                      {/* Contacto también en modo Harvard */}
                       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
                         <h3 className="text-sm font-black text-black flex items-center gap-2">
                           <Mail className="h-4 w-4 text-[#B50E30]" />
@@ -569,7 +556,6 @@ export default function DiagnosticoWizard({
                         </div>
                       </div>
 
-                      {/* Resumen Profesional */}
                       <div className="border border-gray-200 rounded-xl overflow-hidden">
                         <button
                           type="button"
@@ -602,7 +588,6 @@ export default function DiagnosticoWizard({
                         )}
                       </div>
 
-                      {/* Formación Académica */}
                       <div className="border border-gray-200 rounded-xl overflow-hidden">
                         <button
                           type="button"
@@ -673,7 +658,6 @@ export default function DiagnosticoWizard({
                         )}
                       </div>
 
-                      {/* Experiencia Profesional */}
                       <div className="border border-gray-200 rounded-xl overflow-hidden">
                         <button
                           type="button"

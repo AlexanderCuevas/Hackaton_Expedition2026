@@ -32,7 +32,7 @@ const SIMULATED_ANALYSIS: CvAnalysis = {
   ],
   keywordsFound: ["SQL", "React", "Soporte técnico", "Organización", "Desarrollo web"],
   keywordsMissing: ["Git/GitHub", "APIs REST", "Scrum", "CI/CD", "Testing"],
-  generalFeedback: `## Informe detallado del análisis ATS
+  generalFeedback: `## Informe detallado del análisis del CV
 
 ### 1. Estructura del CV
 El CV tiene una base útil, pero necesita mayor jerarquía visual y organización por secciones.
@@ -134,7 +134,7 @@ const getRouteImpactData = (score: number, optimizedScore: number) => {
     compatibilityBefore: score,
     compatibilityAfter: optimizedScore,
     impact,
-    evidence: "CV optimizado en formato Harvard",
+    evidence: "CV optimizado en formato profesional",
     nextMission: "Simular entrevista técnico-comportamental"
   };
 };
@@ -160,7 +160,7 @@ const GUIDE_STEPS_DATA = [
     id: "header",
     title: "Cabecera del Panel",
     bubblePosition: "right" as const,
-    text: "¡Hola! Bienvenido a tu panel de análisis. Aquí arriba, en la Cabecera, confirmamos que tu CV ha sido escaneado por nuestra IA. Este es el punto de partida: te dice de inmediato que la revisión ATS está lista para mostrarte cómo llegar a la entrevista. A la derecha, el botón 'Generar mi ruta' arma tu plan de empleabilidad personalizado conectando este análisis con tus brechas y las misiones que debes cumplir."
+    text: "¡Hola! Bienvenido a tu panel de análisis. Aquí arriba, en la Cabecera, confirmamos que tu CV ha sido escaneado por nuestra IA. Este es el punto de partida: te dice de inmediato que la revisión de tu CV está lista para mostrarte cómo llegar a la entrevista. A la derecha, el botón 'Generar mi ruta' arma tu plan de empleabilidad personalizado conectando este análisis con tus brechas y las misiones que debes cumplir."
   },
   {
     id: "cv-card",
@@ -178,7 +178,7 @@ const GUIDE_STEPS_DATA = [
     id: "score",
     title: "Círculo de Puntuación",
     bubblePosition: "right" as const,
-    text: "¡Llegamos al corazón del análisis! Aquí está tu Score IA. El círculo rojo a la izquierda es tu puntuación Actual según los criterios ATS. El círculo negro a la derecha es tu puntuación Óptima si aplicas las mejoras recomendadas. ¡Nuestro objetivo es ayudarte a cerrar esa brecha!"
+    text: "¡Llegamos al corazón del análisis! Aquí está tu Score IA. El círculo rojo a la izquierda es tu puntuación Actual según el análisis de tu CV. El círculo negro a la derecha es tu puntuación Óptima si aplicas las mejoras recomendadas. ¡Nuestro objetivo es ayudarte a cerrar esa brecha!"
   },
   {
     id: "status",
@@ -481,7 +481,7 @@ export default function CvAnalyzerPanel({
     : SIMULATED_OPTIMIZED_SCORE;
   const routeImpact = getRouteImpactData(analysis.score, optimizedScore);
 
-  const gaps = incomingGaps ?? SIMULATED_GAPS;
+  const gaps = incomingGaps && incomingGaps.length > 0 ? incomingGaps : SIMULATED_GAPS;
   const skills = incomingSkills ?? SIMULATED_SKILLS;
   const displayInfo = cvInfo ?? {
     ...SIMULATED_CV,
@@ -493,7 +493,7 @@ export default function CvAnalyzerPanel({
 
   /* Guide overlay state */
   const [showRouteOverlay, setShowRouteOverlay] = useState(false);
-  const [guideActive, setGuideActive] = useState(true);
+  const [guideActive, setGuideActive] = useState(() => !localStorage.getItem("sp_guide_seen"));
   const [guideStep, setGuideStep] = useState(0);
 
   const headerRef = useRef<HTMLDivElement>(null);
@@ -530,11 +530,16 @@ export default function CvAnalyzerPanel({
     if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [guideStep, guideActive]);
 
+  const dismissGuide = () => {
+    setGuideActive(false);
+    localStorage.setItem("sp_guide_seen", "true");
+  };
+
   const handleGuideNext = () => {
     if (guideStep < 5) {
       setGuideStep(prev => prev + 1);
     } else {
-      setGuideActive(false);
+      dismissGuide();
     }
   };
 
@@ -542,8 +547,11 @@ export default function CvAnalyzerPanel({
     if (guideStep > 0) setGuideStep(prev => prev - 1);
   };
 
-  const handleGuideClose = () => setGuideActive(false);
-  const handleCreateRoute = () => setShowRouteOverlay(true);
+  const handleGuideClose = dismissGuide;
+  const handleCreateRoute = () => {
+    dismissGuide();
+    setShowRouteOverlay(true);
+  };
   const handleRouteComplete = () => {
     setShowRouteOverlay(false);
     onNavigateToRuta?.();
@@ -612,7 +620,7 @@ export default function CvAnalyzerPanel({
           <div className="flex items-center justify-between gap-4">
             <h2 className="heading-lg text-black flex items-center gap-2">
               <FileText className="h-5.5 w-5.5 text-[#B50E30]" />
-              CV Analyzer IA &mdash; Escaneo ATS
+              CV Analyzer IA
             </h2>
             <button
               type="button"
@@ -747,7 +755,7 @@ export default function CvAnalyzerPanel({
                       <div>
                         <p className="text-[10px] font-black text-black uppercase tracking-wider">Siguiente paso</p>
                         <p className="text-xs text-neutral-600 font-semibold mt-0.5 leading-relaxed">
-                          Aplicar formato Harvard y agregar logros con números.
+                          Aplicar formato profesional y agregar logros con números.
                         </p>
                       </div>
                     </div>
@@ -783,7 +791,7 @@ export default function CvAnalyzerPanel({
 
                   <div className="space-y-3">
                     {[
-                      { title: "Adaptar al formato Harvard", que: "Ordena tu CV en secciones claras.", por: "Ayuda al reclutador y al ATS a leer tu perfil.", impacto: "+8%" },
+                        { title: "Adaptar a formato profesional", que: "Ordena tu CV en secciones claras.", por: "Ayuda al reclutador a leer tu perfil.", impacto: "+8%" },
                       { title: "Agregar logros medibles", que: "Incluye resultados con números, porcentajes o tiempos.", por: "Los reclutadores buscan impacto medible, no descripciones.", impacto: "+10%" },
                       { title: "Alinear habilidades con la vacante", que: "Agrega SQL, APIs REST, Git/GitHub y metodologías ágiles.", por: "Sin estas keywords tu CV no pasa el primer filtro automático.", impacto: "+12%" }
                     ].map((rec, idx) => (
@@ -812,7 +820,7 @@ export default function CvAnalyzerPanel({
 
               {activeTab === "keywords" && (
                 <div className="space-y-4">
-                  <p className="text-xs text-neutral-500 font-semibold border-b border-utp-border pb-3 -mt-2">Palabras que ayudan a pasar filtros ATS.</p>
+                  <p className="text-xs text-neutral-500 font-semibold border-b border-utp-border pb-3 -mt-2">Palabras clave que fortalecen tu perfil.</p>
 
                   <div className="flex items-center gap-1.5 pb-2">
                     <Shield className="h-4 w-4 text-[#B50E30]" />
@@ -846,7 +854,7 @@ export default function CvAnalyzerPanel({
 
                   <div className="p-3 bg-neutral-50 border border-utp-border text-xs font-semibold text-neutral-600 leading-relaxed">
                     <AlertCircle className="h-3.5 w-3.5 text-[#B50E30] inline mr-1 -mt-0.5" />
-                    Los filtros ATS bloquean CVs sin keywords antes de que los vea un reclutador. Tienes {analysis.keywordsFound.length} de {analysis.keywordsFound.length + analysis.keywordsMissing.length} términos clave.
+                    Las palabras clave aumentan las oportunidades de tu CV. Tienes {analysis.keywordsFound.length} de {analysis.keywordsFound.length + analysis.keywordsMissing.length} términos clave identificados.
                   </div>
                 </div>
               )}
@@ -857,7 +865,7 @@ export default function CvAnalyzerPanel({
 
                   <h4 className="text-[11px] font-black text-black uppercase tracking-widest flex items-center gap-2 pb-2 border-b border-utp-border">
                     <BookOpen className="h-4 w-4 text-[#B50E30]" />
-                    Informe detallado del análisis ATS
+                    Informe detallado del análisis del CV
                   </h4>
 
                   <div>
@@ -981,7 +989,7 @@ export default function CvAnalyzerPanel({
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-neutral-500 font-semibold text-[11px]">Misión</span>
-                  <span className="font-extrabold text-black text-right max-w-[55%] text-xs">Optimizar CV para filtros ATS</span>
+                  <span className="font-extrabold text-black text-right max-w-[55%] text-xs">Optimizar CV para mejorar el alcance</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-neutral-500 font-semibold text-[11px]">Evidencia</span>
@@ -1017,7 +1025,7 @@ export default function CvAnalyzerPanel({
             <ul className="space-y-2 text-black text-xs font-semibold">
               <li className="flex items-start gap-1.5">
                 <CheckCircle className="h-4 w-4 text-[#B50E30] mt-0.5 shrink-0" />
-                <span><strong>Compatibilidad ATS</strong>: Legibilidad y organización del currículum.</span>
+                <span><strong>Estructura del CV</strong>: Legibilidad y organización del currículum.</span>
               </li>
               <li className="flex items-start gap-1.5">
                 <CheckCircle className="h-4 w-4 text-[#B50E30] mt-0.5 shrink-0" />
@@ -1025,7 +1033,7 @@ export default function CvAnalyzerPanel({
               </li>
               <li className="flex items-start gap-1.5">
                 <Shield className="h-4 w-4 text-[#B50E30] mt-0.5 shrink-0" />
-                <span><strong>Escaneo ATS</strong>: Formato óptimo para filtros automatizados.</span>
+                <span><strong>Formato y Contenido</strong>: Organización y claridad del perfil profesional.</span>
               </li>
             </ul>
           </div>

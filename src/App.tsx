@@ -6,6 +6,8 @@ import {
   Menu, X, Sparkles, LogOut, CheckSquare, Bell, Calendar, User
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { Avatar, AvatarImage, AvatarFallback } from "./components/ui/avatar";
+import avatarImg from "./components/assets/usuario.png";
 
 // Components
 import RouteDashboard from "./components/RouteDashboard";
@@ -788,10 +790,14 @@ export default function App() {
               <NotificationBell onClick={() => setNotifDrawerOpen(true)} />
               <button
                 type="button"
+                key={profile.avatarUrl || 'default'}
                 onClick={() => setView("profile")}
-                className="h-8 w-8 flex items-center justify-center bg-neutral-100 hover:bg-[#B50E30] hover:text-white transition cursor-pointer"
+                className="size-8 overflow-hidden cursor-pointer border border-neutral-200 hover:border-[#B50E30] transition rounded-full"
               >
-                <User className="h-4 w-4" />
+                <Avatar className="size-full rounded-none">
+                  <AvatarImage src={profile.avatarUrl || avatarImg} />
+                  <AvatarFallback>{profile.name?.charAt(0) || "U"}</AvatarFallback>
+                </Avatar>
               </button>
             </div>
           </header>
@@ -848,6 +854,7 @@ export default function App() {
                 >
                   <UserProfilePanel
                     onNavigateToMyCourses={() => setView("mycourses")}
+                    onAvatarChange={(url) => setProfile((p) => ({ ...p, avatarUrl: url }))}
                   />
                 </motion.div>
               )}

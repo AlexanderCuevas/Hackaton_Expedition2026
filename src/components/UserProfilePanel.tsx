@@ -1,13 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   User, Edit3, Check, Plus, Trash2, Code, Compass,
   GraduationCap, Target, Sparkles, BrainCircuit,
-  Camera, BookOpen, TrendingUp, Award, ChevronRight,
+  BookOpen, TrendingUp, Award, ChevronRight,
   Briefcase, MapPin, X, Flame, Shield, Star,
   BarChart2, Layers, Trophy, Cpu, FileText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import UvpIcon from "./ui/UvpIcon";
+import { AvatarUploader } from "./ui/avatar-uploader";
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, Tooltip,
@@ -34,6 +35,7 @@ interface UserProfile {
 
 interface UserProfilePanelProps {
   onNavigateToMyCourses?: () => void;
+  onAvatarChange?: (url: string) => void;
 }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -207,14 +209,13 @@ function AchievementBadge({ achievement, delay }: { achievement: Achievement; de
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function UserProfilePanel({ onNavigateToMyCourses }: UserProfilePanelProps) {
+export default function UserProfilePanel({ onNavigateToMyCourses, onAvatarChange }: UserProfilePanelProps) {
   const [profile, setProfile] = useState<UserProfile>(INITIAL_PROFILE);
   const [activeTab, setActiveTab] = useState<Tab>("perfil");
   const [isEditing, setIsEditing] = useState(false);
   const [editedBio, setEditedBio] = useState(profile.bio);
   const [newSkill, setNewSkill] = useState("");
   const [newInterest, setNewInterest] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const xpPercent = Math.round((profile.xp / profile.xpToNext) * 100);
 
   const handleSave = () => {
@@ -271,28 +272,18 @@ export default function UserProfilePanel({ onNavigateToMyCourses }: UserProfileP
                     whileHover={{ scale: 1.08 }}
                     whileTap={{ scale: 0.95 }}
                     transition={{ type: "spring", stiffness: 300 }}
-                    className="h-20 w-20 bg-neutral-100 overflow-hidden border-2 border-neutral-200 cursor-pointer relative group rounded-full"
-                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center justify-center"
                   >
-                    {profile.avatarUrl
-                      ? <img src={profile.avatarUrl} alt={profile.name} className="w-full h-full object-cover" />
-                      : <div className="w-full h-full flex items-center justify-center text-2xl font-black text-neutral-600 bg-gradient-to-br from-neutral-100 to-neutral-200">{profile.name.split(" ").slice(0, 2).map((w) => w[0]).join("")}</div>
-                    }
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                      className="absolute inset-0 bg-[#B50E30]/70 flex items-center justify-center"
-                    >
-                      <Camera className="h-4 w-4 text-white" />
-                    </motion.div>
+                    <AvatarUploader
+                      src={profile.avatarUrl}
+                      alt={profile.name}
+                      onChange={(dataUrl) => {
+                        setProfile((p) => ({ ...p, avatarUrl: dataUrl }));
+                        onAvatarChange?.(dataUrl);
+                      }}
+                    />
                   </motion.div>
                 </ProgressRing>
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
-                  const f = e.target.files?.[0]; if (!f) return;
-                  const r = new FileReader();
-                  r.onload = (ev) => setProfile((p) => ({ ...p, avatarUrl: ev.target?.result as string }));
-                  r.readAsDataURL(f);
-                }} />
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}

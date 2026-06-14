@@ -1,28 +1,20 @@
 import React, { useCallback, useRef, useState } from "react";
 import { UserProfile, CvMeta, CvExperiencia } from "../types";
 import {
-  Sparkles,
   Check,
   ArrowRight,
   ArrowLeft,
   Upload,
-  FileText,
   ChevronDown,
   X,
   Plus,
-  Target,
-  Brain,
-  Users,
   Mail,
   Phone,
-  Eye,
   Calendar,
   Trash2,
-  Briefcase,
-  MapPin,
-  Award,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import UvpIcon from "./ui/UvpIcon";
 import {
   extractTextFromPdf,
   buildHarvardCvText,
@@ -392,7 +384,8 @@ export default function DiagnosticoWizard({
                 />
               ))}
             </div>
-            <p className="text-[10px] text-neutral-400 font-semibold text-center mt-1 uppercase tracking-wider">
+            <p className="text-[10px] text-neutral-400 font-semibold text-center mt-1 uppercase tracking-wider flex items-center justify-center gap-1">
+              <UvpIcon name={["plantillas-cv","desarrollo-competencias","metas-profesionales","habilidades-blandas","test-evaluaciones"][step-1]} size={12} className="text-neutral-400" />
               Paso {step} de {TOTAL_STEPS}
             </p>
           </div>
@@ -416,7 +409,10 @@ export default function DiagnosticoWizard({
               {step === 1 && (
                 <div className="space-y-5">
                   <div>
-                    <h2 className="heading-lg text-black">Tu currículum vitae</h2>
+                    <h2 className="heading-lg text-black flex items-center gap-2">
+                      <UvpIcon name="plantillas-cv" size={20} className="text-[#B50E30]" />
+                      Tu currículum vitae
+                    </h2>
                     <p className="text-sm text-neutral-500 mt-1">
                       Si ya tienes un CV actualizado, súbelo. Si es tu primera vez, completa la plantilla Harvard.
                     </p>
@@ -444,7 +440,7 @@ export default function DiagnosticoWizard({
                           <p className="text-sm text-neutral-500">Leyendo PDF...</p>
                         ) : cvFileName ? (
                           <div className="space-y-2">
-                            <FileText className="h-10 w-10 text-[#B50E30] mx-auto" />
+                            <UvpIcon name="plantillas-cv" size={40} className="text-[#B50E30] mx-auto" />
                             <p className="font-bold text-black">{cvFileName}</p>
                             <p className="text-xs text-neutral-400">Clic para reemplazar</p>
                           </div>
@@ -696,7 +692,7 @@ export default function DiagnosticoWizard({
                               <div key={idx} className="p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
                                 <div className="flex items-center justify-between">
                                   <span className="text-xs font-bold text-black flex items-center gap-1.5">
-                                    <Briefcase className="h-3.5 w-3.5 text-[#B50E30]" />
+                                    <UvpIcon name="desarrollo-competencias" size={14} className="text-[#B50E30]" />
                                     Experiencia #{idx + 1}
                                   </span>
                                   {experiencias.length > 1 && (
@@ -781,7 +777,7 @@ export default function DiagnosticoWizard({
                                 </div>
                                 <div>
                                   <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider flex items-center gap-1">
-                                    <Award className="h-3 w-3 text-[#B50E30]" />
+                                    <UvpIcon name="logros-inspiran" size={12} className="text-[#B50E30]" />
                                     Logros y responsabilidades (uno por línea)
                                   </label>
                                   <textarea
@@ -945,7 +941,10 @@ export default function DiagnosticoWizard({
               {step === 2 && (
                 <div className="space-y-5">
                   <div>
-                    <h2 className="heading-lg text-black">Nivel de experiencia</h2>
+                    <h2 className="heading-lg text-black flex items-center gap-2">
+                      <UvpIcon name="desarrollo-competencias" size={20} className="text-[#B50E30]" />
+                      Nivel de experiencia
+                    </h2>
                     <p className="text-sm text-neutral-500 mt-1">
                       Considerando que estás en el{" "}
                       <strong className="text-black">{semester}° ciclo</strong> de{" "}
@@ -995,7 +994,7 @@ export default function DiagnosticoWizard({
                 <div className="space-y-5">
                   <div>
                     <h2 className="heading-lg text-black flex items-center gap-2">
-                      <Target className="h-5 w-5 text-[#B50E30]" />
+                      <UvpIcon name="metas-profesionales" size={20} className="text-[#B50E30]" />
                       Áreas de especialización
                     </h2>
                     <p className="text-sm text-neutral-500 mt-1">
@@ -1067,7 +1066,10 @@ export default function DiagnosticoWizard({
               {step === 4 && (
                 <div className="space-y-5">
                   <div>
-                    <h2 className="heading-lg text-black">Revisa tus habilidades</h2>
+                    <h2 className="heading-lg text-black flex items-center gap-2">
+                      <UvpIcon name="habilidades-blandas" size={20} className="text-[#B50E30]" />
+                      Revisa tus habilidades
+                    </h2>
                     <p className="text-sm text-neutral-500 mt-1">
                       Extraídas de tu CV. Ajústalas a tu realidad: quita, añade o confirma.
                     </p>
@@ -1077,7 +1079,7 @@ export default function DiagnosticoWizard({
                     {/* Técnicas */}
                     <div className="space-y-3 p-4 border border-gray-200 rounded-xl">
                       <h3 className="text-sm font-black flex items-center gap-2">
-                        <Brain className="h-4 w-4 text-[#B50E30]" />
+                        <UvpIcon name="aprendizaje-continuo" size={16} className="text-[#B50E30]" />
                         Habilidades técnicas
                       </h3>
                       <div className="flex flex-wrap gap-1.5 min-h-[60px]">
@@ -1134,7 +1136,7 @@ export default function DiagnosticoWizard({
                     {/* Blandas */}
                     <div className="space-y-3 p-4 border border-gray-200 rounded-xl">
                       <h3 className="text-sm font-black flex items-center gap-2">
-                        <Users className="h-4 w-4 text-[#B50E30]" />
+                        <UvpIcon name="habilidades-blandas" size={16} className="text-[#B50E30]" />
                         Habilidades blandas
                       </h3>
                       <div className="flex flex-wrap gap-1.5 min-h-[60px]">
@@ -1195,7 +1197,7 @@ export default function DiagnosticoWizard({
                 <div className="space-y-5">
                   <div>
                     <h2 className="text-xl font-black text-black flex items-center gap-2">
-                      <Eye className="h-5 w-5 text-[#B50E30]" />
+                      <UvpIcon name="test-evaluaciones" size={20} className="text-[#B50E30]" />
                       Resume tu perfil
                     </h2>
                     <p className="text-sm text-neutral-500 mt-1">
@@ -1279,7 +1281,7 @@ export default function DiagnosticoWizard({
 
                   <div className="bg-[#B50E30]/5 border border-[#B50E30]/10 rounded-xl p-4 text-sm">
                     <p className="font-bold text-black">
-                      <Sparkles className="h-4 w-4 text-[#B50E30] inline fill-[#B50E30] mr-1" />
+                      <UvpIcon name="creatividad-innovacion" size={16} className="text-[#B50E30] inline mr-1" />
                       Tu CV se generará automáticamente con estos datos.
                     </p>
                     <p className="text-neutral-600 text-xs mt-1">
@@ -1346,7 +1348,7 @@ export default function DiagnosticoWizard({
                     }}
                     className="inline-flex items-center gap-2 px-8 py-3 bg-[#B50E30] text-white text-sm font-black rounded-xl hover:bg-[#85061B] transition"
                   >
-                    <ArrowRight className="h-4 w-4" />
+                    <UvpIcon name="test-evaluaciones" size={16} className="text-white" />
                     Continuar al Análisis
                   </button>
                 </div>
@@ -1366,7 +1368,7 @@ export default function DiagnosticoWizard({
                   disabled={step === 1}
                   className="flex items-center gap-1.5 text-sm font-bold text-neutral-400 disabled:opacity-30 hover:text-black transition"
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <UvpIcon name="informacion" size={16} className="text-neutral-400" />
                   Atrás
                 </button>
 
@@ -1377,7 +1379,7 @@ export default function DiagnosticoWizard({
                     className="flex items-center gap-2 px-6 py-2.5 bg-black text-white text-sm font-bold rounded-xl hover:bg-neutral-800 transition"
                   >
                     Siguiente
-                    <ArrowRight className="h-4 w-4" />
+                    <UvpIcon name="buscar" size={16} className="text-white" />
                   </button>
                 ) : (
                   <button
@@ -1385,9 +1387,9 @@ export default function DiagnosticoWizard({
                     onClick={handleFinish}
                     className="flex items-center gap-2 px-6 py-3 bg-[#B50E30] text-white text-sm font-black rounded-xl hover:bg-[#85061B] transition"
                   >
-                    <Sparkles className="h-4 w-4 fill-white" />
+                    <UvpIcon name="crecimiento-personal" size={16} className="text-white" />
                     Generar CV y continuar
-                    <ArrowRight className="h-4 w-4" />
+                    <UvpIcon name="buscar" size={16} className="text-white" />
                   </button>
                 )}
               </div>

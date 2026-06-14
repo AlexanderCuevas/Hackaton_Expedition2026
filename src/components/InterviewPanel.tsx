@@ -2,16 +2,17 @@ import React, { useState, useEffect, useRef } from "react";
 import { InterviewMessage, InterviewSession } from "../types";
 import { 
   MessageSquare, Sparkles, AlertCircle, Play, Send, Award, Trash2, 
-  User, CheckCircle2, ChevronRight, BookOpen, Clock, HeartHandshake, Cpu
+  User, CheckCircle2, ChevronRight, BookOpen, Clock, HeartHandshake, Cpu,
+  Volume2, VolumeX, Mic, MicOff
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import ReactMarkdown from "react-markdown";
-import { AIVoiceInput } from "./ui/ai-voice-input";
 
 interface InterviewPanelProps {
   targetRole: string;
   onSessionComplete: (score: number) => void;
   savedSession?: InterviewSession;
+  avatarUrl?: string;
 }
 
 const DEFAULT_ROLES = [
@@ -25,7 +26,8 @@ const DEFAULT_ROLES = [
 export default function InterviewPanel({
   targetRole,
   onSessionComplete,
-  savedSession
+  savedSession,
+  avatarUrl
 }: InterviewPanelProps) {
   const [role, setRole] = useState(targetRole || "");
   const [isStarted, setIsStarted] = useState(!!savedSession);
@@ -35,12 +37,153 @@ export default function InterviewPanel({
   const [evaluating, setEvaluating] = useState(false);
   const [evaluation, setEvaluation] = useState<InterviewSession["evaluation"] | undefined>(savedSession?.evaluation);
   const [errorStr, setErrorStr] = useState<string | null>(null);
+  const [ttsEnabled, setTtsEnabled] = useState(true);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [ttsSupported, setTtsSupported] = useState(false);
 
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+  const startTimeRef = useRef<number>(0);
   const endOfChatRef = useRef<HTMLDivElement>(null);
+  const sendVoiceMsgRef = useRef<(text: string) => void>(() => {});
 
   useEffect(() => {
     endOfChatRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loadingMsg]);
+
+  // Setup voice (STT) and speech (TTS)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if ("speechSynthesis" in window) {
+      setTtsSupported(true);
+      synthRef.current = window.speechSynthesis;
+    }
+
+    const SpeechRecognitionAPI =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognitionAPI) {
+      const rec = new SpeechRecognitionAPI();
+      rec.lang = "es";
+      rec.interimResults = false;
+      rec.continuous = false;
+
+      rec.onstart = () => setIsListening(true);
+      rec.onend = () => setIsListening(false);
+      rec.onresult = (event: any) => {
+        const text = event.results[0][0].transcript;
+        if (text.trim()) {
+          sendVoiceMsgRef.current(text.trim());
+        }
+      };
+      rec.onerror = (err: any) => {
+        setIsListening(false);
+        setErrorStr("Error de micrófono: " + (err.error || "permiso denegado"));
+      };
+
+      recognitionRef.current = rec;
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort(); } catch {}
+      }
+    };
+  }, []);
+
+  // Función actualizada para ctrl el micrófono
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      setErrorStr("Tu navegador no soporta entrada de voz. Usa Chrome.");
+      return;
+    }
+
+    if (isListening || isSpeaking) {
+      // Detener todo antes de iniciar
+      try { recognitionRef.current.stop(); }
+      catch {}
+      setIsListening(false);
+      stopSpeaking();
+    }
+
+    if (isListening) {
+      // Si ya estaba escuchando, detén
+      try { recognitionRef.current.stop(); }
+      catch {}
+      setIsListening(false);
+    } else {
+      // Preparar e iniciar
+      startTimeRef.current = Date.now();
+      setIsListening(true);
+      try { recognitionRef.current.start(); }
+      catch (err) {
+        setIsListening(false);
+        setErrorStr("No se pudo activar el micrófono. Revisa los permisos.");
+      }
+    }
+  };
+
+  const speakResponse = (text: string) => {
+    if (!ttsSupported || !ttsEnabled || !synthRef.current) return;
+    synthRef.current.cancel();
+    const clean = text.replace(/[*#_`\[\]]/g, "");
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.lang = "es";
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    synthRef.current.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  // Helper to send a voice message through the same flow as written messages
+  const sendVoiceMessage = async (text: string) => {
+    if (loadingMsg) return;
+    const userMsg: InterviewMessage = { role: "user", content: text };
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
+    setInputText("");
+    setLoadingMsg(true);
+    setErrorStr(null);
+    try {
+      const conversation = [...updatedMessages, { role: "user", content: text }];
+      const convoText = conversation.map(m => `${m.role === 'user' ? 'Candidate' : 'Interviewer'}: ${m.content}`).join('\n');
+      const prompt = `[ROL Y CONTEXTO]
+Eres un Reclutador Virtual Senior y Mentor de Empleabilidad. El puesto es: ${role}.
+
+[REGLAS CRÍTICAS DE ENTORNO DE VOZ - OBLIGATORIAS]
+1. BREVEDAD EXTREMA: Máximo 1 a 3 oraciones cortas (40 palabras como tope).
+2. TONO TELEFÓNICO: Natural, fluido, profesional pero cercano. Como una conversación real.
+3. DINÁMICA PING-PONG: Relaciona brevemente lo que dijo el candidato y haz UNA sola pregunta corta para devolverle el turno.
+4. PROHIBIDO: Negritas, cursivas, viñetas, listas, guiones, emojis. Solo texto plano.
+
+[METODOLOGÍA STAR]
+Si el candidato da una respuesta vaga sin Situación, Tarea, Acción o Resultado, haz una pregunta de seguimiento corta para que profundice.
+
+Conversación hasta ahora:
+${convoText}
+
+Interviewer:`;
+      const mod = await import('../api/ai');
+      const data = await mod.queryAi(prompt, { max_words: 60 });
+      const reply = (data && (data.text as string)) || 'Cuéntame más sobre eso, ¿qué aprendiste en el proceso?';
+      setMessages([...updatedMessages, { role: "assistant", content: reply }]);
+      speakResponse(reply);
+    } catch {
+      setErrorStr("Fallo en la comunicación. Reintenta.");
+    } finally {
+      setLoadingMsg(false);
+    }
+  };
+
+  sendVoiceMsgRef.current = sendVoiceMessage;
 
   const handleStart = async () => {
     if (!role.trim()) {
@@ -55,19 +198,37 @@ export default function InterviewPanel({
     setEvaluation(undefined);
 
     try {
-      // Compose an initial prompt for the mentor AI
-      const prompt = `Eres un entrevistador profesional. Inicia una entrevista para el cargo: ${role}. Saluda brevemente y pide un resumen de proyectos relevantes, experiencias y motivación para postular.`;
-      // dynamic import to avoid hoisting issues and keep file edits minimal
+      const SYSTEM_PROMPT = `[ROL Y CONTEXTO]
+Eres un Reclutador Virtual Senior y Mentor de Empleabilidad. Tu objetivo es realizar una simulación de entrevista de trabajo interactiva y hablada en tiempo real para el puesto específico que el usuario elija. El usuario te estará hablando principalmente a través de su micrófono (Voz a Texto) y tus respuestas serán leídas en voz alta por un motor de Síntesis de Voz (Texto a Voz).
+
+[REGLAS CRÍTICAS DE ENTORNO DE VOZ - OBLIGATORIAS]
+1. BREVEDAD EXTREMA: Cada una de tus intervenciones debe tener un límite estricto de 1 a 3 oraciones cortas (máximo 40 palabras). Las respuestas largas arruinan la experiencia auditiva.
+2. TONO TELEFÓNICO: Habla de forma natural, fluida, profesional pero cercana. Actúa exactamente como un reclutador real conversando por teléfono o videollamada. Evita saludos robóticos repetitivos en cada turno como "¡Hola! ¿En qué te ayudo hoy?".
+3. DINÁMICA PING-PONG: No acapares la conversación ni hagas preguntas múltiples a la vez. Haz una sola pregunta corta por turno, espera la respuesta del candidato, relaciónala brevemente con lo que te dijo, y lanza la siguiente pregunta.
+4. PROHIBICIÓN ABSOLUTA DE FORMATO: Está terminantemente prohibido usar texto en negrita (**), cursiva, listas con viñetas (* o -), guiones, enumeraciones, subtítulos o emojis. El motor de Texto a Voz comete errores graves de entonación o hace pausas raras al leer estos caracteres. Genera exclusivamente texto plano.
+
+[METODOLOGÍA DE EVALUACIÓN COGNITIVA]
+- Evalúa de forma implícita si el candidato utiliza la estructura STAR (Situación, Tarea, Acción, Resultado).
+- Si el candidato da una respuesta muy vaga, haz una pregunta de seguimiento corta para obligarlo a profundizar en sus acciones o resultados, tal como lo haría un entrevistador real.
+
+[EJEMPLO DE INTERACCIÓN CORRECTA]
+- Candidato: "Trabajé en un proyecto de software escolar donde lideré al equipo backend."
+- Reclutador IA: "Suena como un gran reto. ¿Qué tecnologías específicas decidieron implementar en el backend y cuál fue tu mayor desafío técnico en ese proyecto?"
+
+Puesto: ${role}. Inicia la entrevista con un saludo breve y una primera pregunta sobre su experiencia.`;
+
       const mod = await import('../api/ai');
-      const data = await mod.queryAi(prompt, { max_words: 200 });
-      const reply = (data && (data.text as string)) || `Hola, empecemos. Cuéntame sobre tus proyectos más relevantes y por qué aplicas a ${role}.`;
+      const data = await mod.queryAi(SYSTEM_PROMPT, { max_words: 60 });
+      const reply = (data && (data.text as string)) || `Cuéntame sobre tu experiencia más relevante para este puesto de ${role}.`;
       setMessages([{ role: "assistant", content: reply }]);
+      speakResponse(reply);
     } catch (err: any) {
       console.error(err);
       setMessages([{ 
         role: "assistant", 
-        content: `Hola Valeria, un placer conversar contigo. Iniciemos tu entrenamiento personalizado para el puesto de **${role}**. Cuéntame, ¿podrías darme un breve resumen de tus proyectos clave y qué te motivó a postular a esta vacante?` 
+        content: `Hola, cuéntame sobre tus proyectos y qué te motivó a postular a ${role}.` 
       }]);
+      speakResponse(`Hola, cuéntame sobre tus proyectos y qué te motivó a postular a ${role}.`);
     } finally {
       setLoadingMsg(false);
     }
@@ -89,11 +250,28 @@ export default function InterviewPanel({
       // Build a compact conversation prompt for the mentor AI
       const conversation = [...updatedMessages, { role: 'user', content: inputText }];
       const convoText = conversation.map(m => `${m.role === 'user' ? 'Candidate' : 'Interviewer'}: ${m.content}`).join('\n');
-      const prompt = `Eres un entrevistador. Contexto: puesto=${role}. Conversación:\n${convoText}\n\nComo entrevistador, responde con la siguiente pregunta o un feedback corto, manteniendo tono profesional.`;
+      const prompt = `[ROL Y CONTEXTO]
+Eres un Reclutador Virtual Senior y Mentor de Empleabilidad. El puesto es: ${role}.
+
+[REGLAS CRÍTICAS DE ENTORNO DE VOZ - OBLIGATORIAS]
+1. BREVEDAD EXTREMA: Máximo 1 a 3 oraciones cortas (40 palabras como tope).
+2. TONO TELEFÓNICO: Natural, fluido, profesional pero cercano. Como una conversación real.
+3. DINÁMICA PING-PONG: Relaciona brevemente lo que dijo el candidato y haz UNA sola pregunta corta para devolverle el turno.
+4. PROHIBIDO: Negritas, cursivas, viñetas, listas, guiones, emojis. Solo texto plano.
+
+[METODOLOGÍA STAR]
+Si el candidato da una respuesta vaga sin Situación, Tarea, Acción o Resultado, haz una pregunta de seguimiento corta para que profundice.
+
+Conversación hasta ahora:
+${convoText}
+
+Interviewer:`;
+
       const mod = await import('../api/ai');
-      const data = await mod.queryAi(prompt, { max_words: 200 });
-      const reply = (data && (data.text as string)) || 'Gracias por compartir. ¿Puedes ampliar ese punto con más detalle?';
+      const data = await mod.queryAi(prompt, { max_words: 60 });
+      const reply = (data && (data.text as string)) || 'Cuéntame más sobre eso, ¿qué aprendiste en el proceso?';
       setMessages([...updatedMessages, { role: "assistant", content: reply }]);
+      speakResponse(reply);
     } catch (err: any) {
       console.error(err);
       setErrorStr("Fallo en la comunicación con Gemini. Por favor re-envía el mensaje.");
@@ -237,9 +415,28 @@ export default function InterviewPanel({
                 <div className="h-2.5 w-2.5 rounded-full bg-[#B50E30] animate-ping" />
                 <span className="text-xs font-black text-black uppercase tracking-wider">RECLUTADOR VIRTUAL UTP</span>
               </div>
-              <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2">
+                {ttsSupported && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isSpeaking) stopSpeaking();
+                      else setTtsEnabled(!ttsEnabled);
+                    }}
+                    className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider cursor-pointer transition"
+                    title={ttsEnabled ? "Silenciar voz" : "Activar voz"}
+                  >
+                    {isSpeaking ? (
+                      <Volume2 className="h-3.5 w-3.5 text-[#B50E30] animate-pulse" />
+                    ) : ttsEnabled ? (
+                      <Volume2 className="h-3.5 w-3.5 text-neutral-500" />
+                    ) : (
+                      <VolumeX className="h-3.5 w-3.5 text-neutral-400" />
+                    )}
+                  </button>
+                )}
                 <Clock className="h-3.5 w-3.5 text-[#B50E30]" />
-                <span>Simulador Activo</span>
+                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">Simulador Activo</span>
               </div>
             </div>
 
@@ -257,7 +454,9 @@ export default function InterviewPanel({
                       isAI ? "bg-black text-[#B50E30] border-black" : "bg-[#B50E30] text-white border-[#B50E30]"
                     }`}>
                       {isAI ? (
-                        <Cpu className="h-4 w-4" />
+                        avatarUrl
+                          ? <img src={avatarUrl} alt="AI" className="h-full w-full object-cover" />
+                          : <Cpu className="h-4 w-4" />
                       ) : (
                         <User className="h-4 w-4" />
                       )}
@@ -276,8 +475,11 @@ export default function InterviewPanel({
 
               {loadingMsg && (
                 <div className="flex items-start gap-3">
-                  <div className="h-8 w-8 rounded-none bg-black border border-black text-[#B50E30] flex items-center justify-center shrink-0">
-                    <Cpu className="h-4 w-4 animate-spin" />
+                  <div className="h-8 w-8 rounded-none bg-black border border-black text-[#B50E30] flex items-center justify-center shrink-0 overflow-hidden">
+                    {avatarUrl
+                      ? <img src={avatarUrl} alt="AI" className="h-full w-full object-cover" />
+                      : <Cpu className="h-4 w-4 animate-spin" />
+                    }
                   </div>
                   <div className="p-4 bg-neutral-50 rounded-none border border-utp-border max-w-[80%] text-xs text-neutral-500 flex items-center gap-2 font-bold uppercase tracking-wider">
                     <div className="flex space-x-1">
@@ -300,14 +502,22 @@ export default function InterviewPanel({
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 disabled={loadingMsg}
-                placeholder="Escribe tu respuesta detallada aquí para evaluación..."
+                placeholder="Escribe tu respuesta o usa el micrófono..."
                 className="flex-1 px-4 py-3 bg-white border border-utp-border outline-none rounded-none focus:border-black text-xs font-semibold text-black transition"
               />
-              <AIVoiceInput
-                compact
-                onStart={() => console.log("Voice recording started")}
-                onStop={(duration) => console.log("Voice recording stopped, duration:", duration)}
-              />
+              <button
+                type="button"
+                onClick={toggleListening}
+                disabled={loadingMsg}
+                className={`h-10 w-10 flex items-center justify-center rounded-none transition shrink-0 border cursor-pointer ${
+                  isListening
+                    ? "bg-[#B50E30] text-white border-[#B50E30] animate-pulse"
+                    : "bg-white text-black border-utp-border hover:border-black"
+                } ${loadingMsg ? "opacity-50 cursor-not-allowed" : ""}`}
+                title={isListening ? "Detener grabación" : "Hablar con el reclutador"}
+              >
+                {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </button>
               <button
                 type="submit"
                 disabled={!inputText.trim() || loadingMsg}

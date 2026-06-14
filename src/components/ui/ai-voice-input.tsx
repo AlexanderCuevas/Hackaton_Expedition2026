@@ -1,167 +1,98 @@
-import { Mic } from "lucide-react";
-import { useState, useEffect } from "react";
-import { cn } from "@/src/lib/utils";
+import React, { useState, useEffect, useRef } from 'react';
+import { Mic, Square } from 'lucide-react';
 
 interface AIVoiceInputProps {
+  compact?: boolean;
+  onTranscriptReceived: (transcript: string) => void;
   onStart?: () => void;
   onStop?: (duration: number) => void;
-  visualizerBars?: number;
-  demoMode?: boolean;
-  demoInterval?: number;
-  className?: string;
-  compact?: boolean;
+  disabled?: boolean;
 }
 
-export function AIVoiceInput({
-  onStart,
+export function AIVoiceInput({ 
+  compact, 
+  onTranscriptReceived, 
+  onStart, 
   onStop,
-  visualizerBars = 48,
-  demoMode = false,
-  demoInterval = 3000,
-  className,
-  compact = false
+  disabled = false
 }: AIVoiceInputProps) {
-  const [submitted, setSubmitted] = useState(false);
-  const [time, setTime] = useState(0);
-  const [isClient, setIsClient] = useState(false);
-  const [isDemo, setIsDemo] = useState(demoMode);
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const startTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'es-ES';
 
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        onTranscriptReceived(transcript);
+      };
 
-    if (submitted) {
-      onStart?.();
-      intervalId = setInterval(() => {
-        setTime((t) => t + 1);
-      }, 1000);
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+        const duration = Date.now() - startTimeRef.current;
+        if (onStop) onStop(duration);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error("Error en el micrófono:", event.error);
+        setIsRecording(false);
+      };
     } else {
-      onStop?.(time);
-      setTime(0);
+      console.warn("Tu navegador no soporta el reconocimiento de voz nativo.");
     }
 
-    return () => clearInterval(intervalId);
-  }, [submitted, time, onStart, onStop]);
-
-  useEffect(() => {
-    if (!isDemo) return;
-
-    let timeoutId: NodeJS.Timeout;
-    const runAnimation = () => {
-      setSubmitted(true);
-      timeoutId = setTimeout(() => {
-        setSubmitted(false);
-        timeoutId = setTimeout(runAnimation, 1000);
-      }, demoInterval);
-    };
-
-    const initialTimeout = setTimeout(runAnimation, 100);
     return () => {
-      clearTimeout(timeoutId);
-      clearTimeout(initialTimeout);
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
     };
-  }, [isDemo, demoInterval]);
+  }, [onTranscriptReceived, onStop]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+  const toggleRecording = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    if (!recognitionRef.current) {
+      alert("Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.");
+      return;
+    }
 
-  const handleClick = () => {
-    if (isDemo) {
-      setIsDemo(false);
-      setSubmitted(false);
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
     } else {
-      setSubmitted((prev) => !prev);
+      startTimeRef.current = Date.now();
+      if (onStart) onStart();
+      recognitionRef.current.start();
+      setIsRecording(true);
     }
   };
-
-  if (compact) {
-    return (
-      <button
-        type="button"
-        onClick={handleClick}
-        className={cn(
-          "h-10 w-10 flex items-center justify-center rounded-none transition shrink-0 border",
-          submitted
-            ? "bg-[#B50E30] text-white border-[#B50E30]"
-            : "bg-white text-black border-utp-border hover:border-black",
-          className
-        )}
-      >
-        {submitted ? (
-          <div className="w-4 h-4 rounded-sm animate-spin bg-white" style={{ animationDuration: "3s" }} />
-        ) : (
-          <Mic className="h-4 w-4" />
-        )}
-      </button>
-    );
-  }
 
   return (
-    <div className={cn("w-full py-4", className)}>
-      <div className="relative max-w-xl w-full mx-auto flex items-center flex-col gap-2">
-        <button
-          className={cn(
-            "group w-16 h-16 rounded-xl flex items-center justify-center transition-colors",
-            submitted
-              ? "bg-none"
-              : "bg-none hover:bg-black/10 dark:hover:bg-white/10"
-          )}
-          type="button"
-          onClick={handleClick}
-        >
-          {submitted ? (
-            <div
-              className="w-6 h-6 rounded-sm animate-spin bg-black dark:bg-white cursor-pointer pointer-events-auto"
-              style={{ animationDuration: "3s" }}
-            />
-          ) : (
-            <Mic className="w-6 h-6 text-black/70 dark:text-white/70" />
-          )}
-        </button>
-
-        <span
-          className={cn(
-            "font-mono text-sm transition-opacity duration-300",
-            submitted
-              ? "text-black/70 dark:text-white/70"
-              : "text-black/30 dark:text-white/30"
-          )}
-        >
-          {formatTime(time)}
-        </span>
-
-        <div className="h-4 w-64 flex items-center justify-center gap-0.5">
-          {[...Array(visualizerBars)].map((_, i) => (
-            <div
-              key={i}
-              className={cn(
-                "w-0.5 rounded-full transition-all duration-300",
-                submitted
-                  ? "bg-black/50 dark:bg-white/50 animate-pulse"
-                  : "bg-black/10 dark:bg-white/10 h-1"
-              )}
-              style={
-                submitted && isClient
-                  ? {
-                      height: `${20 + Math.random() * 80}%`,
-                      animationDelay: `${i * 0.05}s`,
-                    }
-                  : undefined
-              }
-            />
-          ))}
-        </div>
-
-        <p className="h-4 text-xs text-black/70 dark:text-white/70">
-          {submitted ? "Listening..." : "Click to speak"}
-        </p>
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={toggleRecording}
+      disabled={disabled || !recognitionRef.current}
+      className={`flex items-center justify-center transition-colors border ${
+        isRecording 
+          ? 'bg-red-500 hover:bg-red-600 text-white border-red-500 animate-pulse' 
+          : 'bg-neutral-100 hover:bg-neutral-200 text-black border-neutral-300'
+      } ${compact ? 'h-10 w-10 rounded-none' : 'px-4 py-2 rounded-none'} ${
+        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+      }`}
+      title={isRecording ? "Detener grabación" : "Hablar por micrófono"}
+    >
+      {isRecording ? (
+        <Square className="h-4 w-4 fill-current" />
+      ) : (
+        <Mic className="h-4 w-4" />
+      )}
+    </button>
   );
 }

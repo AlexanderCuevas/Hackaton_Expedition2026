@@ -277,19 +277,19 @@ Tu CV refleja un perfil de **primer empleo** con bases técnicas, pero aún no d
     ],
     careerMissions: [
       {
-        id: "m_ad_cv_01",
-        title: "CV orientado a Backend Trainee",
+        id: "m_ad_git_01",
+        title: "Reto Git express",
         description:
-          "Reescribe tu resumen profesional, agrega sección de proyectos y keywords técnicas para el rol Backend Developer Trainee.",
+          "Valida tu flujo con Git: inicializa un repo, crea ramas y documenta tus commits para demostrar trabajo colaborativo.",
         xpValue: 80,
-        type: "documento",
+        type: "aprendizaje",
         status: "disponible",
         order: 1,
-        actionLabel: "Optimizar CV",
+        actionLabel: "Ver recursos Git",
         subtasks: [
-          { text: "Resumen de 3 líneas orientado al puesto", done: false },
-          { text: "Sección Proyectos con stack y resultado", done: false },
-          { text: "Keywords Git, APIs REST y SQL integradas", done: false },
+          { text: "Repo inicializado con README", done: false },
+          { text: "Al menos 2 commits descriptivos", done: false },
+          { text: "Rama feature mergeada a main", done: false },
         ],
       },
       {
@@ -448,19 +448,19 @@ Perfil prometedor para **prácticas pre-profesionales** en marketing digital. Ti
     ],
     careerMissions: [
       {
-        id: "m_ca_cv_01",
-        title: "CV para Marketing Digital",
+        id: "m_ca_mkt_01",
+        title: "Auditoría de redes sociales",
         description:
-          "Transforma tu proyecto académico en caso de estudio y alinea keywords al rol Asistente de Marketing Digital.",
+          "Analiza 2 marcas de referencia en tu nicho: tono, frecuencia de publicación y tipo de contenido que genera engagement.",
         xpValue: 90,
-        type: "documento",
+        type: "networking",
         status: "disponible",
         order: 1,
-        actionLabel: "Optimizar CV",
+        actionLabel: "Ver comunidad",
         subtasks: [
-          { text: "Caso de estudio con KPIs del proyecto académico", done: false },
-          { text: "Keywords GA4, Meta Ads y CRM integradas", done: false },
-          { text: "Enlace a portafolio o Behance", done: false },
+          { text: "Identificar 2 marcas referentes del sector", done: false },
+          { text: "Registrar 3 insights de contenido", done: false },
+          { text: "Proponer 1 idea de campaña propia", done: false },
         ],
       },
       {
@@ -620,19 +620,19 @@ CV **competitivo** para roles de comercio exterior junior. Combinas experiencia 
     ],
     careerMissions: [
       {
-        id: "m_jo_cv_01",
-        title: "CV optimizado COMEX",
+        id: "m_jo_inc_01",
+        title: "Repaso Incoterms clave",
         description:
-          "Refuerza el resumen orientado a Asistente de Comercio Exterior con Incoterms, métricas y certificaciones.",
+          "Domina los términos FOB, CIF y EXW con escenarios prácticos de importación y exportación.",
         xpValue: 70,
-        type: "documento",
+        type: "simulacion",
         status: "disponible",
         order: 1,
-        actionLabel: "Optimizar CV",
+        actionLabel: "Practicar escenarios",
         subtasks: [
-          { text: "Resumen con rol objetivo y años de experiencia", done: false },
-          { text: "Keywords Incoterms y COMEX integradas", done: false },
-          { text: "Métricas de importación destacadas al inicio", done: false },
+          { text: "Diferenciar FOB vs CIF en un caso real", done: false },
+          { text: "Asignar responsabilidades de flete y seguro", done: false },
+          { text: "Resolver mini-caso de importación", done: false },
         ],
       },
       {

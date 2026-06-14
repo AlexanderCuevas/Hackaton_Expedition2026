@@ -97,6 +97,7 @@ export default function RouteDashboard({
   onCompleteSubtask,
   onNavigateToView,
   onStartCourseFromMission,
+  onCompleteMissionDirectly,
 }: RouteDashboardProps) {
   const [selectedMissionId, setSelectedMissionId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -143,6 +144,15 @@ export default function RouteDashboard({
     }
     prevWalkerNodeIdRef.current = walkerNode.id;
   }, [walkerNode, networkNodes]);
+
+  useEffect(() => {
+    if (!selectedMissionId) return;
+    const mission = missions.find((m) => m.id === selectedMissionId);
+    if (mission?.status === "completado") {
+      const timer = setTimeout(() => setSelectedMissionId(null), 900);
+      return () => clearTimeout(timer);
+    }
+  }, [missions, selectedMissionId]);
 
   useEffect(() => {
     const activeNode = networkNodes.find((node) => {
@@ -244,7 +254,7 @@ export default function RouteDashboard({
 
     const status = getNodeStatus(node);
     if (status === "disponible") {
-      handleMissionAction(mission, onNavigateToView, onStartCourseFromMission);
+      setSelectedMissionId(node.missionId);
       return;
     }
 
@@ -302,6 +312,11 @@ export default function RouteDashboard({
               <span className="w-1.5 h-1.5 bg-[#B50E30]" />
               Subtareas Requeridas
             </div>
+            {!isCompleted && (
+              <p className="text-[10px] font-semibold text-neutral-500 leading-relaxed">
+                Marca cada subtarea para avanzar en la ruta. El muñeco caminará al siguiente nodo al completar la misión.
+              </p>
+            )}
             <div className="space-y-1.5">
               {mission.subtasks.map((sub, sIdx) => (
                 <button
@@ -336,24 +351,33 @@ export default function RouteDashboard({
           </div>
 
           {!isCompleted && (
-            <div className="mt-4 flex items-center justify-between gap-2 border-t border-utp-border pt-3">
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-utp-border pt-3">
               <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
                 {completedSubtasks} de {mission.subtasks.length} completados
               </span>
-              <button
-                type="button"
-                onClick={() =>
-                  handleMissionAction(mission, onNavigateToView, onStartCourseFromMission)
-                }
-                className="bg-[#B50E30] text-white text-xs font-black uppercase tracking-widest px-4 py-2 hover:bg-[#85061B] transition flex items-center gap-1.5 shadow-none rounded-none cursor-pointer"
-              >
-                {mission.type === "aprendizaje" && mission.externalSuggestionId ? (
-                  <ExternalLink className="h-3 w-3" />
-                ) : (
-                  <Play className="h-3 w-3 fill-white" />
-                )}
-                {mission.actionLabel}
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onCompleteMissionDirectly(mission.id)}
+                  className="border border-[#B50E30] text-[#B50E30] text-xs font-black uppercase tracking-widest px-4 py-2 hover:bg-[#B50E30]/5 transition rounded-none cursor-pointer"
+                >
+                  Completar misión
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleMissionAction(mission, onNavigateToView, onStartCourseFromMission)
+                  }
+                  className="bg-[#B50E30] text-white text-xs font-black uppercase tracking-widest px-4 py-2 hover:bg-[#85061B] transition flex items-center gap-1.5 shadow-none rounded-none cursor-pointer"
+                >
+                  {mission.type === "aprendizaje" && mission.externalSuggestionId ? (
+                    <ExternalLink className="h-3 w-3" />
+                  ) : (
+                    <Play className="h-3 w-3 fill-white" />
+                  )}
+                  {mission.actionLabel}
+                </button>
+              </div>
             </div>
           )}
 

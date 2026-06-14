@@ -400,6 +400,57 @@ export default function App() {
     }
   };
 
+  const handleCompleteMission = (missionId: string) => {
+    let xpAwarded = 0;
+    let didLevelUp = false;
+    let newLevel = profile.level;
+    let isMissionCompleted = false;
+
+    const updatedMissions = missions.map((m) => {
+      if (m.id !== missionId) return m;
+      if (m.status === "completado") return m;
+
+      const updatedSubtasks = m.subtasks.map((sub) => ({ ...sub, done: true }));
+      isMissionCompleted = true;
+      xpAwarded = m.xpValue;
+
+      return {
+        ...m,
+        subtasks: updatedSubtasks,
+        status: "completado" as const,
+      };
+    });
+
+    const finalMissions = unlockSequentialMissions(updatedMissions);
+
+    let newXp = profile.xp + xpAwarded;
+    let nextLevelProgress = profile.progressToNextLevel + (xpAwarded / 2);
+
+    if (nextLevelProgress >= 100) {
+      didLevelUp = true;
+      newLevel += 1;
+      nextLevelProgress = nextLevelProgress - 100;
+    }
+
+    const updatedProfile = {
+      ...profile,
+      xp: newXp,
+      level: newLevel,
+      progressToNextLevel: Math.min(nextLevelProgress, 100),
+    };
+
+    saveState(updatedProfile, gaps, finalMissions);
+
+    if (isMissionCompleted) {
+      triggerNotification(`🎉 ¡Misión completada! Ganaste +${xpAwarded} puntos de XP.`);
+    }
+    if (didLevelUp) {
+      setTimeout(() => {
+        triggerNotification(`🌟 ¡FELICIDADES! Subiste al Nivel de Empleabilidad Lvl ${newLevel}!`);
+      }, 1500);
+    }
+  };
+
   const handleAddXpDirectly = (xp: number) => {
     let nextLevelProgress = profile.progressToNextLevel + (xp / 2);
     let newLevel = profile.level;
@@ -983,7 +1034,7 @@ export default function App() {
                     onCompleteSubtask={handleCompleteSubtask}
                     onNavigateToView={setView}
                     onStartCourseFromMission={handleStartCourseFromMission}
-                    onCompleteMissionDirectly={(id) => handleCompleteSubtask(id, 0)}
+                    onCompleteMissionDirectly={handleCompleteMission}
                   />
                 </motion.div>
               )}

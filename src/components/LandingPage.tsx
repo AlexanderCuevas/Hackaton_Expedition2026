@@ -10,11 +10,11 @@ import principalImg from "./assets/Principal.png";
 import sofiaImg from "./assets/Sofia.jpeg";
 import juanImg from "./assets/Juan.jpeg";
 import { UserProfile } from "../types";
-import { findStudentByCode } from "../mockStudents";
+import { findStudentByCode, MockStudent } from "../mockStudents";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────
 interface LandingPageProps {
-  onStart: (profileData: Partial<UserProfile>, isNewUser: boolean) => void;
+  onStart: (profileData: Partial<UserProfile>, isNewUser: boolean, hasCv?: boolean, student?: MockStudent) => void;
   currentProfileName: string;
 }
 
@@ -318,7 +318,7 @@ function Modal({
   onStart: handleStart,
 }: {
   onClose: () => void;
-  onStart: (profileData: Partial<UserProfile>, isNewUser: boolean) => void;
+  onStart: (profileData: Partial<UserProfile>, isNewUser: boolean, hasCv?: boolean, student?: MockStudent) => void;
 }) {
   const [studentCode, setStudentCode] = useState("");
   const [password, setPassword] = useState("");
@@ -345,14 +345,21 @@ function Modal({
       setToast({ msg: "Acceso concedido. Redirigiendo...", type: "success" });
       setTimeout(() => {
         const isNew = localStorage.getItem("sp_diagnosis_completed") !== "true";
+        const defaultEmail = `${student.code}@utp.edu.pe`;
         handleStart(
           {
             name: student.name,
             career: student.career,
             semester: student.semester,
-            targetRole: "",
+            targetRole: student.targetRole || "",
+            email: student.email || defaultEmail,
+            phone: student.phone || "",
+            linkedin: student.linkedin || "",
+            github: student.github || "",
           },
-          isNew
+          isNew,
+          student.hasCv,
+          student
         );
         onClose();
       }, 1200);

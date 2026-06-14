@@ -219,7 +219,7 @@ Devuelve de manera estricta un objeto JSON con la siguiente estructura:
     {
       id: "m_int_01",
       title: "Simular Entrevista Técnico-Comportamental",
-      description: "Practica respuestas con el entrevistador interactivo de SkillPath AI para el puesto de " + targetRole,
+      description: "Practica respuestas con el entrevistador interactivo de Despega UTP para el puesto de " + targetRole,
       xpValue: 120,
       type: "simulacion",
       actionLabel: "Empezar simulación",

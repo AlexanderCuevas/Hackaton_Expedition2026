@@ -1,5 +1,5 @@
 /**
- * Interface definitions for SkillPath AI
+ * Interface definitions for Despega UTP
  */
 
 export interface CognitiveProfileItem {

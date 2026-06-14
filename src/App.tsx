@@ -697,7 +697,7 @@ export default function App() {
                 <Sparkles className="h-5 w-5 fill-white" />
               </div>
               <div className={`flex-col ${sidebarOpen ? 'flex' : 'hidden'}`}>
-                <span className="font-black text-white text-base tracking-tight leading-none uppercase">SkillPath AI</span>
+                <span className="font-black text-white text-base tracking-tight leading-none uppercase">Despega UTP</span>
                 <span className="text-[10px] text-utp-red font-bold tracking-widest mt-1">HACKATHON UTP+</span>
               </div>
             </div>
@@ -1034,7 +1034,7 @@ export default function App() {
             {/* HACKATHON UTP+ FOOTER */}
             <footer className="mt-16 border-t border-utp-border pt-8 pb-4 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-black uppercase tracking-widest text-[11px]">SkillPath AI</span>
+                <span className="font-extrabold text-black uppercase tracking-widest text-[11px]">Despega UTP</span>
                 <span className="text-neutral-300">|</span>
                 <span className="text-neutral-500 font-medium">Plataforma de Crecimiento & Empleabilidad</span>
               </div>

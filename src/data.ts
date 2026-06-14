@@ -234,7 +234,7 @@ export const INITIAL_COMMUNITY_POSTS: SocialPost[] = [
     authorCareer: "Ingeniería de Sistemas",
     authorSemester: 7,
     avatarColor: "bg-black",
-    content: "¿Alguien ha usado el simulador de entrevistas de SkillPath AI? Acabo de terminar una simulación para puesto de Junior Full Stack y me sorprendió lo preciso del feedback. Me recomendó practicar la estructura STAR para preguntas de trabajo en equipo. Muy recomendado para los que están en búsqueda de prácticas.",
+    content: "¿Alguien ha usado el simulador de entrevistas de Despega UTP? Acabo de terminar una simulación para puesto de Junior Full Stack y me sorprendió lo preciso del feedback. Me recomendó practicar la estructura STAR para preguntas de trabajo en equipo. Muy recomendado para los que están en búsqueda de prácticas.",
     date: "Hace 30 minutos",
     likes: 15,
     likedByUser: false,

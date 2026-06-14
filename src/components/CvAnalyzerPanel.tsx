@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { CvAnalysis, SkillGap, CvMeta, UserProfile } from "../types";
 import {
   FileText, Sparkles, AlertCircle, CheckCircle,
-  BookOpen, AlertTriangle, TrendingUp, ChevronRight, X,
-  ArrowRight, Check, Shield, ThumbsUp, ThumbsDown, Copy, Save,
-  RefreshCw, Printer, Download, ChevronLeft
+  BookOpen, AlertTriangle, TrendingUp, X,
+  ArrowRight, Check, Shield, ThumbsDown, Copy, Route,
+  Printer
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { buildHtmlCv, buildPlainTextCv, copyPlainTextToClipboard, triggerPrintCv } from "../utils/cvGenerator";
@@ -152,6 +152,201 @@ const getRouteImpactData = (score: number, optimizedScore: number) => {
 };
 
 /* ============================================================
+   Guide Overlay — Avatar + walkthrough
+   ============================================================ */
+
+import avatarImg from "./assets/Avatar.png";
+
+function AvatarGuide({ className }: { className?: string }) {
+  return (
+    <img
+      src={avatarImg}
+      alt="Avatar guía"
+      className={`${className} object-contain`}
+    />
+  );
+}
+
+const GUIDE_STEPS_DATA = [
+  {
+    id: "header",
+    title: "Cabecera del Panel",
+    bubblePosition: "right" as const,
+    text: "¡Hola! Bienvenido a tu panel de análisis. Aquí arriba, en la Cabecera, confirmamos que tu CV ha sido escaneado por nuestra IA. Este es el punto de partida: te dice de inmediato que la revisión ATS está lista para mostrarte cómo llegar a la entrevista. A la derecha, el botón 'Generar mi ruta' arma tu plan de empleabilidad personalizado conectando este análisis con tus brechas y las misiones que debes cumplir."
+  },
+  {
+    id: "cv-card",
+    title: "Identificación del CV",
+    bubblePosition: "right" as const,
+    text: "Justo debajo de la cabecera, esta sección es la Identificación del CV. Aquí confirmamos los detalles del archivo que subiste, como su nombre y formato. Lo más importante: te mostramos tu 'Score' actual aquí mismo. Y si necesitas una copia rápida, usa los botones de la derecha para imprimir o copiar el texto extraído."
+  },
+  {
+    id: "step-guide",
+    title: "Guía de 3 Pasos",
+    bubblePosition: "right" as const,
+    text: "Esta barra visual es tu Mapa de Ruta. Te recuerda el proceso simplificado: primero cargaste tu CV (Paso 1), luego la IA analizó las brechas (Paso 2, resaltado en rojo), y ahora estamos en el Paso 3: ¡Mejorar tu CV para maximizar tu impacto!"
+  },
+  {
+    id: "score",
+    title: "Círculo de Puntuación",
+    bubblePosition: "right" as const,
+    text: "¡Llegamos al corazón del análisis! Aquí está tu Score IA. El círculo rojo a la izquierda es tu puntuación Actual según los criterios ATS. El círculo negro a la derecha es tu puntuación Óptima si aplicas las mejoras recomendadas. ¡Nuestro objetivo es ayudarte a cerrar esa brecha!"
+  },
+  {
+    id: "status",
+    title: "Resumen de Estado",
+    bubblePosition: "left" as const,
+    text: "A la derecha de los puntajes, te damos el Diagnóstico Rápido. Interpretamos tu Score (por ejemplo, 'Requiere ajustes') y, crucialmente, identificamos el Problema principal que detectó la IA. Esto te dice exactamente qué te está frenando, como la falta de keywords técnicas o logros medibles."
+  },
+  {
+    id: "skills",
+    title: "Skills & Brechas",
+    bubblePosition: "right" as const,
+    text: "En la columna derecha tienes el panel de Skills & Brechas. Aquí la IA contrasta tus habilidades actuales contra las brechas detectadas. Las brechas de prioridad 'alta' se marcan en rojo. Cada una incluye un recurso recomendado para que puedas cerrarla desde hoy mismo."
+  },
+];
+
+function GuideOverlay({
+  step,
+  highlightRect,
+  stepData,
+  onNext,
+  onPrev,
+  onClose,
+  total,
+}: {
+  step: number;
+  highlightRect: DOMRect;
+  stepData: (typeof GUIDE_STEPS_DATA)[number];
+  onNext: () => void;
+  onPrev: () => void;
+  onClose: () => void;
+  total: number;
+}) {
+  const pad = 10;
+  const gap = 28;
+  const groupW = 520; // avatar (~100px) + gap + bubble (~380px max)
+
+  let groupLeft: number;
+  let groupTop: number;
+
+  // Try right of highlight
+  if (highlightRect.right + gap + groupW <= window.innerWidth) {
+    groupLeft = highlightRect.right + gap;
+    groupTop = Math.max(pad, Math.min(highlightRect.top, window.innerHeight - 240));
+  }
+  // Try left of highlight (for sections on the right edge)
+  else if (highlightRect.left - gap - groupW >= 0) {
+    groupLeft = highlightRect.left - gap - groupW - 40;
+    groupTop = Math.max(pad, Math.min(highlightRect.top, window.innerHeight - 240));
+  }
+  // Try below
+  else if (highlightRect.bottom + gap + 200 <= window.innerHeight) {
+    groupLeft = Math.max(pad, Math.min(highlightRect.left, window.innerWidth - groupW - pad));
+    groupTop = highlightRect.bottom + gap;
+  }
+  // Try above
+  else if (highlightRect.top - gap - 200 >= 0) {
+    groupLeft = Math.max(pad, Math.min(highlightRect.left, window.innerWidth - groupW - pad));
+    groupTop = highlightRect.top - gap - 200;
+  }
+  // Fallback: bottom-right
+  else {
+    groupLeft = window.innerWidth - groupW - pad;
+    groupTop = window.innerHeight - 200 - pad;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60]" style={{ pointerEvents: "none" }}>
+      {/* Highlight box with box-shadow overlay */}
+      <div
+        className="absolute transition-all duration-300 ease-out"
+        style={{
+          left: highlightRect.left - pad,
+          top: highlightRect.top - pad,
+          width: highlightRect.width + pad * 2,
+          height: highlightRect.height + pad * 2,
+          boxShadow: "0 0 0 9999px rgba(0,0,0,0.6)",
+          background: "rgba(255,255,255,0.06)",
+          border: "2px solid rgba(255,255,255,0.85)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Avatar + speech bubble side by side */}
+      <div
+        className="absolute flex items-start gap-4"
+        style={{ left: groupLeft, top: groupTop, pointerEvents: "auto" }}
+      >
+        {/* Avatar */}
+        <div className="relative shrink-0">
+          <AvatarGuide className="h-72 drop-shadow-lg" />
+          <span className="absolute -top-1 -right-1 h-3 w-3 bg-emerald-400 border-2 border-white rounded-full animate-pulse" />
+        </div>
+
+        {/* Speech bubble + controls */}
+        <div className="bg-white border border-neutral-300 shadow-2xl p-5 max-w-[380px] relative rounded-2xl">
+          {/* Arrow pointing left to avatar */}
+          <div className="absolute -left-[7px] top-7 h-3.5 w-3.5 bg-white border-l border-b border-neutral-300 rotate-45 rounded-bl-sm" />
+          {/* Label */}
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#B50E30]">
+              {stepData.title}
+            </span>
+            <span className="text-[9px] font-black text-neutral-300">
+              {step + 1}/{total}
+            </span>
+          </div>
+          {/* Text */}
+          <p className="text-xs text-neutral-700 leading-relaxed font-semibold">
+            {stepData.text}
+          </p>
+          {/* Controls */}
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-neutral-100">
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: total }).map((_, i) => (
+                <span
+                  key={i}
+                  className={`h-1.5 transition-all duration-200 ${
+                    i === step ? "bg-[#B50E30] w-4" : "bg-neutral-200 w-1.5"
+                  }`}
+                />
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onPrev}
+                disabled={step === 0}
+                className="px-3 py-1.5 text-[9px] font-black uppercase tracking-wider text-neutral-500 hover:text-black border border-neutral-200 hover:border-neutral-400 transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                ← Anterior
+              </button>
+              <button
+                type="button"
+                onClick={onNext}
+                className="px-4 py-1.5 text-[9px] font-black uppercase tracking-wider text-white transition hover:opacity-80 cursor-pointer"
+                style={{ background: "#B50E30" }}
+              >
+                {step < total - 1 ? "Siguiente →" : "Comenzar →"}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="h-7 w-7 flex items-center justify-center text-neutral-400 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-400 transition cursor-pointer"
+                title="Cerrar guía"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
    Props
    ============================================================ */
 
@@ -195,11 +390,61 @@ export default function CvAnalyzerPanel({
     targetRole: targetRole || SIMULATED_CV.targetRole,
   };
 
-  const [activeTab, setActiveTab] = useState<"resumen" | "mejoras" | "keywords" | "informe">("resumen");
-  const [copiedExtract, setCopiedExtract] = useState(false);
-  const [evidenceSaved, setEvidenceSaved] = useState(false);
+  const [activeTab, setActiveTab] = useState<"mejoras" | "keywords" | "informe">("mejoras");
   const [cvCopied, setCvCopied] = useState(false);
-  const [carouselIdx, setCarouselIdx] = useState(0);
+
+  /* Guide overlay state */
+  const [guideActive, setGuideActive] = useState(true);
+  const [guideStep, setGuideStep] = useState(0);
+
+  const headerRef = useRef<HTMLDivElement>(null);
+  const cvCardRef = useRef<HTMLDivElement>(null);
+  const stepGuideRef = useRef<HTMLDivElement>(null);
+  const scoreCardRef = useRef<HTMLDivElement>(null);
+  const statusRef = useRef<HTMLDivElement>(null);
+  const skillsRef = useRef<HTMLDivElement>(null);
+
+  const stepRefs = [headerRef, cvCardRef, stepGuideRef, scoreCardRef, statusRef, skillsRef];
+  const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
+
+  const updateHighlight = useCallback(() => {
+    if (!guideActive) return;
+    const el = stepRefs[guideStep]?.current;
+    if (el) setHighlightRect(el.getBoundingClientRect());
+  }, [guideActive, guideStep]);
+
+  useEffect(() => {
+    updateHighlight();
+    const onScroll = () => updateHighlight();
+    window.addEventListener("scroll", onScroll, true);
+    return () => window.removeEventListener("scroll", onScroll, true);
+  }, [updateHighlight]);
+
+  useEffect(() => {
+    window.addEventListener("resize", updateHighlight);
+    return () => window.removeEventListener("resize", updateHighlight);
+  }, [updateHighlight]);
+
+  useEffect(() => {
+    if (!guideActive) return;
+    const el = stepRefs[guideStep]?.current;
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [guideStep, guideActive]);
+
+  const handleGuideNext = () => {
+    if (guideStep < 5) {
+      setGuideStep(prev => prev + 1);
+    } else {
+      setGuideActive(false);
+    }
+  };
+
+  const handleGuidePrev = () => {
+    if (guideStep > 0) setGuideStep(prev => prev - 1);
+  };
+
+  const handleGuideClose = () => setGuideActive(false);
+  const handleCreateRoute = () => {};
 
   const getCvData = () => ({
     name: profile?.name || "Estudiante UTP",
@@ -230,48 +475,35 @@ export default function CvAnalyzerPanel({
   };
 
   const tabs = [
-    { key: "resumen", label: "Resumen IA" },
     { key: "mejoras", label: "Mejoras" },
     { key: "keywords", label: "Keywords" },
     { key: "informe", label: "Informe" }
   ] as const;
 
-  const carouselSlides = [
-    {
-      title: "Adapta tu CV al formato Harvard",
-      action: "Ordena tu CV en secciones claras: perfil, educación, experiencia, habilidades y logros.",
-      explanation: "Mejora la lectura ATS y ayuda al reclutador a encontrar tu información rápido.",
-      impact: "+8%"
-    },
-    {
-      title: "Agrega logros medibles",
-      action: "Incluye resultados con números, porcentajes, tiempos o impacto en tus experiencias.",
-      explanation: "Los reclutadores priorizan candidatos que demuestran resultados concretos.",
-      impact: "+10%"
-    },
-    {
-      title: "Alinea habilidades con la vacante",
-      action: "Agrega palabras clave como SQL, APIs REST, Git/GitHub y metodologías ágiles.",
-      explanation: "Sin estas keywords tu CV no pasa el primer filtro automático del ATS.",
-      impact: "+12%"
-    }
-  ];
-
   return (
     <div className="space-y-6">
       {/* ==================== HEADER ==================== */}
-      <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
+      <div ref={headerRef} className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
         <div className="absolute right-0 top-0 w-32 h-full utp-diagonal-pattern opacity-20 pointer-events-none" />
         <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
 
         <div className="relative z-10 space-y-1">
-          <h2 className="heading-lg text-black flex items-center gap-2">
-            <FileText className="h-5.5 w-5.5 text-[#B50E30]" />
-            CV Analyzer IA &mdash; Escaneo ATS
-          </h2>
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="heading-lg text-black flex items-center gap-2">
+              <FileText className="h-5.5 w-5.5 text-[#B50E30]" />
+              CV Analyzer IA &mdash; Escaneo ATS
+            </h2>
+            <button
+              type="button"
+              onClick={handleCreateRoute}
+              className="bg-[#B50E30] hover:bg-[#85061B] active:bg-[#B50E30] text-white font-black uppercase tracking-wider rounded-none text-[11px] px-5 py-2.5 flex items-center gap-2 transition cursor-pointer shrink-0"
+            >
+              <Route className="h-4 w-4" />
+              Generar mi ruta
+            </button>
+          </div>
           <p className="text-neutral-500 text-sm font-semibold leading-relaxed">
-            Tu CV ya está listo para el análisis. La IA revisó tu perfil y te dice exactamente
-            qué mejorar para que pases los filtros ATS y llegues a la entrevista.
+            Tu CV ya fue analizado. La IA detectó todo lo que necesitas mejorar para llegar a la entrevista.
           </p>
         </div>
       </div>
@@ -281,7 +513,7 @@ export default function CvAnalyzerPanel({
         <div className="lg:col-span-2 space-y-6">
 
           {/* -------- 1. CV current card -------- */}
-          <div className="bg-white rounded-none border border-utp-border p-4">
+          <div ref={cvCardRef} className="bg-white rounded-none border border-utp-border p-4">
             <div className="flex flex-wrap items-center gap-3">
               <div className="h-10 w-10 bg-black flex items-center justify-center shrink-0">
                 <FileText className="h-5 w-5 text-white" />
@@ -326,7 +558,7 @@ export default function CvAnalyzerPanel({
           </div>
 
           {/* -------- 3-STEP GUIDE -------- */}
-          <div className="bg-white rounded-none border border-utp-border p-5">
+          <div ref={stepGuideRef} className="bg-white rounded-none border border-utp-border p-5">
             <div className="flex items-center justify-between gap-2">
               {[
                 { icon: FileText, label: "CV cargado" },
@@ -347,7 +579,7 @@ export default function CvAnalyzerPanel({
           </div>
 
           {/* -------- CARD: ANÁLISIS IA DEL CV -------- */}
-          <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
+          <div ref={scoreCardRef} className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
             <div className="absolute right-0 top-0 w-24 h-full utp-diagonal-pattern opacity-10 pointer-events-none" />
             <div className="relative z-10">
               <h3 className="heading-sm text-black tracking-widest flex items-center gap-2 pb-4 border-b border-utp-border">
@@ -369,7 +601,7 @@ export default function CvAnalyzerPanel({
                 </div>
 
                 {/* Right: status + problem + next step */}
-                <div className="flex-1 space-y-3">
+                <div ref={statusRef} className="flex-1 space-y-3">
                   <div className="flex items-center justify-between border-b border-utp-border pb-2">
                     <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Estado</span>
                     <span className="text-sm font-black text-black uppercase">
@@ -406,68 +638,6 @@ export default function CvAnalyzerPanel({
             </div>
           </div>
 
-          {/* -------- HAZ ESTO PRIMERO (CARRUSEL) -------- */}
-          <div className="relative group">
-            {/* Depth layer behind card */}
-            <div className="absolute inset-0 translate-y-1.5 bg-black/5 rounded-none pointer-events-none" />
-            {/* Main card */}
-            <div className="relative bg-black text-white rounded-none p-7 border border-neutral-800 shadow-[0_4px_20px_-6px_rgba(0,0,0,0.35)] transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.5)]">
-              <div className="flex items-start gap-5">
-                <div className="h-11 w-11 bg-[#B50E30] flex items-center justify-center shrink-0">
-                  <Sparkles className="h-5 w-5 fill-white text-white" />
-                </div>
-                <div className="flex-1 min-w-0 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-black uppercase tracking-widest text-[#B50E30]">Haz esto primero</p>
-                    <span className="text-[10px] text-neutral-500 font-black">
-                      {carouselIdx + 1}/{carouselSlides.length}
-                    </span>
-                  </div>
-                  <p className="text-base font-extrabold uppercase tracking-tight">
-                    {carouselSlides[carouselIdx].title}
-                  </p>
-                  <div className="space-y-2 text-sm text-neutral-300 font-semibold leading-relaxed">
-                    <p><span className="text-[10px] font-black text-white uppercase tracking-wider">Qué hacer: </span>{carouselSlides[carouselIdx].action}</p>
-                    <p><span className="text-[10px] font-black text-white uppercase tracking-wider">Por qué: </span>{carouselSlides[carouselIdx].explanation}</p>
-                  </div>
-                  <div className="flex items-center justify-between pt-3 border-t border-neutral-800">
-                    <div className="flex items-center gap-2">
-                      {carouselSlides.map((_, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => setCarouselIdx(idx)}
-                          className={`h-2 transition-all duration-200 cursor-pointer ${
-                            idx === carouselIdx ? "bg-[#B50E30] w-5" : "bg-neutral-700 w-2 hover:bg-neutral-500"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-black text-[#B50E30] uppercase tracking-wider">Impacto: {carouselSlides[carouselIdx].impact}</span>
-                      <button
-                        type="button"
-                        onClick={() => setCarouselIdx(prev => Math.max(0, prev - 1))}
-                        disabled={carouselIdx === 0}
-                        className="h-7 w-7 border border-neutral-700 flex items-center justify-center hover:bg-neutral-800 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        <ChevronLeft className="h-3.5 w-3.5 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setCarouselIdx(prev => Math.min(carouselSlides.length - 1, prev + 1))}
-                        disabled={carouselIdx === carouselSlides.length - 1}
-                        className="h-7 w-7 border border-neutral-700 flex items-center justify-center hover:bg-neutral-800 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        <ChevronRight className="h-3.5 w-3.5 text-white" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* -------- TAB SYSTEM -------- */}
           <div className="bg-white rounded-none border border-utp-border">
             {/* Tab bar */}
@@ -490,89 +660,6 @@ export default function CvAnalyzerPanel({
 
             {/* Tab content */}
             <div className="p-6">
-              {/* ============ TAB: RESUMEN IA ============ */}
-              {activeTab === "resumen" && (
-                <div className="space-y-6">
-                  <p className="text-xs text-neutral-500 font-semibold border-b border-utp-border pb-3 -mt-2">Lo bueno y lo que debes corregir.</p>
-
-                  {/* Fortalezas */}
-                  <div>
-                    <span className="text-[11px] font-black text-green-600 uppercase tracking-wider flex items-center gap-1 mb-2">
-                      <ThumbsUp className="h-4 w-4 text-green-600" />
-                      Fortalezas
-                    </span>
-                    <ul className="space-y-1">
-                      {analysis.strengths.slice(0, 3).map((s, i) => (
-                        <li key={i} className="flex items-start gap-1.5 text-xs font-semibold text-black">
-                          <span className="text-[#B50E30] font-black mt-0.5">•</span>
-                          <span>{s}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Alertas */}
-                  <div className="border-t border-utp-border pt-4">
-                    <span className="text-[11px] font-black text-amber-600 uppercase tracking-wider flex items-center gap-1 mb-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-600" />
-                      Alertas
-                    </span>
-                    <ul className="space-y-1">
-                      {analysis.weaknesses.slice(0, 3).map((w, i) => (
-                        <li key={i} className="flex items-start gap-1.5 text-xs font-bold text-black">
-                          <span className="font-black mt-0.5">•</span>
-                          <span>{w}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Extracto optimizado */}
-                  <div className="bg-black text-white rounded-none p-5 border border-neutral-900">
-                    <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 fill-[#B50E30] text-[#B50E30]" />
-                        <span className="heading-xs tracking-widest">Extracto optimizado para formato Harvard</span>
-                      </div>
-                    </div>
-                    <p className="text-[11px] text-neutral-400 font-semibold pt-3 pb-1">
-                      Copia este texto en la sección Perfil profesional de tu CV.
-                    </p>
-                    <div className="py-3 text-neutral-300 font-mono text-xs leading-relaxed select-all">
-                      {analysis.atsFormattedCvAdvice}
-                    </div>
-                    <p className="text-[10px] text-neutral-500 font-semibold pb-3">
-                      Este extracto ya está orientado a tu vacante objetivo.
-                    </p>
-                    <div className="flex items-center gap-2 pt-3 border-t border-neutral-800">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(analysis.atsFormattedCvAdvice || "");
-                          setCopiedExtract(true);
-                          setTimeout(() => setCopiedExtract(false), 2500);
-                        }}
-                        className="bg-white text-black font-black text-[11px] uppercase tracking-wider px-4 py-2 hover:bg-neutral-200 transition cursor-pointer flex items-center gap-1.5"
-                      >
-                        {copiedExtract ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                        {copiedExtract ? "Copiado" : "Copiar extracto"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEvidenceSaved(true);
-                          setTimeout(() => setEvidenceSaved(false), 2500);
-                        }}
-                        className="border border-neutral-700 text-neutral-300 font-black text-[11px] uppercase tracking-wider px-4 py-2 hover:bg-neutral-800 transition cursor-pointer flex items-center gap-1.5"
-                      >
-                        {evidenceSaved ? <Check className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
-                        {evidenceSaved ? "Guardado" : "Guardar como evidencia"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* ============ TAB: MEJORAS ============ */}
               {activeTab === "mejoras" && (
                 <div className="space-y-6">
@@ -604,35 +691,6 @@ export default function CvAnalyzerPanel({
                     ))}
                   </div>
 
-                  {/* Estructura Harvard */}
-                  <div className="border-t border-utp-border pt-5">
-                    <h4 className="heading-xs text-black flex items-center gap-2 mb-3">
-                      <BookOpen className="h-4 w-4 text-[#B50E30]" />
-                      Estructura Harvard recomendada
-                    </h4>
-                    <p className="text-[11px] text-neutral-500 font-semibold mb-3">Tu CV debe tener estas secciones en orden:</p>
-                    <div className="space-y-1.5">
-                      {[
-                        { num: "1", title: "Encabezado profesional", desc: "Nombre, correo, teléfono, LinkedIn, GitHub." },
-                        { num: "2", title: "Perfil profesional", desc: "Resumen breve orientado a la vacante." },
-                        { num: "3", title: "Educación", desc: "Carrera, universidad, ciclo o año académico." },
-                        { num: "4", title: "Experiencia / proyectos", desc: "Prácticas o proyectos académicos relevantes." },
-                        { num: "5", title: "Habilidades", desc: "Skills técnicas y blandas alineadas al puesto." },
-                        { num: "6", title: "Certificaciones", desc: "Cursos, talleres o eventos relevantes." },
-                        { num: "7", title: "Logros o evidencias", desc: "Resultados medibles o portafolio." }
-                      ].map((s) => (
-                        <div key={s.num} className="flex items-start gap-2 p-2 bg-neutral-50 border border-utp-border">
-                          <div className="h-5 w-5 bg-black flex items-center justify-center shrink-0 mt-0.5">
-                            <span className="text-white text-[8px] font-black">{s.num}</span>
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-extrabold text-black uppercase tracking-tight">{s.title}</p>
-                            <p className="text-[10px] text-neutral-500 font-semibold">{s.desc}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -722,7 +780,7 @@ export default function CvAnalyzerPanel({
         {/* ==================== RIGHT COLUMN (1/3) ==================== */}
         <div className="space-y-4">
           {/* -------- Skills & Brechas -------- */}
-          <div className="bg-white rounded-none border border-utp-border p-6">
+          <div ref={skillsRef} className="bg-white rounded-none border border-utp-border p-6">
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-utp-border">
               <h3 className="heading-sm text-black tracking-widest flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-[#B50E30]" />
@@ -862,6 +920,19 @@ export default function CvAnalyzerPanel({
           </div>
         </div>
       </div>
+
+      {/* Guide overlay */}
+      {guideActive && highlightRect && (
+        <GuideOverlay
+          step={guideStep}
+          highlightRect={highlightRect}
+          stepData={GUIDE_STEPS_DATA[guideStep]}
+          onNext={handleGuideNext}
+          onPrev={handleGuidePrev}
+          onClose={handleGuideClose}
+          total={GUIDE_STEPS_DATA.length}
+        />
+      )}
     </div>
   );
 }

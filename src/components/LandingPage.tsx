@@ -112,7 +112,7 @@ function Logo({ dark = false }: { dark?: boolean }) {
           Despega <span className="text-[#B50E30]">UTP</span>
         </p>
         <p className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${dark ? "text-white/30" : "text-neutral-400"}`}>
-         Tu ruta de empleabilidad
+         Plataforma de carrera UTP
         </p>
       </div>
     </div>
@@ -394,7 +394,7 @@ function Modal({
               <circle cx="120" cy="102" r="7" fill="#B50E30" />
             </svg>
             <p className="font-black text-[15px] uppercase tracking-tight leading-none text-black">
-              Ruta de <span className="text-[#B50E30]">Empleabilidad</span>
+              Despega <span className="text-[#B50E30]">UTP</span>
             </p>
           </div>
           <h1 className="text-[34px] sm:text-[40px] font-black tracking-tighter text-center leading-tight text-slate-900 mt-6">
@@ -723,7 +723,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
               >
                 <img
                   src="https://img.youtube.com/vi/tpICKO8vUn8/maxresdefault.jpg"
-                  alt="Ver video de Ruta de Empleabilidad"
+                  alt="Ver video de Despega UTP"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 {/* Dark overlay */}
@@ -766,7 +766,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                 <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ aspectRatio: "16/9" }}>
                   <iframe
                     src="https://www.youtube.com/embed/tpICKO8vUn8?autoplay=1&rel=0"
-                    title="Ruta de Empleabilidad"
+                    title="Despega UTP"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     className="w-full h-full"
@@ -811,10 +811,10 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                     </g>
                     <circle cx="120" cy="102" r="7" fill="#B50E30" />
                   </svg>
-                  <span className="font-bold text-lg tracking-tight">Ruta de Empleabilidad</span>
+                  <span className="font-bold text-lg tracking-tight">Despega UTP</span>
                 </div>
                 <p className="text-neutral-400 text-sm leading-relaxed max-w-xs">
-                  Mentor digital de empleabilidad impulsado por IA. Transformamos estudiantes universitarios en candidatos competitivos.
+                  Mentor digital impulsado por IA. Transformamos estudiantes universitarios en candidatos competitivos.
                 </p>
                 <div className="flex gap-3">
                   <Instagram className="w-6 h-6 text-neutral-500 hover:text-white cursor-pointer transition" />
@@ -839,7 +839,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
               <div className="space-y-4">
                 <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-2">Empresa</h4>
                 <ul className="space-y-3 text-neutral-400 text-sm cursor-pointer">
-                  <li className="hover:text-white transition">Sobre Ruta de Empleabilidad</li>
+                  <li className="hover:text-white transition">Sobre Despega UTP</li>
                   <li className="hover:text-white transition">Blog</li>
                   <li className="hover:text-white transition">Eventos</li>
                   <li className="hover:text-white transition">Para empresas</li>
@@ -860,7 +860,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
             </div>
 
             <div className="pt-8 border-t border-neutral-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-500">
-              <p>© 2026 Ruta de Empleabilidad. Hackathon UTP + Xpedition.</p>
+              <p>© 2026 Despega UTP. Hackathon UTP + Xpedition.</p>
               <p>Creado para transformar la empleabilidad estudiantil.</p>
             </div>
           </div>

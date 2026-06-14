@@ -171,7 +171,7 @@ export function buildHtmlCv(data: CvData): string {
   <p style="font-size:12px;color:#222;line-height:1.8;">${skills.join(" • ")}</p>` : ""}
 
   <hr style="border:none;border-top:1px solid #000;margin:20px 0 8px;">
-  <p style="font-size:9px;color:#666;text-align:center;">CV generado por Despega UTP — Ruta de Empleabilidad UTP</p>
+  <p style="font-size:9px;color:#666;text-align:center;">CV generado por Despega UTP</p>
 </body>
 </html>`;
 }

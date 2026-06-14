@@ -28,7 +28,7 @@ export default function WhatsAppPreview() {
   >([
     {
       sender: "system",
-      content: "🛡️ Bienvenido a la Ruta de Empleabilidad UTP. Mentor IA enlazado.",
+      content: "🛡️ Bienvenido a Despega UTP. Mentor IA enlazado.",
     },
   ]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -42,7 +42,7 @@ export default function WhatsAppPreview() {
       setChatMessages([
         {
           sender: "system",
-          content: "🛡️ Bienvenido a la Ruta de Empleabilidad UTP. Mentor IA enlazado.",
+          content: "🛡️ Bienvenido a Despega UTP. Mentor IA enlazado.",
         },
       ]);
     }

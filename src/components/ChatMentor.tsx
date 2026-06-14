@@ -77,7 +77,7 @@ export default function ChatMentor({ cvId, targetRole }: ChatMentorProps) {
           <div className="space-y-1.5">
             <h2 className="heading-lg text-black flex items-center gap-2">
               <Sparkles className="h-5.5 w-5.5 text-[#B50E30] fill-[#B50E30]" />
-              Mentor IA SkillPath
+              Mentor IA Despega UTP
             </h2>
             <p className="text-neutral-500 text-xs font-semibold">
               Haz cualquier pregunta sobre tu empleabilidad, CV, preparación de entrevistas o ruta de carrera.
@@ -179,7 +179,7 @@ export default function ChatMentor({ cvId, targetRole }: ChatMentorProps) {
             <div className="px-6 py-4 border-b border-utp-border flex items-center justify-between bg-neutral-50">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-[#B50E30] fill-[#B50E30]" />
-                <span className="text-xs font-black text-black uppercase tracking-wider">MENTOR IA SKILLPATH</span>
+                <span className="text-xs font-black text-black uppercase tracking-wider">MENTOR IA DESPEGA UTP</span>
               </div>
               <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
                 {cvId ? "Contexto: CV cargado" : "Consulta general"}

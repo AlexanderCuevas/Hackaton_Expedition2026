@@ -598,7 +598,7 @@ export default function RouteDashboard({
               <div>
                 <h3 className="heading-md text-black tracking-widest flex items-center gap-2">
                   <Zap className="h-5 w-5 text-[#B50E30] fill-[#B50E30]" />
-                  Misiones de Empleabilidad UTP
+                  Misiones Despega UTP
                 </h3>
                 <p className="text-xs text-neutral-500 mt-1">
                   Completa desafíos estratégicos y gana experiencia profesional (XP)

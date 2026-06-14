@@ -263,7 +263,7 @@ const GUIDE_STEPS_DATA = [
     id: "header",
     title: "Resumen",
     bubblePosition: "right" as const,
-    text: "Aquí ves el estado de tu análisis y el botón para generar tu ruta de empleabilidad. También puedes descargar o copiar tu CV desde los accesos discretos del encabezado."
+    text: "Aquí ves el estado de tu análisis y el botón para generar tu ruta en Despega UTP. También puedes descargar o copiar tu CV desde los accesos discretos del encabezado."
   },
   {
     id: "step-guide",

@@ -1,4 +1,5 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { UserProfile, CvMeta, CvExperiencia } from "../types";
 import {
   Check,
@@ -142,6 +143,7 @@ export default function DiagnosticoWizard({
   const nextProyectoId = useRef(2);
 
   const [completed, setCompleted] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const [experiencias, setExperiencias] = useState<CvExperiencia[]>([
@@ -406,12 +408,132 @@ export default function DiagnosticoWizard({
       localStorage.setItem("sp_diagnosis_completed", "true");
       setCompleted(true);
       setIsGenerating(false);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }, 1200);
   };
 
+  const handleContinueToAnalysis = () => {
+    const finalCvText = resolveCvText();
+    const updatedProfile: UserProfile = {
+      ...currentProfile,
+      experienceLevel,
+      targetRole: specializations[0] ?? currentProfile.targetRole,
+      currentSkills: hardSkills,
+      softSkills,
+      interests: specializations,
+      employabilityScore: currentProfile.employabilityScore || 0,
+      email: contactEmail || undefined,
+      phone: contactPhone || undefined,
+      linkedin: contactLinkedin || undefined,
+    };
+    const cvMeta: CvMeta = {
+      fileName: cvMode === "upload" ? cvFileName || "CV_cargado.pdf" : "CV_Plantilla_Harvard.txt",
+      format: cvMode === "upload" ? "PDF" : "Plantilla Harvard",
+      source: "Diagnóstico Inicial",
+      status: "Pendiente de análisis",
+      targetRole: specializations.join(", ") || career,
+      analysisDate: new Date().toLocaleDateString("es-PE", { day: "numeric", month: "short", year: "numeric" }),
+    };
+    onComplete(updatedProfile, finalCvText, cvMeta);
+  };
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!completed) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [completed]);
+
+  const successModal = (
+    <AnimatePresence>
+      {completed && (
+        <>
+          <motion.div
+            key="diagnosis-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[9998] bg-black/55 backdrop-blur-lg"
+            aria-hidden="true"
+          />
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="diagnosis-success-title"
+          >
+            <motion.div
+              key="diagnosis-modal"
+              initial={{ opacity: 0, scale: 0.92, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              transition={{ type: "spring", damping: 26, stiffness: 320 }}
+              className="w-full max-w-md bg-white rounded-2xl border border-gray-200 shadow-2xl p-6 sm:p-8 text-center space-y-6 my-auto"
+            >
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-50 ring-4 ring-emerald-100">
+                <svg className="w-10 h-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              </div>
+
+              <div className="space-y-2">
+                <h2 id="diagnosis-success-title" className="text-2xl font-black text-black">
+                  ¡Diagnóstico completado!
+                </h2>
+                <p className="text-sm text-neutral-500 leading-relaxed">
+                  Tu perfil profesional ha sido registrado y tu CV está listo para ser analizado.
+                  Nuestra IA identificará oportunidades para mejorar tu empleabilidad.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-neutral-50 rounded-xl p-3 text-center border border-neutral-100">
+                  <p className="text-lg font-black text-black">{hardSkills.length}</p>
+                  <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Habilidades</p>
+                </div>
+                <div className="bg-neutral-50 rounded-xl p-3 text-center border border-neutral-100">
+                  <p className="text-lg font-black text-black">{specializations.length}</p>
+                  <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Áreas</p>
+                </div>
+                <div className="bg-neutral-50 rounded-xl p-3 text-center border border-neutral-100">
+                  <p className="text-lg font-black text-black">{proyectos.filter((p) => p.nombre).length}</p>
+                  <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Proyectos</p>
+                </div>
+              </div>
+
+              <div className="bg-[#B50E30]/5 border border-[#B50E30]/15 rounded-xl p-3.5 text-left">
+                <p className="text-xs font-bold text-black flex items-start gap-2">
+                  <UvpIcon name="creatividad-innovacion" size={14} className="text-[#B50E30] shrink-0 mt-0.5" />
+                  Tu CV se generará automáticamente con estos datos. Luego podrás descargarlo desde Análisis.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleContinueToAnalysis}
+                className="w-full inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#B50E30] text-white text-sm font-black rounded-xl hover:bg-[#85061B] transition shadow-lg shadow-[#B50E30]/20 cursor-pointer"
+              >
+                <UvpIcon name="test-evaluaciones" size={16} className="text-white" />
+                Continuar al Análisis
+              </button>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <>
+    <div className={`min-h-screen bg-gray-50 flex flex-col relative ${completed ? "h-screen overflow-hidden" : ""}`}>
+      <div className={completed ? "blur-md brightness-[0.97] pointer-events-none select-none" : ""}>
       <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <Logo />
@@ -1328,7 +1450,7 @@ export default function DiagnosticoWizard({
               )}
 
               {/* PASO 5: Resumen y finalizar */}
-              {step === 5 && (
+              {step === 5 && !completed && (
                 <div className="space-y-5">
                   <div>
                     <h2 className="heading-lg text-black flex items-center gap-2">
@@ -1442,69 +1564,7 @@ export default function DiagnosticoWizard({
                 </div>
               )}
 
-              {completed ? (
-                <div className="text-center py-10 space-y-6">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100">
-                    <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-black">¡Diagnóstico completado!</h2>
-                    <p className="text-sm text-neutral-500 mt-2 max-w-md mx-auto leading-relaxed">
-                      Tu perfil profesional ha sido registrado y tu CV está listo para ser analizado.
-                      Nuestra IA identificará oportunidades para mejorar tu empleabilidad.
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-sm mx-auto w-full">
-                    <div className="bg-neutral-50 rounded-xl p-3 text-center">
-                      <p className="text-lg font-black text-black">{hardSkills.length}</p>
-                      <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Habilidades</p>
-                    </div>
-                    <div className="bg-neutral-50 rounded-xl p-3 text-center">
-                      <p className="text-lg font-black text-black">{specializations.length}</p>
-                      <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Áreas</p>
-                    </div>
-                    <div className="bg-neutral-50 rounded-xl p-3 text-center">
-                      <p className="text-lg font-black text-black">{proyectos.filter(p => p.nombre).length}</p>
-                      <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Proyectos</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                      const updatedProfile: UserProfile = {
-                        ...currentProfile,
-                        experienceLevel,
-                        targetRole: specializations[0] ?? currentProfile.targetRole,
-                        currentSkills: hardSkills,
-                        softSkills,
-                        interests: specializations,
-                        employabilityScore: currentProfile.employabilityScore || 0,
-                        email: contactEmail || undefined,
-                        phone: contactPhone || undefined,
-                        linkedin: contactLinkedin || undefined,
-                      };
-                      const finalCvText = resolveCvText();
-                      const experienceLabel = EXPERIENCE_OPTIONS.find((o) => o.id === experienceLevel)?.title ?? experienceLevel;
-                      const cvMeta: CvMeta = {
-                        fileName: cvMode === "upload" ? cvFileName || "CV_cargado.pdf" : "CV_Plantilla_Harvard.txt",
-                        format: cvMode === "upload" ? "PDF" : "Plantilla Harvard",
-                        source: "Diagnóstico Inicial",
-                        status: "Pendiente de análisis",
-                        targetRole: specializations.join(", ") || career,
-                        analysisDate: new Date().toLocaleDateString("es-PE", { day: "numeric", month: "short", year: "numeric" }),
-                      };
-                      onComplete(updatedProfile, finalCvText, cvMeta);
-                    }}
-                    className="inline-flex items-center gap-2 px-8 py-3 bg-[#B50E30] text-white text-sm font-black rounded-xl hover:bg-[#85061B] transition"
-                  >
-                    <UvpIcon name="test-evaluaciones" size={16} className="text-white" />
-                    Continuar al Análisis
-                  </button>
-                </div>
-              ) : (
+              {!completed && (
                 <>
               {errorStr && (
                 <div className="p-3 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl">{errorStr}</div>
@@ -1566,6 +1626,10 @@ export default function DiagnosticoWizard({
           </AnimatePresence>
         </div>
       </main>
+      </div>
     </div>
+
+    {portalReady && createPortal(successModal, document.body)}
+    </>
   );
 }

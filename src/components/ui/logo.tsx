@@ -31,7 +31,7 @@ function Logo({
             Despega <span className={onBrand ? "text-white" : "text-[#B50E30]"}>UTP</span>
           </p>
           <p className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${onSidebar ? "text-white/50" : onBrand ? "text-white/60" : onDark ? "text-white/30" : "text-neutral-400"}`}>
-            Tu ruta de empleabilidad
+            Plataforma de carrera UTP
           </p>
         </div>
       )}

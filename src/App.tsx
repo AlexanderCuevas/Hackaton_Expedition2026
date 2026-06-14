@@ -936,9 +936,8 @@ export default function App() {
               >
                 <Menu className="h-5 w-5" />
               </button>
-              <div className="md:hidden flex items-center gap-1.5 min-w-0">
-                <span className="h-8 w-8 bg-utp-red text-white flex items-center justify-center font-bold text-xs rounded shrink-0">SP</span>
-                <span className="font-bold text-black text-sm uppercase tracking-tight truncate">SkillPath</span>
+              <div className="md:hidden shrink-0 scale-[0.92] origin-left">
+                <Logo showText />
               </div>
               <div className="hidden sm:block">
                 <div className="text-xs text-neutral-650 font-bold font-sans flex items-center gap-2">
@@ -1264,7 +1263,7 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-black uppercase tracking-widest text-[11px]">Despega UTP</span>
                 <span className="text-neutral-300">|</span>
-                <span className="text-neutral-500 font-medium">Plataforma de Crecimiento & Empleabilidad</span>
+                <span className="text-neutral-500 font-medium">Plataforma de carrera UTP</span>
               </div>
               
               {/* UTP Hackathon branding */}

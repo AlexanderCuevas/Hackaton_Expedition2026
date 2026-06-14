@@ -1,6 +1,6 @@
 {
   "name": "Despega UTP",
-  "description": "Mentor digital impulsado por IA para la ruta de empleabilidad y crecimiento profesional de estudiantes universitarios.",
+  "description": "Mentor digital impulsado por IA para el crecimiento profesional de estudiantes universitarios UTP.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

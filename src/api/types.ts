@@ -1,68 +1,162 @@
-// API types for frontend ↔ backend integration
-// Keep minimal subset required by the frontend integration.
+import type { CvAnalysis } from "../types";
 
-export interface PersonalInfo {
-  fullName?: string;
-  email?: string;
-  phone?: string;
-  location?: string;
-  summary?: string;
+/* ───────── Generic wrapper ───────── */
+
+export interface ApiResponse<T = unknown> {
+  ok: true;
+  [key: string]: T | boolean;
 }
 
-export interface EducationItem {
-  institution?: string;
-  degree?: string;
-  startDate?: string;
-  endDate?: string;
+export interface ApiErrorBody {
+  error: string;
+  message: string;
+  details?: Record<string, unknown>;
 }
 
-export interface ExperienceItem {
-  company?: string;
-  role?: string;
-  startDate?: string;
-  endDate?: string;
-  description?: string;
-}
+/* ───────── AI Query ───────── */
 
-export interface CertificationItem {
-  name?: string;
-  issuer?: string;
-}
-
-export interface LanguageItem {
-  language: string;
-  level?: string;
-}
-
-export interface ExtractedProfile {
-  personalInfo?: PersonalInfo;
-  skills?: string[];
-  education?: EducationItem[];
-  experience?: ExperienceItem[];
-  certifications?: CertificationItem[];
-  languages?: LanguageItem[];
-}
-
-export interface CvContext {
-  id: string;
+export interface AiQueryRequest {
+  prompt: string;
+  model?: string;
+  max_tokens?: number;
+  maxTokens?: number;
+  max_words?: number;
+  maxWords?: number;
   cvId?: string;
-  extractedProfile?: ExtractedProfile;
-  analysis?: any; // kept loose, frontend uses src/types.ts::CvAnalysis when available
-  createdAt?: string;
+}
+
+export interface AiQueryResponse {
+  text: string;
+}
+
+/* ───────── CV Upload (file) ───────── */
+
+export interface CvUploadResponse {
+  ok: true;
+  cvId: string;
+  context: CvContext;
+}
+
+/* ───────── CV Text analysis ───────── */
+
+export interface CvTextRequest {
+  text?: string;
+  cvText?: string;
+  targetRole?: string;
+  studentId?: string;
+  fileName?: string;
 }
 
 export interface CvTextResponse {
-  ok: boolean;
-  cvId?: string;
-  context?: CvContext;
+  ok: true;
+  cvId: string;
+  context: CvContext;
 }
+
+/* ───────── CV Detail ───────── */
 
 export interface CvDetailResponse {
-  ok: boolean;
-  context?: CvContext;
+  ok: true;
+  context: CvContext;
 }
 
-export interface QueryAiResponse {
-  ok?: boolean;
+/* ───────── CV List ───────── */
+
+export interface CvListItem {
+  id: string;
+  fileName: string;
+  fileType: string;
+  targetRole: string;
+  createdAt: string;
+}
+
+export interface CvListResponse {
+  ok: true;
+  cvs: CvListItem[];
+}
+
+/* ───────── Extracted profile from CV ───────── */
+
+export interface PersonalInfo {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  linkedIn: string;
+  summary: string;
+}
+
+export interface Education {
+  institution: string;
+  degree: string;
+  field: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface Experience {
+  company: string;
+  position: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+}
+
+export interface Certification {
+  name: string;
+  issuer: string;
+}
+
+export interface Language {
+  language: string;
+  level: string;
+}
+
+export interface ExtractedProfile {
+  personalInfo: PersonalInfo;
+  education: Education[];
+  experience: Experience[];
+  skills: string[];
+  certifications: Certification[];
+  languages: Language[];
+}
+
+/* ───────── Shared CV context ───────── */
+
+export interface CvContext {
+  id: string;
+  fileName: string;
+  fileType: string;
+  mimeType: string;
+  targetRole: string;
+  studentId?: string;
+  extractedText: string;
+  extractedProfile: ExtractedProfile;
+  analysis: CvAnalysis;
+  createdAt: string;
+}
+
+/* ───────── WhatsApp ───────── */
+
+export interface WhatsAppConfigResponse {
+  ok: true;
+  configured: boolean;
+  hasToken: boolean;
+  hasPhoneNumberId: boolean;
+  phoneNumberId: string;
+}
+
+export interface WhatsAppSendRequest {
+  to: string;
+  type: "template" | "text";
+  templateName?: string;
+  languageCode?: string;
   text?: string;
+  preview_url?: boolean;
+}
+
+export interface WhatsAppSendResponse {
+  ok: true;
+  payload: Record<string, unknown>;
+  whatsappResponse: Record<string, unknown>;
 }

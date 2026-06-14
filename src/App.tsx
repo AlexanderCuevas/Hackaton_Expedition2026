@@ -25,6 +25,8 @@ import MyCoursesPanel from "./components/MyCoursesPanel";
 // Mock Data
 import { INITIAL_VACANCIES, CERTIFICATIONS_AND_COURSES, UNIVERSITY_EVENTS } from "./data";
 import { integrateRouteWithCourses, syncMissionsWithEnrollments, unlockSequentialMissions } from "./utils/courseMatcher";
+import { MockStudent } from "./mockStudents";
+import { buildHtmlCv } from "./utils/cvGenerator";
 
 // Preloaded state for Hackathon demo so that it's highly populated instantly
 const MOCK_INITIAL_PROFILE: UserProfile = {
@@ -495,10 +497,67 @@ export default function App() {
     handleAddXpDirectly(50);
   };
 
-  const handleLandingStart = (profileData: Partial<UserProfile>, isNewUser: boolean) => {
+  const handleLandingStart = (profileData: Partial<UserProfile>, isNewUser: boolean, hasCv?: boolean, student?: MockStudent) => {
     localStorage.setItem("sp_authenticated", "true");
     setIsAuthenticated(true);
 
+    // ── Caso 1: Usuario con CV ya cargado (hasCv = true) ──
+    if (hasCv && student) {
+      const completeProfile: UserProfile = {
+        name: student.name,
+        career: student.career,
+        semester: student.semester,
+        experienceLevel: student.experienceLevel || "",
+        targetRole: student.targetRole || "",
+        currentSkills: student.hardSkills || [],
+        softSkills: student.softSkills || [],
+        interests: student.interests || [],
+        employabilityScore: 45,
+        xp: 0,
+        level: 1,
+        progressToNextLevel: 0,
+        email: student.email,
+        phone: student.phone,
+        linkedin: student.linkedin,
+        github: student.github,
+      };
+
+      const cvHtml = buildHtmlCv({
+        name: student.name,
+        career: student.career,
+        email: student.email,
+        phone: student.phone,
+        linkedin: student.linkedin,
+        cvResumen: student.cvResumen,
+        formacionCarrera: student.career,
+        formacionCiclo: `${student.semester}° ciclo`,
+        hardSkills: student.hardSkills,
+        softSkills: student.softSkills,
+        experienceLevel: student.experienceLevel,
+        targetRole: student.targetRole,
+      });
+
+      setProfile(completeProfile);
+      setGaps([]);
+      setMissions([]);
+      setEnrolledCourses([]);
+      setDiagnosisCompleted(true);
+
+      localStorage.setItem("sp_profile", JSON.stringify(completeProfile));
+      localStorage.setItem("sp_gaps", JSON.stringify([]));
+      localStorage.setItem("sp_missions", JSON.stringify([]));
+      localStorage.setItem("sp_enrolled_courses", JSON.stringify([]));
+      localStorage.setItem("sp_diagnosis_completed", "true");
+      localStorage.setItem("sp_cv_html", cvHtml);
+
+      setView("dashboard");
+      triggerNotification(
+        `🚀 ¡Bienvenido, ${student.name}! Tu CV está listo. Explora tu ruta de empleabilidad.`
+      );
+      return;
+    }
+
+    // ── Caso 2: Usuario nuevo sin CV ──
     const studentProfile: UserProfile = {
       name: profileData.name || "Estudiante UTP",
       career: profileData.career || "",
@@ -512,6 +571,10 @@ export default function App() {
       xp: 0,
       level: 1,
       progressToNextLevel: 0,
+      email: profileData.email,
+      phone: profileData.phone,
+      linkedin: profileData.linkedin,
+      github: profileData.github,
     };
 
     if (isNewUser) {
@@ -538,6 +601,7 @@ export default function App() {
       return;
     }
 
+    // ── Caso 3: Usuario recurrente ──
     const savedProfile = localStorage.getItem("sp_profile");
     const merged = savedProfile
       ? { ...JSON.parse(savedProfile), name: studentProfile.name, career: studentProfile.career, semester: studentProfile.semester }
@@ -801,6 +865,7 @@ export default function App() {
                   exit={{ opacity: 0 }}
                 >
                   <CvAnalyzerPanel 
+                    profile={profile}
                     targetRole={profile.targetRole}
                     gaps={gaps}
                     currentSkills={profile.currentSkills}
@@ -883,7 +948,7 @@ export default function App() {
                       };
                       return (
                         <div key={cert.id} className="bg-white border border-neutral-200 shadow-sm flex flex-col">
-                          <div className="h-32 w-full overflow-hidden bg-neutral-200">
+                          <div className="h-64 w-full overflow-hidden bg-neutral-200">
                             {cert.image && <img src={cert.image} alt={cert.title} className="w-full h-full object-cover" />}
                           </div>
                           <div className="p-5 flex-grow">

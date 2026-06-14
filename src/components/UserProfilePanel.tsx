@@ -7,6 +7,7 @@ import {
   BarChart2, Layers, Trophy, Cpu, FileText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import UvpIcon from "./ui/UvpIcon";
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, Tooltip,
@@ -443,10 +444,10 @@ export default function UserProfilePanel({ onNavigateToMyCourses }: UserProfileP
           {/* Stats strip */}
           <div className="border-t border-neutral-100 grid grid-cols-4">
             {[
-              { label: "Cursos", value: profile.completedCourses, icon: <BookOpen className="h-3.5 w-3.5" /> },
-              { label: "Misiones", value: `${profile.completedMissions}/${profile.totalMissions}`, icon: <Award className="h-3.5 w-3.5" /> },
-              { label: "Racha", value: `${profile.streak}d`, icon: <Flame className="h-3.5 w-3.5 text-orange-500" /> },
-              { label: "Nivel", value: `Lvl ${profile.level}`, icon: <TrendingUp className="h-3.5 w-3.5 text-[#B50E30]" />, accent: true },
+              { label: "Cursos", value: profile.completedCourses, icon: <UvpIcon name="capacitacion-talleres" size={14} /> },
+              { label: "Misiones", value: `${profile.completedMissions}/${profile.totalMissions}`, icon: <UvpIcon name="logros-inspiran" size={14} /> },
+              { label: "Racha", value: `${profile.streak}d`, icon: <UvpIcon name="bienestar-crecimiento" size={14} className="text-orange-500" /> },
+              { label: "Nivel", value: `Lvl ${profile.level}`, icon: <UvpIcon name="crecimiento-personal" size={14} className="text-[#B50E30]" />, accent: true },
             ].map((s, i) => (
               <motion.div
                 key={s.label}
@@ -505,10 +506,10 @@ export default function UserProfilePanel({ onNavigateToMyCourses }: UserProfileP
                       <User className="h-3.5 w-3.5 text-[#B50E30]" /> Información académica
                     </h3>
                     {[
-                      { icon: <GraduationCap className="h-4 w-4" />, label: "Ciclo", value: `${profile.semester}° Ciclo Universitario` },
-                      { icon: <Briefcase className="h-4 w-4" />, label: "Experiencia", value: profile.experienceLevel },
-                      { icon: <Target className="h-4 w-4" />, label: "Objetivo", value: profile.targetRole },
-                      { icon: <MapPin className="h-4 w-4" />, label: "Ubicación", value: profile.location },
+                      { icon: <UvpIcon name="aprendizaje-continuo" size={16} />, label: "Ciclo", value: `${profile.semester}° Ciclo Universitario` },
+                      { icon: <UvpIcon name="desarrollo-competencias" size={16} />, label: "Experiencia", value: profile.experienceLevel },
+                      { icon: <UvpIcon name="metas-profesionales" size={16} />, label: "Objetivo", value: profile.targetRole },
+                      { icon: <UvpIcon name="buscar" size={16} />, label: "Ubicación", value: profile.location },
                     ].map((item, i) => (
                       <motion.div key={item.label} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
                         whileHover={{ x: 4 }} className="flex items-center gap-3 p-3 bg-neutral-50 border border-neutral-100 hover:border-neutral-300 transition-all cursor-default">

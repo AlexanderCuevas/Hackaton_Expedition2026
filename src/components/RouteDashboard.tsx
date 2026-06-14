@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { CERTIFICATIONS_AND_COURSES, UNIVERSITY_EVENTS } from "../data";
 import { BentoGrid, type BentoItem } from "./ui/bento-grid";
+import UvpIcon from "./ui/UvpIcon";
 import { buildNetworkFromMissions, RouteNetworkNode, ROUTE_NETWORK_CANVAS_HEIGHT } from "../utils/courseMatcher";
 
 interface RouteDashboardProps {
@@ -468,7 +469,7 @@ export default function RouteDashboard({
         <div className="flex items-center gap-6 divide-x divide-utp-border bg-neutral-50 p-4 border border-utp-border rounded-none self-start md:self-center relative z-10 shadow-none">
           <div className="flex items-center gap-3">
             <div className="bg-black text-white p-2.5 rounded-none flex items-center justify-center">
-              <Trophy className="h-5 w-5 text-[#B50E30]" />
+              <UvpIcon name="metas-profesionales" size={20} className="text-[#B50E30]" />
             </div>
             <div>
               <div className="text-[10px] text-neutral-400 font-extrabold uppercase tracking-wider">
@@ -479,7 +480,7 @@ export default function RouteDashboard({
           </div>
           <div className="pl-6 flex items-center gap-3">
             <div className="bg-[#B50E30] text-white p-2.5 rounded-none flex items-center justify-center">
-              <Award className="h-5 w-5" />
+              <UvpIcon name="crecimiento-personal" size={20} />
             </div>
             <div>
               <div className="text-[10px] text-neutral-400 font-extrabold uppercase tracking-wider">

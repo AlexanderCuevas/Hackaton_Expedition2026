@@ -33,6 +33,10 @@ export interface UserProfile {
   avatarUrl?: string; // base64 data URL for profile image
   cognitiveProfile?: CognitiveProfileItem[];
   personalityTraits?: PersonalityTrait[];
+  email?: string;
+  phone?: string;
+  linkedin?: string;
+  github?: string;
 }
 
 export type GapType = "tecnica" | "blanda" | "certificacion";
@@ -69,6 +73,15 @@ export interface CvAnalysis {
   keywordsMissing: string[];
   generalFeedback: string; // Markdown supported
   atsFormattedCvAdvice: string; // Actionable prompt to refine
+}
+
+export interface CvExperiencia {
+  rol: string;
+  descripcion: string;
+  ubicacion: string;
+  fechaInicio: string;
+  fechaFin: string;
+  logros: string[];
 }
 
 export interface CvMeta {

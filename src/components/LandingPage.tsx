@@ -1,23 +1,20 @@
 
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   ArrowRight, X, Instagram, Linkedin, MessageCircle, Mail,
-  Sparkles, FileText, Briefcase, Target, Zap, Award,
-  ChevronDown, Check, MapPin, Building2, Play, Star,
-  TrendingUp, BarChart3, Shield, ChevronRight, ChevronLeft,
-  Eye, EyeOff, ShieldAlert, ShieldCheck, CheckCircle, AlertTriangle, Info
+  ChevronDown, Play,
+  Eye, EyeOff, ShieldAlert, ShieldCheck, CheckCircle, AlertTriangle, Info, Heart
 } from "lucide-react";
 import principalImg from "./assets/Imagen-landingPage.png";
-import sofiaImg from "./assets/Sofia.png";
-import juanImg from "./assets/Juan.png";
+import sofiaImg from "./assets/Sofia.jpeg";
+import juanImg from "./assets/Juan.jpeg";
 import { ImageGallery, ImageGalleryHandle } from "./ui/carousel-circular-image-gallery";
 import { UserProfile } from "../types";
-import { findStudentByCode } from "../mockStudents";
+import { findStudentByCode, MockStudent } from "../mockStudents";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────
 interface LandingPageProps {
-  onStart: (profileData: Partial<UserProfile>, isNewUser: boolean) => void;
+  onStart: (profileData: Partial<UserProfile>, isNewUser: boolean, hasCv?: boolean, student?: MockStudent) => void;
   currentProfileName: string;
 }
 
@@ -55,55 +52,31 @@ function useCounter(target: number, duration = 1800, active = false) {
 // ─── DATA ──────────────────────────────────────────────────────────────────
 const COMPANIES = ["Interbank", "BCP", "BBVA", "Rimac", "Scotiabank", "Repsol", "Telefónica", "Belcorp", "Gloria", "Alicorp", "Intercorp", "Falabella", "Cencosud", "Inkafarma"];
 
-const STORIES = [
+const STORY_CARDS = [
   {
     id: 1,
     name: "Juan Carlos Chávez Pérez",
-    campusLabel: "INGENIERÍA DE SISTEMAS E INFORMÁTICA · UTP CHIMBOTE",
-    badge: "ESTUDIANTE INVESTIGADOR",
-    subtitle: "Embajador Estudiantil Microsoft Learn · Investigador RENACYT VII",
+    roleTag: "Estudiante de Ingeniería de Sistemas e Informática UTP Chimbote",
+    achievementLines: ["Investigador", "Renacyt Nivel", "VII"],
+    description:
+      "Mientras aún era estudiante, se convirtió en Investigador RENACYT, un logro que pocos alcanzan tan temprano. Su historia demuestra que la investigación, la disciplina y la pasión pueden abrir puertas increíbles desde la universidad.",
+    quote: "La constancia de hoy, es el logro de mañana.",
     photo: juanImg,
-    stat: "RENACYT VII",
-    statLabel: "Nivel de Investigador reconocido por CONCYTEC",
-    journey: [
-      { label: "TALENTO TEMPRANO", text: "Inició su formación académica en Sistemas en UTP Chimbote, combinando sus estudios con una profunda pasión por la investigación desde los primeros ciclos." },
-      { label: "EL HITO HISTÓRICO", text: "Alcanzó un logro que muchos persiguen por años: ser reconocido como Investigador RENACYT Nivel VII por CONCYTEC, aún siendo estudiante universitario." },
-      { label: "EJEMPLO DE ÉXITO", text: "Su historia refleja talento y perseverancia, demostrando que el éxito profesional de alto impacto puede comenzar antes de obtener el título universitario." },
-    ],
-    tags: ["RENACYT", "CONCYTEC", "MICROSOFT LEARN", "INVESTIGACIÓN"],
+    accent: "#B50E30",
+    accentLight: "#FDF2F4",
   },
   {
     id: 2,
     name: "Sofía Flores Davelouis",
-    campusLabel: "INGENIERÍA INDUSTRIAL · UTP CHIMBOTE",
-    badge: "BECA DE EXCELENCIA",
-    subtitle: "Profesional en el Área de Logística de Austral Group S.A.A. · Egresada UTP",
+    roleTag: "Egresada de Ingeniería Industrial UTP Chimbote",
+    achievementLines: ["Logró su", "Primer gran", "paso", "Profesional"],
+    description:
+      "Destacó por su excelencia académica, obtuvo la Beca de Excelencia y participó en el programa Generación Top, fortaleciendo sus competencias con el apoyo del servicio de Empleabilidad UTP. Al egresar, ingresó a laborar en Pesquera Austral Group S.A.A. en el área de Logística.",
+    quote: "Prepárate hoy, el mundo necesita tu talento.",
     photo: sofiaImg,
-    stat: "Generación Top",
-    statLabel: "de Empleabilidad UTP",
-    journey: [
-      { label: "EL PUNTO DE PARTIDA", text: "Demostró que el éxito se construye desde las aulas universitarias, destacando por su excelencia académica." },
-      { label: "LA RUTA DE CRECIMIENTO", text: "Participó activamente en el programa Generación Top, fortaleciendo sus competencias con el acompañamiento de Empleabilidad UTP." },
-      { label: "EL RESULTADO", text: "Su esfuerzo y preparación le permitieron incorporarse al área de logística de una de las empresas pesqueras más importantes del país, inspirando a otros estudiantes." },
-    ],
-    tags: ["GENERACIÓN TOP", "EMPLEABILIDAD UTP", "AUSTRAL GROUP"],
+    accent: "#155434",
+    accentLight: "#EEF6F1",
   },
-];
-
-const STEPS = [
-  { n: "01", title: "Diagnóstico IA", desc: "Mapeamos tus competencias en 8 dimensiones y detectamos tus brechas frente al mercado laboral real.", icon: <Sparkles className="h-5 w-5" /> },
-  { n: "02", title: "Ruta Personalizada", desc: "Plan gamificado con misiones, simulacros de entrevista y proyectos reales adaptados a tu carrera.", icon: <Target className="h-5 w-5" /> },
-  { n: "03", title: "Portafolio Verificado", desc: "Proyectos completados generan badges avalados por mentores que los empleadores reconocen y confían.", icon: <Award className="h-5 w-5" /> },
-  { n: "04", title: "Conexión Laboral", desc: "Accede a +20 empresas aliadas que contratan perfiles verificados UTP directamente desde la plataforma.", icon: <Briefcase className="h-5 w-5" /> },
-];
-
-const FEATURES = [
-  { icon: <Sparkles className="h-6 w-6" />, title: "Diagnóstico IA", desc: "Escaneo inmediato de tu perfil. Identifica vacíos en código, metodologías ágiles y habilidades blandas." },
-  { icon: <FileText className="h-6 w-6" />, title: "CV ATS Optimizer", desc: "Optimiza tu currículum para superar los filtros automáticos de las grandes empresas del Perú." },
-  { icon: <Zap className="h-6 w-6" />, title: "Simulador de Entrevistas", desc: "Practica con escenarios reales. Feedback instantáneo con IA entrenada por reclutadores expertos." },
-  { icon: <Target className="h-6 w-6" />, title: "Ruta STAR Gamificada", desc: "Misiones, XP y niveles que convierten tu desarrollo profesional en un juego que sí importa." },
-  { icon: <Award className="h-6 w-6" />, title: "Portafolio Verificado", desc: "Credenciales avaladas por mentores reales. Diferénciate con evidencia, no con promesas." },
-  { icon: <Shield className="h-6 w-6" />, title: "Match de Vacantes", desc: "Tu perfil verificado conecta directamente con empresas que ya confían en el sistema UTP." },
 ];
 
 // ─── ANIMATED SECTION WRAPPER ──────────────────────────────────────────────
@@ -147,145 +120,181 @@ function Logo({ dark = false }: { dark?: boolean }) {
 }
 
 // ─── STORIES SECTION (inline) ──────────────────────────────────────────────
-function StoriesSection() {
-  const [active, setActive] = useState(0);
-  const s = STORIES[active];
-  const { ref, inView } = useInView(0.1);
-  const galleryRef = useRef<ImageGalleryHandle>(null);
-
-  const handlePrev = () => {
-    galleryRef.current?.prev();
-    setActive((i) => (i - 1 + STORIES.length) % STORIES.length);
-  };
-  const handleNext = () => {
-    galleryRef.current?.next();
-    setActive((i) => (i + 1) % STORIES.length);
-  };
-
+function TitleDecorator() {
   return (
-    <section ref={ref} className="bg-white border-t border-neutral-100 py-24 px-6 overflow-hidden" id="historias">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-14"
-          style={{ opacity: inView ? 1 : 0, transform: inView ? "none" : "translateY(24px)", transition: "all 0.6s ease" }}>
-          <div>
-            <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.22em] mb-2">Historias reales · Servicio de Empleabilidad</p>
-            <h2
-              className="text-4xl md:text-5xl font-black uppercase text-black leading-none tracking-tight">
-              Ellos ya<br /><span className="text-[#B50E30]">lo lograron.</span>
-            </h2>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={handlePrev}
-              className="h-11 w-11 rounded-full border-2 border-neutral-200 hover:border-[#B50E30] text-neutral-400 hover:text-[#B50E30] flex items-center justify-center transition-all cursor-pointer bg-white">
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button onClick={handleNext}
-              className="h-11 w-11 rounded-full bg-[#B50E30] hover:bg-[#85061B] text-white flex items-center justify-center transition-all cursor-pointer">
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </div>
+    <div className="mb-3 flex items-center justify-center gap-3">
+      <span className="h-0.5 w-10 rounded-full bg-[#B50E30]" />
+      <span className="h-1.5 w-1.5 rounded-full bg-[#B50E30]" />
+      <span className="h-0.5 w-10 rounded-full bg-[#B50E30]" />
+    </div>
+  );
+}
+
+function AchievementBadge({ lines, color }: { lines: readonly string[]; color: string }) {
+  return (
+    <div className="relative flex h-[104px] w-[104px] shrink-0 items-center justify-center sm:h-[112px] sm:w-[112px]">
+      <svg viewBox="0 0 112 112" className="absolute inset-0 h-full w-full" fill="none" aria-hidden>
+        <path
+          d="M34 78 C24 66 20 50 26 36 C30 26 36 18 42 12"
+          stroke={color}
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M78 78 C88 66 92 50 86 36 C82 26 76 18 70 12"
+          stroke={color}
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M28 58 C22 48 20 38 24 28 M84 58 C90 48 92 38 88 28"
+          stroke={color}
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          opacity="0.85"
+        />
+        <path
+          d="M46 18 L56 8 L66 18"
+          stroke={color}
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M34 86 Q56 98 78 86"
+          stroke={color}
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+      </svg>
+      <div className="relative z-10 flex max-w-[72px] flex-col items-center justify-center rounded-md bg-white/90 px-1 py-0.5 text-center">
+        {lines.map((line) => (
+          <span
+            key={line}
+            className="block text-[8px] font-black uppercase leading-[1.2] tracking-wide sm:text-[9px]"
+            style={{ color }}
+          >
+            {line}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StoryCard({ story }: { story: (typeof STORY_CARDS)[number] }) {
+  return (
+    <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+      <div className="flex flex-1 flex-col gap-5 p-6 sm:flex-row sm:items-start sm:gap-5 sm:p-7">
+        <div className="relative mx-auto h-44 w-32 shrink-0 sm:mx-0 sm:h-48 sm:w-36">
+          <div
+            className="absolute bottom-2 left-1/2 h-[7.5rem] w-[7.5rem] -translate-x-1/2 rounded-full sm:h-[8.5rem] sm:w-[8.5rem]"
+            style={{ backgroundColor: story.accent }}
+          />
+          <img
+            src={story.photo}
+            alt={story.name}
+            className="relative z-10 h-full w-full object-contain object-bottom"
+          />
         </div>
 
-        {/* Main grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center"
-          style={{ opacity: inView ? 1 : 0, transition: "opacity 0.8s ease 0.15s" }}>
-
-          {/* Circular image gallery */}
-          <div className="relative w-full flex items-center justify-center overflow-hidden rounded-3xl" style={{ minHeight: "320px" }}>
-            <ImageGallery
-              ref={galleryRef}
-              slides={STORIES.map(({ name, photo }) => ({ title: name, url: photo }))}
-              onActiveChange={(i) => setActive(i)}
-            />
+        <div className="min-w-0 flex-1">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <h3 className="min-w-0 flex-1 text-base font-black uppercase leading-tight tracking-tight text-black sm:text-lg">
+              {story.name}
+            </h3>
+            <AchievementBadge lines={story.achievementLines} color={story.accent} />
           </div>
 
-          {/* Content right */}
-          <div className="flex flex-col gap-6 py-1 lg:gap-8">
+          <span
+            className="mb-4 inline-block rounded-full px-3.5 py-2 text-[10px] font-bold uppercase leading-snug tracking-wide text-white sm:text-[11px]"
+            style={{ backgroundColor: story.accent }}
+          >
+            {story.roleTag}
+          </span>
 
-            {/* Etiquetas, nombre y badge */}
-            <div className="border-b border-gray-100 pb-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-[#B50E30] text-xs font-black uppercase tracking-widest mb-2">
-                    {s.campusLabel}
-                  </p>
-                  <h3
-                   
-                    className="text-2xl md:text-3xl font-extrabold uppercase text-black tracking-tight leading-tight"
-                  >
-                    {s.name}
-                  </h3>
-                  <p className="text-gray-600 text-sm font-medium mt-2 leading-relaxed">
-                    {s.subtitle}
-                  </p>
-                </div>
-                <span className="shrink-0 border border-[#B50E30] text-[#B50E30] text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full whitespace-nowrap">
-                  {s.badge}
-                </span>
-              </div>
-            </div>
+          <p className="text-sm font-medium leading-relaxed text-[#4B5563] sm:text-[15px]">{story.description}</p>
+        </div>
+      </div>
 
-            {/* Dato destacado */}
-            <div className="flex items-end gap-4 border-b border-gray-100 pb-4">
-              <p
-               
-                className="text-3xl md:text-4xl font-bold text-black leading-none"
-              >
-                {s.stat}
-              </p>
-              <div className="mb-1 space-y-1">
-                <div className="h-0.5 w-16 bg-[#B50E30]" />
-                <p className="text-gray-500 text-xs font-medium">{s.statLabel}</p>
-              </div>
-            </div>
+      <div
+        className="flex items-center gap-3 px-6 py-3.5 sm:px-7"
+        style={{ backgroundColor: story.accentLight }}
+      >
+        <span
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white"
+          style={{ backgroundColor: story.accent }}
+        >
+          <ArrowRight className="h-3.5 w-3.5" />
+        </span>
+        <p className="text-xs font-semibold leading-snug text-neutral-800 sm:text-sm">{story.quote}</p>
+      </div>
+    </article>
+  );
+}
 
-            {/* Lista numerada */}
-            <div className="flex flex-col">
-              {s.journey.map((step, i) => (
-                <div
-                  key={i}
-                  className="flex gap-4 border-b border-gray-100 pb-4 pt-4 first:pt-0 last:border-0"
-                >
-                  <span
-                   
-                    className="text-sm font-black text-gray-300 shrink-0 w-6"
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <div>
-                    <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-widest mb-1.5">
-                      {step.label}
-                    </p>
-                    <p className="text-gray-600 text-sm font-medium leading-relaxed">
-                      {step.text}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+function StoriesSection({ onCtaClick }: { onCtaClick?: () => void }) {
+  const { ref, inView } = useInView(0.1);
 
-            {/* Tags + navegación */}
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex flex-wrap gap-2">
-                {s.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="bg-gray-100 text-gray-700 text-[9px] font-bold uppercase tracking-wider px-3 py-1 rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                {STORIES.map((_, i) => (
-                  <button key={i} onClick={() => { galleryRef.current?.goTo(i); setActive(i); }}
-                    className="rounded-full transition-all duration-300 cursor-pointer"
-                    style={{ width: i === active ? 20 : 7, height: 7, background: i === active ? "#B50E30" : "#e5e7eb" }} />
-                ))}
-              </div>
-            </div>
+  return (
+    <section
+      ref={ref}
+      id="historias"
+      className="relative overflow-hidden px-6 py-16 md:py-20"
+      style={{
+        background: "#FFF5F6",
+        backgroundImage:
+          "linear-gradient(to right, rgba(181,14,48,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(181,14,48,0.06) 1px, transparent 1px)",
+        backgroundSize: "48px 48px",
+      }}
+    >
+      <div className="mx-auto max-w-7xl">
+        <div
+          className="mb-8 text-center"
+          style={{ opacity: inView ? 1 : 0, transform: inView ? "none" : "translateY(16px)", transition: "all 0.6s ease" }}
+        >
+          <TitleDecorator />
+          <h2 className="text-2xl font-black uppercase leading-tight tracking-tight text-black sm:text-3xl md:text-[2rem]">
+            Historias que <span className="text-[#B50E30]">inspiran</span>, metas que se cumplen
+          </h2>
+          <p className="mx-auto mt-2 max-w-2xl text-sm font-medium text-neutral-700 md:text-[15px]">
+            Estudiantes UTP que están construyendo su futuro desde hoy.
+          </p>
+        </div>
+
+        <div
+          className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8"
+          style={{ opacity: inView ? 1 : 0, transition: "opacity 0.8s ease 0.15s" }}
+        >
+          {STORY_CARDS.map((story) => (
+            <StoryCard key={story.id} story={story} />
+          ))}
+        </div>
+
+        <div
+          className="flex flex-col items-stretch gap-5 rounded-3xl bg-[#B50E30] px-6 py-6 text-white md:flex-row md:items-center md:justify-between md:gap-8 md:px-8 md:py-7"
+          style={{ opacity: inView ? 1 : 0, transition: "opacity 0.8s ease 0.25s" }}
+        >
+          <div className="flex items-center gap-3 md:min-w-0 md:flex-1">
+            <Heart className="h-5 w-5 shrink-0 fill-white text-white" />
+            <p className="text-sm font-black uppercase leading-snug tracking-wide md:text-base">
+              En UTP, tu éxito es nuestra misión
+            </p>
           </div>
+
+          <div className="hidden h-10 w-px shrink-0 bg-white/30 md:block" />
+
+          <p className="text-sm font-medium leading-relaxed text-white/90 md:max-w-xs md:flex-1 lg:max-w-md">
+            Te acompañamos en cada paso para que conviertas tus sueños en logros reales.
+          </p>
+
+          <button
+            type="button"
+            onClick={onCtaClick}
+            className="shrink-0 rounded-full bg-white px-6 py-2.5 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-neutral-100 cursor-pointer border-0"
+          >
+            Conoce más
+          </button>
         </div>
       </div>
     </section>
@@ -309,7 +318,7 @@ function Modal({
   onStart: handleStart,
 }: {
   onClose: () => void;
-  onStart: (profileData: Partial<UserProfile>, isNewUser: boolean) => void;
+  onStart: (profileData: Partial<UserProfile>, isNewUser: boolean, hasCv?: boolean, student?: MockStudent) => void;
 }) {
   const [studentCode, setStudentCode] = useState("");
   const [password, setPassword] = useState("");
@@ -336,14 +345,21 @@ function Modal({
       setToast({ msg: "Acceso concedido. Redirigiendo...", type: "success" });
       setTimeout(() => {
         const isNew = localStorage.getItem("sp_diagnosis_completed") !== "true";
+        const defaultEmail = `${student.code}@utp.edu.pe`;
         handleStart(
           {
             name: student.name,
             career: student.career,
             semester: student.semester,
-            targetRole: "",
+            targetRole: student.targetRole || "",
+            email: student.email || defaultEmail,
+            phone: student.phone || "",
+            linkedin: student.linkedin || "",
+            github: student.github || "",
           },
-          isNew
+          isNew,
+          student.hasCv,
+          student
         );
         onClose();
       }, 1200);
@@ -544,15 +560,6 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
 
         .pulse-dot { animation: pulseRing 2s ease-in-out infinite; }
 
-        .card-hover {
-          transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
-        }
-        .card-hover:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 20px 40px rgba(181,14,48,0.08);
-          border-color: rgba(181,14,48,0.3);
-        }
-
         .btn-primary {
           transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
         }
@@ -561,11 +568,6 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
           box-shadow: 0 12px 28px rgba(181,14,48,0.35);
         }
         .btn-primary:active { transform: translateY(0); }
-
-        .step-card {
-          transition: transform 0.3s ease, background 0.3s ease;
-        }
-        .step-card:hover { transform: translateX(6px); background: #fafafa; }
 
         ::-webkit-scrollbar { width: 0; }
 
@@ -612,20 +614,20 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
               <div className="space-y-1">
                 <h1 className="hero-text-1 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-white"
                  >
-                  Tu primer
+                  Tu futuro
                 </h1>
                 <h1 className="hero-text-2 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-[#B50E30]"
                  >
-                  empleo
+                  comienza
                 </h1>
                 <h1 className="hero-text-3 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-white"
                  >
-                  empieza aquí.
+                  ahora.
                 </h1>
               </div>
 
-              <p className="hero-text-2 text-white/80 text-base sm:text-lg font-medium leading-relaxed max-w-md">
-                IA que diagnostica tus brechas, optimiza tu CV para filtros ATS y conecta tu perfil verificado con las mejores empresas del Perú.
+              <p className="hero-text-2 text-neutral-500 text-base sm:text-lg font-medium leading-relaxed max-w-md">
+              Diagnostica tus brechas, optimiza tu CV para pasar filtros y conecta tu perfil verificado con las mejores empresas del Perú.
               </p>
 
               {/* CTAs */}
@@ -676,82 +678,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
           </div>
         </div>
 
-        {/* ══ HOW IT WORKS ════════════════════════════════════════════════ */}
-        <section className="py-28 px-6 relative overflow-hidden" style={{ background: "#FFF5F6", backgroundImage: "linear-gradient(to right, rgba(181,14,48,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(181,14,48,0.06) 1px, transparent 1px)", backgroundSize: "48px 48px" }}>
-          <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
-            {/* Left sticky */}
-            <div className="lg:sticky lg:top-28">
-              <Appear>
-                <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.22em] mb-3">Cómo funciona</p>
-                <h2 className="text-5xl font-black uppercase text-black tracking-tight leading-[0.95]"
-                 >
-                  De estudiante<br />a empleable<br /><span className="text-[#B50E30]">en 4 pasos.</span>
-                </h2>
-                <p className="text-neutral-500 text-sm font-medium leading-relaxed max-w-sm mt-5 mb-8">
-                  Metodología que combina IA, gamificación y verificación por mentores para resultados reales.
-                </p>
-                <button onClick={() => openModal("register")} className="btn-primary group bg-black hover:bg-[#B50E30] text-white text-xs font-black uppercase tracking-widest px-7 py-3.5 rounded-2xl flex items-center gap-2 cursor-pointer border-0 w-fit">
-                  Comenzar ahora <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </Appear>
-            </div>
-
-            {/* Right steps */}
-            <div className="space-y-1 pt-2">
-              {STEPS.map((step, i) => (
-                <Appear key={step.n} delay={i * 80}>
-                  <div className="step-card flex gap-5 py-7 px-4 -mx-4 rounded-2xl border border-transparent hover:border-neutral-100 cursor-default group">
-                    <div className="shrink-0 flex flex-col items-center gap-2">
-                      <div className="h-12 w-12 bg-neutral-100 group-hover:bg-[#B50E30] text-neutral-500 group-hover:text-white rounded-2xl flex items-center justify-center transition-all duration-300">
-                        {step.icon}
-                      </div>
-                      {i < STEPS.length - 1 && <div className="w-px flex-1 bg-neutral-100 min-h-[20px]" />}
-                    </div>
-                    <div className="pt-1.5">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-neutral-300">{step.n}</span>
-                      <h3 className="text-xl font-black uppercase text-black tracking-tight mt-0.5 mb-1.5"
-                       >{step.title}</h3>
-                      <p className="text-neutral-500 text-sm font-medium leading-relaxed">{step.desc}</p>
-                    </div>
-                  </div>
-                </Appear>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* ══ STORIES ════════════════════════════════════════════════════ */}
-        <StoriesSection />
-
-        {/* ══ FEATURES BENTO ═════════════════════════════════════════════ */}
-        <section className="border-t border-neutral-100 py-28 px-6" style={{ background: "#F7F8FA" }}>
-          <div className="max-w-7xl mx-auto space-y-14">
-            <Appear>
-              <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.22em] mb-3">Herramientas incluidas</p>
-              <h2 className="text-5xl font-black uppercase text-black tracking-tight leading-[0.95]"
-               >
-                Todo lo que necesitas<br />para ser <span className="text-[#B50E30]">contratado.</span>
-              </h2>
-            </Appear>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {FEATURES.map((f, i) => (
-                <Appear key={i} delay={i * 60}>
-                  <div className="card-hover bg-white border border-neutral-200 rounded-2xl p-6 h-full group relative overflow-hidden cursor-default">
-                    {/* Top accent line */}
-                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#B50E30] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-t-2xl" />
-                    <div className="h-12 w-12 bg-black group-hover:bg-[#B50E30] text-white rounded-2xl flex items-center justify-center mb-5 transition-all duration-300">
-                      {f.icon}
-                    </div>
-                    <h3 className="font-black text-base uppercase tracking-tight text-black mb-2"
-                     >{f.title}</h3>
-                    <p className="text-neutral-500 text-sm font-medium leading-relaxed">{f.desc}</p>
-                  </div>
-                </Appear>
-              ))}
-            </div>
-          </div>
-        </section>
+        <StoriesSection onCtaClick={() => openModal("register")} />
 
         {/* ══ STATS RED BAND ═════════════════════════════════════════════ */}
         <section className="bg-[#B50E30] py-16 px-6 relative overflow-hidden">

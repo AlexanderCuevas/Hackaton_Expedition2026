@@ -10,6 +10,25 @@
   --color-utp-gray: #555555;
   --color-utp-light: #F9F9F9;
   --color-utp-border: #E5E5E5;
+  --color-background: #FFFFFF;
+  --color-foreground: #000000;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #000000;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #000000;
+  --color-primary: #B50E30;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #F5F5F5;
+  --color-secondary-foreground: #000000;
+  --color-muted: #F5F5F5;
+  --color-muted-foreground: #737373;
+  --color-accent: #F5F5F5;
+  --color-accent-foreground: #000000;
+  --color-destructive: #E53E3E;
+  --color-destructive-foreground: #FFFFFF;
+  --color-border: #E5E5E5;
+  --color-input: #E5E5E5;
+  --color-ring: #B50E30;
 }
 
 /* ── Heading system ── */
@@ -43,6 +62,11 @@ input, select, textarea {
 
 ::placeholder {
   color: #71717a !important;
+}
+
+.utp-body {
+  font-family: var(--font-sans);
+  line-height: 1.6;
 }
 
 @keyframes shimmer {

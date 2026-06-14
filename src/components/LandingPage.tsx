@@ -5,7 +5,7 @@ import {
   ChevronDown, Play,
   Eye, EyeOff, ShieldAlert, ShieldCheck, CheckCircle, AlertTriangle, Info, Heart
 } from "lucide-react";
-import principalImg from "./assets/Imagen-landingPage.png";
+import principalImg from "./assets/LandingPage.jpeg";
 import sofiaImg from "./assets/Sofia.jpeg";
 import juanImg from "./assets/Juan.jpeg";
 import { ImageGallery, ImageGalleryHandle } from "./ui/carousel-circular-image-gallery";

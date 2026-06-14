@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+//Ignorar el archivo de agente
+AGENTS.md
+.agents 
+CLAUDE.md

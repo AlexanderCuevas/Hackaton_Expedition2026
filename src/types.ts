@@ -1,6 +1,21 @@
 /**
- * Interface definitions for SkillPath AI
+ * Interface definitions for Despega UTP
  */
+
+export interface CognitiveProfileItem {
+  subject: string;
+  A: number; // user score
+  B: number; // average score
+  fullMark: number;
+}
+
+export interface PersonalityTrait {
+  name: string;
+  userScore: number;
+  averageScore: number;
+  leftLabel: string;
+  rightLabel: string;
+}
 
 export interface UserProfile {
   name: string;
@@ -9,11 +24,19 @@ export interface UserProfile {
   experienceLevel: string; // Sin experiencia, Proyectos personales, Prácticas, Experiencia laboral
   targetRole: string;
   currentSkills: string[];
+  softSkills?: string[];
   interests: string[];
   employabilityScore: number; // 0 to 100
   xp: number; // Experience points
   level: number; // Career path level
   progressToNextLevel: number; // percentage
+  avatarUrl?: string; // base64 data URL for profile image
+  cognitiveProfile?: CognitiveProfileItem[];
+  personalityTraits?: PersonalityTrait[];
+  email?: string;
+  phone?: string;
+  linkedin?: string;
+  github?: string;
 }
 
 export type GapType = "tecnica" | "blanda" | "certificacion";
@@ -38,6 +61,8 @@ export interface CareerMission {
   order: number;
   actionLabel: string;
   subtasks: { text: string; done: boolean }[];
+  courseId?: string;
+  externalSuggestionId?: string;
 }
 
 export interface CvAnalysis {
@@ -48,6 +73,24 @@ export interface CvAnalysis {
   keywordsMissing: string[];
   generalFeedback: string; // Markdown supported
   atsFormattedCvAdvice: string; // Actionable prompt to refine
+}
+
+export interface CvExperiencia {
+  rol: string;
+  descripcion: string;
+  ubicacion: string;
+  fechaInicio: string;
+  fechaFin: string;
+  logros: string[];
+}
+
+export interface CvMeta {
+  fileName: string;
+  format: string;
+  source: string;
+  status: string;
+  targetRole: string;
+  analysisDate: string;
 }
 
 export interface Vacancy {
@@ -109,4 +152,76 @@ export interface NetworkingContact {
   isPending: boolean;
   compatibilityText: string;
   bio: string;
+}
+
+export interface CourseLesson {
+  id: string;
+  title: string;
+  duration: string;
+}
+
+export interface CourseModule {
+  id: string;
+  title: string;
+  lessons: CourseLesson[];
+}
+
+export interface CourseCatalogItem {
+  id: string;
+  title: string;
+  provider: string;
+  badge: string;
+  duration: string;
+  pointsAwarded: number;
+  cost: string;
+  url: string;
+  source: "internal" | "partner";
+  linkedGap?: string;
+  description: string;
+  modules: CourseModule[];
+  image?: string;
+  code?: string;
+  modality?: string;
+  speaker?: string;
+}
+
+export interface EnrolledCourse {
+  courseId: string;
+  enrolledAt: string;
+  progress: number;
+  completedLessons: string[];
+  source: "internal" | "external";
+}
+
+export interface ExternalCourseSuggestion {
+  id: string;
+  platform: string;
+  title: string;
+  instructor: string;
+  price: string;
+  originalPrice?: string;
+  rating: number;
+  students: string;
+  linkedGap: string;
+  url: string;
+  highlight: string;
+}
+
+export type NotificationType =
+  | "connection_request"
+  | "connection_accepted"
+  | "like"
+  | "comment"
+  | "system";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  description: string;
+  timestamp: string;
+  read: boolean;
+  actorName?: string;
+  actorAvatar?: string;
+  actionUrl?: string;
 }

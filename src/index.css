@@ -10,7 +10,33 @@
   --color-utp-gray: #555555;
   --color-utp-light: #F9F9F9;
   --color-utp-border: #E5E5E5;
+  --color-background: #FFFFFF;
+  --color-foreground: #000000;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #000000;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #000000;
+  --color-primary: #B50E30;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #F5F5F5;
+  --color-secondary-foreground: #000000;
+  --color-muted: #F5F5F5;
+  --color-muted-foreground: #737373;
+  --color-accent: #F5F5F5;
+  --color-accent-foreground: #000000;
+  --color-destructive: #E53E3E;
+  --color-destructive-foreground: #FFFFFF;
+  --color-border: #E5E5E5;
+  --color-input: #E5E5E5;
+  --color-ring: #B50E30;
 }
+
+/* ── Heading system ── */
+.heading-xl { font-size: clamp(1.375rem, 2.5vw, 2.25rem); font-weight: 900; text-transform: uppercase; line-height: 1.2; }
+.heading-lg { font-size: clamp(1.125rem, 2vw, 1.5rem); font-weight: 900; text-transform: uppercase; line-height: 1.2; }
+.heading-md { font-size: clamp(0.9375rem, 1.5vw, 1.125rem); font-weight: 800; text-transform: uppercase; line-height: 1.25; }
+.heading-sm { font-size: clamp(0.8125rem, 1.2vw, 0.9375rem); font-weight: 700; text-transform: uppercase; line-height: 1.3; }
+.heading-xs { font-size: clamp(0.6875rem, 1vw, 0.75rem); font-weight: 700; text-transform: uppercase; line-height: 1.3; }
 
 /* Custom scrollbar hides */
 .scrollbar-none::-webkit-scrollbar {
@@ -36,5 +62,16 @@ input, select, textarea {
 
 ::placeholder {
   color: #71717a !important;
+}
+
+.utp-body {
+  font-family: var(--font-sans);
+  line-height: 1.6;
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
 }
 

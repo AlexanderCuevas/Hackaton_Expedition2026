@@ -147,8 +147,13 @@ Devuelve de manera estricta un objeto JSON con la siguiente estructura:
   // Pure aesthetic offline mock responsive generator (aligned precisely with requested role)
   console.log("Serving offline responsive recommendation algorithm (Fallback)...");
   
-  // Custom tailored recommendations based on target role
-  const isTech = targetRole.toLowerCase().includes("sistemas") || targetRole.toLowerCase().includes("dev") || targetRole.toLowerCase().includes("programador") || targetRole.toLowerCase().includes("junior") || targetRole.toLowerCase().includes("analista");
+  // Custom tailored recommendations based on career and target role
+  const techCareers = ["ingeniería de sistemas", "ingeniería de software"];
+  const isTechCareer = techCareers.some((c) => (career || "").toLowerCase().includes(c));
+  const isTechRole = /\b(dev|developer|programador|backend|frontend|full[\s-]?stack|qa|devops|software engineer|analista de datos)\b/i.test(
+    targetRole || ""
+  );
+  const isTech = isTechCareer || isTechRole;
   
   const score = isTech ? 45 : 55;
   const standardGaps = isTech ? [
@@ -214,7 +219,7 @@ Devuelve de manera estricta un objeto JSON con la siguiente estructura:
     {
       id: "m_int_01",
       title: "Simular Entrevista Técnico-Comportamental",
-      description: "Practica respuestas con el entrevistador interactivo de SkillPath AI para el puesto de " + targetRole,
+      description: "Practica respuestas con el entrevistador interactivo de Despega UTP para el puesto de " + targetRole,
       xpValue: 120,
       type: "simulacion",
       actionLabel: "Empezar simulación",

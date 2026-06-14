@@ -1,6 +1,19 @@
-import React, { useState } from "react";
-import { MessageSquare, Calendar, ChevronRight, Check, Send, PhoneCall, Sparkles, BellRing, MessageCircle, Phone } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { MessageCircle, Send } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+
+const SCRIPT: { sender: "user" | "ai"; content: string }[] = [
+  { sender: "ai", content: "🔍 Nueva vacante: Practicante Backend en Alicorp — 84% match con tu perfil. ¿Te postulo?" },
+  { sender: "user", content: "Sí, postúlame por favor 🙌" },
+  { sender: "ai", content: "✅ Postulación enviada a Alicorp. Además te recomiendo el curso 'Scrum desde Cero' (+50 XP). ¿Lo agrego a tu ruta?" },
+  { sender: "user", content: "Agrégalo, ¿qué más hay?" },
+  { sender: "ai", content: "🎯 Agregado! También hay 'Testing con Jest' (+70 XP) y una vacante Trainee Data en BCP (82% match). ¿Te interesa alguna?" },
+  { sender: "user", content: "Mándame la de BCP y el curso de Jest" },
+  { sender: "ai", content: "✅ Postulación a BCP enviada y Jest agregado a tu ruta. También tienes una Hackathon UTP+ este finde con 92% match. ¿Aseguro tu lugar?" },
+];
+
+const TYPING_DELAY = 800;
+const MESSAGE_DELAY = 1200;
 
 export default function WhatsAppPreview() {
   const [phone, setPhone] = useState("");
@@ -8,44 +21,88 @@ export default function WhatsAppPreview() {
   const [selectedTopic, setSelectedTopic] = useState("desafios");
   const [testSendLoading, setTestSendLoading] = useState(false);
 
-  // Simulated WhatsApp Bubbles
-  const [chatBubbles, setChatBubbles] = useState([
+  const [msgIndex, setMsgIndex] = useState(0);
+  const [showTyping, setShowTyping] = useState(false);
+  const [chatMessages, setChatMessages] = useState<
+    { sender: "user" | "ai" | "system"; content: string }[]
+  >([
     {
       sender: "system",
-      content: "🛡️ Bienvenido a la Ruta de Empleabilidad de UTP. Tu Mentor de Inteligencia Artificial está enlazado.",
-      time: "10:30 AM"
+      content: "🛡️ Bienvenido a la Ruta de Empleabilidad UTP. Mentor IA enlazado.",
     },
-    {
-      sender: "ai",
-      content: "¡Hola Valeria! 👋 Veo que estás preparándote para postular como Junior Full Stack Developer. ¡Excelente motivación!",
-      time: "10:31 AM"
-    },
-    {
-      sender: "ai",
-      content: "💡 Tip del día: Los motores de escaneo ATS descartan el 62% de formatos por no tener las keywords del mercado. Tu CV para este puesto necesita incluir 'Metodologías Ágiles (Scrum)'. ¿Quieres que lo optimicemos de inmediato?",
-      time: "10:32 AM"
-    }
   ]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const loopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    let canceled = false;
+    const total = SCRIPT.length;
+
+    if (msgIndex > 0 && msgIndex % total === 0) {
+      setChatMessages([
+        {
+          sender: "system",
+          content: "🛡️ Bienvenido a la Ruta de Empleabilidad UTP. Mentor IA enlazado.",
+        },
+      ]);
+    }
+
+    const step = () => {
+      if (canceled) return;
+      const item = SCRIPT[msgIndex % total];
+
+      if (item.sender === "ai") {
+        setShowTyping(true);
+        loopRef.current = setTimeout(() => {
+          if (canceled) return;
+          setShowTyping(false);
+          setChatMessages((prev) => [
+            ...prev,
+            { sender: "ai", content: item.content },
+          ]);
+          setMsgIndex((i) => i + 1);
+        }, TYPING_DELAY + MESSAGE_DELAY);
+      } else {
+        setChatMessages((prev) => [
+          ...prev,
+          { sender: "user", content: item.content },
+        ]);
+        loopRef.current = setTimeout(() => {
+          if (canceled) return;
+          setMsgIndex((i) => i + 1);
+        }, MESSAGE_DELAY);
+      }
+    };
+
+    const idle = setTimeout(step, MESSAGE_DELAY * 1.5);
+    return () => {
+      canceled = true;
+      if (loopRef.current) clearTimeout(loopRef.current);
+      clearTimeout(idle);
+    };
+  }, [msgIndex]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [chatMessages, showTyping]);
 
   const handleSendTestMessage = () => {
     setTestSendLoading(true);
-
     setTimeout(() => {
-      let customBubble = {
-        sender: "ai",
-        content: "",
-        time: "Hace un momento"
-      };
-
+      let content = "";
       if (selectedTopic === "desafios") {
-        customBubble.content = "🎯 DESAFÍO DIARIO: Practica tu oratoria respondiendo a la pregunta: '¿Cómo manejas los plazos ajustados?' en nuestro simulador STAR. ¡Te otorgará +50 XP adicionales hoy!";
+        content =
+          "🎯 DESAFÍO DIARIO: Responde '¿Cómo manejas plazos ajustados?' en el simulador STAR. +50 XP extra hoy.";
       } else if (selectedTopic === "alertas") {
-        customBubble.content = "🚨 ALERTA DE HACKATHON: Faltan solo 24 horas para iniciar la Hackathon UTP+ de este fin de semana. Tienes un score de compatibilidad del 92%. ¡Asegura tu equipo ya!";
+        content =
+          "🚨 ALERTA HACKATHON: Faltan 24h para la Hackathon UTP+. Match 92%. ¡Asegura tu equipo!";
       } else {
-        customBubble.content = "🌟 RECOMENDACIÓN DE VACANTE: Alicorp acaba de abrir una plaza de Practicante Backend. Tienes un perfil compatible del 84%, ¡inicia tu postulación!";
+        content =
+          "🌟 VACANTE: Alicorp busca Practicante Backend. Perfil compatible 84%. ¡Postula ya!";
       }
-
-      setChatBubbles(prev => [...prev, customBubble]);
+      setChatMessages((prev) => [...prev, { sender: "ai", content }]);
       setTestSendLoading(false);
     }, 900);
   };
@@ -53,11 +110,11 @@ export default function WhatsAppPreview() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Settings Form Column */}
-      <div className="lg:col-span-5 space-y-6">
+      <div className="lg:col-span-6 space-y-6">
         <div className="bg-white rounded-none border border-utp-border p-6 space-y-5">
           <div className="space-y-1">
             <h2 className="heading-sm text-black tracking-widest flex items-center gap-2">
-              <PhoneCall className="h-4.5 w-4.5 text-[#B50E30]" />
+              <MessageCircle className="h-4.5 w-4.5 text-[#B50E30]" />
               Sincronización con WhatsApp
             </h2>
             <p className="text-neutral-500 text-xs font-semibold leading-relaxed">
@@ -86,7 +143,7 @@ export default function WhatsAppPreview() {
                 {[
                   { id: "desafios", label: "Desafíos diarios de oratoria y STAR" },
                   { id: "alertas", label: "Alertas de Hackathons y Ferias de la UTP" },
-                  { id: "vacantes", label: "Matches automáticos de prácticas (Alicorp/BCP)" }
+                  { id: "vacantes", label: "Matches automáticos de prácticas (Alicorp/BCP)" },
                 ].map((top) => (
                   <button
                     key={top.id}
@@ -139,77 +196,82 @@ export default function WhatsAppPreview() {
         </div>
       </div>
 
-      {/* Mock SmartPhone WhatsApp Chat Preview Column */}
-      <div className="lg:col-span-7 bg-neutral-50 p-4 sm:p-6 rounded-none border border-utp-border flex items-center justify-center">
-        <div className="w-full max-w-sm bg-black rounded-[40px] p-3 border-4 border-neutral-800 shadow-none relative">
-          
-          {/* Smartphone Speaker notch */}
-          <div className="absolute top-[18px] left-1/2 -translate-x-1/2 bg-black w-24 h-4 rounded-full z-15 flex items-center justify-center">
-            <div className="h-1 w-8 bg-neutral-800 rounded-full" />
-          </div>
+      {/* Animated Chat Messages */}
+      <div className="lg:col-span-6 flex items-center justify-center">
+        <div
+          ref={scrollRef}
+          className="w-full max-h-[520px] overflow-y-auto space-y-3 scrollbar-none"
+        >
+          {chatMessages.map((msg, i) => {
+            if (msg.sender === "system") {
+              return (
+                <div key={i} className="text-center">
+                  <span className="inline-block bg-black/10 border border-black/5 text-black font-bold text-[10px] px-3 py-1.5 max-w-[90%] leading-relaxed uppercase tracking-wider">
+                    {msg.content}
+                  </span>
+                </div>
+              );
+            }
+            const isUser = msg.sender === "user";
+            return (
+              <motion.div
+                key={`chat-${i}`}
+                initial={{ opacity: 0, y: 16, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22, mass: 0.8 }}
+                className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`px-4 py-3 text-sm leading-relaxed max-w-[80%] font-semibold shadow-sm ${
+                    isUser
+                      ? "bg-[#dcf8c6] text-black rounded-[12px] rounded-tr-[2px]"
+                      : "bg-white text-black rounded-[12px] rounded-tl-[2px]"
+                  }`}
+                >
+                  {msg.content}
+                  <span className="text-[8px] text-neutral-400 block text-right mt-1 font-bold uppercase tracking-wider">
+                    Ahora
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
 
-          {/* Internal Phone Display */}
-          <div className="bg-[#efeae2] rounded-[32px] overflow-hidden flex flex-col h-[480px] max-h-[480px] border border-neutral-900">
-            {/* WhatsApp Header bar */}
-            <div className="bg-[#075E54] text-white pt-6 pb-2.5 px-4 flex items-center gap-2">
-              <div className="bg-[#25D366] h-8 w-8 rounded-full flex items-center justify-center shadow-none mt-1">
-                <MessageCircle className="h-5 w-5 text-white fill-white" />
-              </div>
-              <div className="flex flex-col mt-1">
-                <span className="text-[11px] font-black uppercase tracking-wider leading-none">Mentor UTP+</span>
-                <span className="text-[9px] text-[#25D366] font-bold uppercase tracking-widest leading-none mt-1">En línea</span>
-              </div>
-            </div>
-
-            {/* Bubble Containers */}
-            <div className="flex-grow p-4 overflow-y-auto space-y-3 flex flex-col justify-end bg-gradient-to-b from-[#efeae2]/10 via-[#efeae2]/80 to-[#efeae2]">
-              {chatBubbles.map((bub, bIdx) => {
-                const isAI = bub.sender === "ai";
-                const isSys = bub.sender === "system";
-
-                if (isSys) {
-                  return (
-                    <div key={bIdx} className="text-center">
-                      <span className="inline-block bg-black/10 border border-black/5 text-black font-semibold text-[9px] px-3 py-1.5 rounded-none max-w-[90%] leading-relaxed uppercase">
-                        {bub.content}
-                      </span>
-                    </div>
-                  );
-                }
-
-                return (
-                  <motion.div
-                    key={bIdx}
-                    initial={{ scale: 0.95, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className={`flex ${isAI ? "justify-start" : "justify-end"}`}
-                  >
-                    <div className={`p-3 rounded-none shadow-none text-[11px] leading-relaxed max-w-[85%] font-semibold border ${
-                      isAI 
-                        ? "bg-white text-black border-neutral-250/50 rounded-tl-none" 
-                        : "bg-[#dcf8c6] text-black border-emerald-300/30 rounded-tr-none text-right"
-                    }`}>
-                      {bub.content}
-                      <span className="text-[8px] text-neutral-400 font-sans block text-right mt-1 font-bold uppercase tracking-wider">{bub.time}</span>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-
-            {/* Mock Bottom Input */}
-            <div className="p-2.5 bg-neutral-100 border-t border-neutral-200/80 flex items-center gap-2">
-              <div className="flex-1 bg-white border border-neutral-300/80 rounded-full px-3 py-1.5 text-[10px] text-neutral-400 font-semibold uppercase">
-                Escribe un mensaje...
-              </div>
-              <div className="h-8 w-8 bg-black rounded-full flex items-center justify-center">
-                <Send className="h-3 w-3 text-white fill-white" />
-              </div>
-            </div>
-          </div>
-
+          <AnimatePresence>
+            {showTyping && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="flex justify-start"
+              >
+                <div className="bg-white rounded-[12px] rounded-tl-[2px] px-4 py-3.5 shadow-sm flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="h-2.5 w-2.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="h-2.5 w-2.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
+  );
+}
+
+function Check({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function BellRing({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
   );
 }

@@ -929,7 +929,7 @@ export default function App() {
                       <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
                       <h2 className="heading-md text-black tracking-widest flex items-center gap-2">
                         <Award className="h-5 w-5 text-[#B50E30]" />
-                        Beca UTP+: Capacitaciones & Cursos
+                        Capacitaciones & Cursos
                       </h2>
                       <p className="text-[#64748B] text-xs font-semibold mt-1 ml-7">
                         Para mitigar las brechas del mercado, hemos convenido con plataformas líderes estos accesos gratuitos con tu cuenta universitaria:

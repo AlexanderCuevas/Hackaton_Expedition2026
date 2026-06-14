@@ -4,7 +4,7 @@ import {
   FileText, Sparkles, AlertCircle, CheckCircle,
   BookOpen, AlertTriangle, TrendingUp, X,
   ArrowRight, Check, Shield, ThumbsDown, Copy, Route,
-  Printer
+  Brain, Target, Map, Printer
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { buildHtmlCv, buildPlainTextCv, copyPlainTextToClipboard, triggerPrintCv } from "../utils/cvGenerator";
@@ -335,6 +335,118 @@ function GuideOverlay({
 }
 
 /* ============================================================
+   Route Generator Overlay — animated generation sequence
+   ============================================================ */
+
+const GENERATION_STEPS = [
+  { icon: Brain,     text: "Analizando tus brechas detectadas por la IA…",     dur: 900 },
+  { icon: Target,    text: "Priorizando skills críticos para la vacante…",      dur: 800 },
+  { icon: Sparkles,  text: "Asignando recursos y rutas de aprendizaje…",        dur: 900 },
+  { icon: Map,       text: "Generando tu ruta personalizada paso a paso…",      dur: 700 },
+  { icon: CheckCircle, text: "¡Tu ruta está lista!",                            dur: 600 },
+];
+
+function RouteGeneratorOverlay({ targetRole, onComplete }: { targetRole: string; onComplete: () => void }) {
+  const [stepIdx, setStepIdx] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    let elapsed = 0;
+    const total = GENERATION_STEPS.reduce((s, x) => s + x.dur, 0);
+    let idx = 0;
+
+    function runStep() {
+      if (idx >= GENERATION_STEPS.length) {
+        setDone(true);
+        setTimeout(onComplete, 700);
+        return;
+      }
+      setStepIdx(idx);
+      const dur = GENERATION_STEPS[idx].dur;
+      const start = performance.now();
+
+      function tick(now: number) {
+        const dt = now - start;
+        const stepProgress = Math.min(dt / dur, 1);
+        setProgress(Math.round(((elapsed + stepProgress * dur) / total) * 100));
+        if (stepProgress < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          elapsed += dur;
+          idx++;
+          runStep();
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    runStep();
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center px-6">
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage: "repeating-linear-gradient(45deg,#B50E30 0,#B50E30 1px,transparent 0,transparent 50%)",
+          backgroundSize: "10px 10px"
+        }}
+      />
+      <div className="relative z-10 w-full max-w-md flex flex-col items-center gap-8">
+        <div className="relative">
+          <div className="w-20 h-20 border-2 border-[#B50E30] flex items-center justify-center">
+            <Sparkles className="h-9 w-9 text-[#B50E30]" style={{ animation: done ? "none" : "spin 2s linear infinite" }} />
+          </div>
+          {!done && (
+            <div className="absolute inset-0 border border-[#B50E30]/30" style={{ animation: "ping 1.5s cubic-bezier(0,0,0.2,1) infinite" }} />
+          )}
+          <style>{`
+            @keyframes ping { 75%, 100% { transform: scale(1.6); opacity: 0; } }
+            @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+          `}</style>
+        </div>
+        <div className="text-center space-y-1">
+          <p className="text-[10px] font-black text-[#B50E30] uppercase tracking-widest">IA generando</p>
+          <h2 className="text-2xl font-black text-neutral-900 uppercase tracking-wide leading-tight">Tu Ruta Personalizada</h2>
+          <p className="text-xs text-neutral-500 font-semibold">Para: <span className="text-neutral-900 font-black">{targetRole}</span></p>
+        </div>
+        <div className="w-full space-y-2">
+          <div className="w-full h-1 bg-neutral-200 overflow-hidden">
+            <div className="h-1 bg-[#B50E30] transition-none" style={{ width: `${progress}%`, transition: "width 0.1s linear" }} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] text-neutral-500 font-black uppercase tracking-widest">{done ? "Completado" : "Procesando…"}</span>
+            <span className="text-[9px] font-black text-[#B50E30]">{progress}%</span>
+          </div>
+        </div>
+        <div className="w-full space-y-2">
+          {GENERATION_STEPS.map((step, i) => {
+            const Icon = step.icon;
+            const visible = i <= stepIdx;
+            const active = i === stepIdx && !done;
+            const checked = i < stepIdx || done;
+            return (
+              <div key={i} className="flex items-center gap-3 transition-all duration-300" style={{ opacity: visible ? 1 : 0.15 }}>
+                <div className={`w-6 h-6 flex items-center justify-center shrink-0 transition-colors duration-300 ${checked ? "bg-[#B50E30]" : active ? "bg-neutral-100 border border-[#B50E30]" : "bg-neutral-100"}`}>
+                  {checked
+                    ? <CheckCircle className="h-3.5 w-3.5 text-white" />
+                    : <Icon className={`h-3.5 w-3.5 ${active ? "text-[#B50E30]" : "text-neutral-400"}`} />
+                  }
+                </div>
+                <span className={`text-xs font-semibold transition-colors duration-300 ${checked ? "text-neutral-400 line-through" : active ? "text-neutral-900 font-black" : "text-neutral-500"}`}>
+                  {step.text}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
    Props
    ============================================================ */
 
@@ -347,6 +459,7 @@ interface CvAnalyzerPanelProps {
   gaps?: SkillGap[];
   currentSkills?: string[];
   onNavigateToDiagnostico?: () => void;
+  onNavigateToRuta?: () => void;
   profile?: UserProfile;
 }
 
@@ -359,6 +472,7 @@ export default function CvAnalyzerPanel({
   gaps: incomingGaps,
   currentSkills: incomingSkills,
   onNavigateToDiagnostico,
+  onNavigateToRuta,
   profile
 }: CvAnalyzerPanelProps) {
   const analysis = savedAnalysis ?? SIMULATED_ANALYSIS;
@@ -378,6 +492,7 @@ export default function CvAnalyzerPanel({
   const [cvCopied, setCvCopied] = useState(false);
 
   /* Guide overlay state */
+  const [showRouteOverlay, setShowRouteOverlay] = useState(false);
   const [guideActive, setGuideActive] = useState(true);
   const [guideStep, setGuideStep] = useState(0);
 
@@ -428,7 +543,11 @@ export default function CvAnalyzerPanel({
   };
 
   const handleGuideClose = () => setGuideActive(false);
-  const handleCreateRoute = () => {};
+  const handleCreateRoute = () => setShowRouteOverlay(true);
+  const handleRouteComplete = () => {
+    setShowRouteOverlay(false);
+    onNavigateToRuta?.();
+  };
 
   const getCvData = () => ({
     name: profile?.name || "Estudiante UTP",
@@ -905,6 +1024,14 @@ export default function CvAnalyzerPanel({
           onPrev={handleGuidePrev}
           onClose={handleGuideClose}
           total={GUIDE_STEPS_DATA.length}
+        />
+      )}
+
+      {/* Route generator overlay */}
+      {showRouteOverlay && (
+        <RouteGeneratorOverlay
+          targetRole={targetRole}
+          onComplete={handleRouteComplete}
         />
       )}
     </div>

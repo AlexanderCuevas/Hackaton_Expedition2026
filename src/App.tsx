@@ -871,6 +871,7 @@ export default function App() {
                     currentSkills={profile.currentSkills}
                     savedAnalysis={cvAnalysis ?? undefined}
                     onNavigateToDiagnostico={() => setView("diagnostico")}
+                    onNavigateToRuta={() => setView("dashboard")}
                     onAnalysisResult={(res) => {
                       setCvAnalysis(res);
                       localStorage.setItem("sp_cv_analysis", JSON.stringify(res));

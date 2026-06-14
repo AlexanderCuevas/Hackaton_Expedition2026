@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import {
   BookOpen, ChevronRight, ExternalLink, Play, Check, Clock,
   Sparkles, ArrowLeft, Tag, Star, Users, Download, MessageCircle,
-  FileText, ChevronDown, ChevronUp
+  FileText, ChevronDown, ChevronUp, SearchX, SlidersHorizontal, X, Zap
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -13,6 +13,7 @@ import {
 } from "../types";
 import { CERTIFICATIONS_AND_COURSES, EXTERNAL_COURSE_SUGGESTIONS } from "../data";
 import UvpIcon from "./ui/UvpIcon";
+import CourseFilters from "./CourseFilters";
 
 interface MyCoursesPanelProps {
   enrolledCourses: EnrolledCourse[];
@@ -53,6 +54,9 @@ export default function MyCoursesPanel({
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"descripcion" | "materiales" | "discusion">("descripcion");
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
+  const [companyFilter, setCompanyFilter] = useState<string>("todas");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const activeGaps = gaps.filter((g) => g.status !== "completado");
 
@@ -61,8 +65,54 @@ export default function MyCoursesPanel({
     return EXTERNAL_COURSE_SUGGESTIONS.filter((s) => gapNames.includes(s.linkedGap));
   }, [activeGaps]);
 
+  const uniqueCompanies = useMemo(() => {
+    const companies = new Set<string>();
+    CERTIFICATIONS_AND_COURSES.forEach((c) => companies.add(c.provider));
+    EXTERNAL_COURSE_SUGGESTIONS.forEach((s) => companies.add(s.platform));
+    return Array.from(companies).sort();
+  }, []);
+
   const enrolledInternal = enrolledCourses.filter((e) => e.source === "internal");
   const enrolledExternal = enrolledCourses.filter((e) => e.source === "external");
+
+  const filterBySearch = (title: string, provider: string): boolean => {
+    if (!searchTerm) return true;
+    const q = searchTerm.toLowerCase();
+    return title.toLowerCase().includes(q) || provider.toLowerCase().includes(q);
+  };
+
+  const filteredInternal = enrolledInternal
+    .filter((e) => {
+      const course = getCatalogCourse(e.courseId);
+      if (!course) return false;
+      if (companyFilter !== "todas" && course.provider !== companyFilter) return false;
+      if (!filterBySearch(course.title, course.provider)) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const ca = getCatalogCourse(a.courseId);
+      const cb = getCatalogCourse(b.courseId);
+      if (!ca || !cb) return 0;
+      return sortOrder === "asc"
+        ? ca.pointsAwarded - cb.pointsAwarded
+        : cb.pointsAwarded - ca.pointsAwarded;
+    });
+
+  const filteredExternal = enrolledExternal.filter((e) => {
+    const suggestion = getExternalSuggestion(e.courseId);
+    if (!suggestion) return false;
+    if (companyFilter !== "todas" && suggestion.platform !== companyFilter) return false;
+    if (!filterBySearch(suggestion.title, suggestion.platform)) return false;
+    return true;
+  });
+
+  const filteredSuggestions = relevantSuggestions.filter((s) => {
+    if (companyFilter !== "todas" && s.platform !== companyFilter) return false;
+    if (!filterBySearch(s.title, s.platform)) return false;
+    return true;
+  });
+
+  const filtersActive = companyFilter !== "todas";
 
   const activeCourse = activeCourseId ? getCatalogCourse(activeCourseId) : null;
   const activeEnrollment = enrolledCourses.find((e) => e.courseId === activeCourseId);
@@ -422,6 +472,16 @@ export default function MyCoursesPanel({
 
   const renderCourseList = () => (
     <div className="space-y-6">
+                      <CourseFilters
+                        uniqueCompanies={uniqueCompanies}
+                        companyFilter={companyFilter}
+                        onCompanyFilterChange={setCompanyFilter}
+                        sortOrder={sortOrder}
+                        onSortOrderChange={setSortOrder}
+                        searchTerm={searchTerm}
+                        onSearchTermChange={setSearchTerm}
+                      />
+
       {enrolledInternal.length === 0 && enrolledExternal.length === 0 ? (
         <div className="bg-white border border-utp-border p-10 text-center space-y-4">
           <BookOpen className="h-10 w-10 text-[#B50E30] mx-auto" />
@@ -441,189 +501,243 @@ export default function MyCoursesPanel({
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
+      ) : filteredInternal.length === 0 && filteredExternal.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white border border-utp-border p-10 text-center space-y-4"
+        >
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <SearchX className="h-10 w-10 text-neutral-300 mx-auto" />
+          </motion.div>
+          <p className="text-sm font-black uppercase text-black">
+            Ningún curso coincide
+          </p>
+          <p className="text-xs text-neutral-500 font-medium max-w-sm mx-auto">
+            No hay cursos con los filtros seleccionados. Prueba con otras opciones o
+            <button
+              type="button"
+              onClick={() => setCompanyFilter("todas")}
+              className="text-[#B50E30] font-black hover:underline mx-1 cursor-pointer"
+            >
+              restablece los filtros
+            </button>
+            .
+          </p>
+        </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {enrolledInternal.map((enrollment) => {
-            const course = getCatalogCourse(enrollment.courseId);
-            if (!course) return null;
+        <AnimatePresence mode="popLayout">
+          <div key="course-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredInternal.map((enrollment, idx) => {
+              const course = getCatalogCourse(enrollment.courseId);
+              if (!course) return null;
 
-            const completedLessons = enrollment.completedLessons.length;
-            const totalLessons = getTotalLessons(course);
+              const completedLessons = enrollment.completedLessons.length;
+              const totalLessons = getTotalLessons(course);
 
-            return (
-              <div
-                key={enrollment.courseId}
-                className="bg-white border border-neutral-200 shadow-sm flex flex-col"
-              >
-                <div className="h-32 w-full overflow-hidden bg-neutral-200 relative">
-                  {course.image && <img src={course.image} alt={course.title} className="w-full h-full object-cover" />}
-                  <div className="absolute top-2 right-2">
-                    <span className="bg-[#B50E30] text-white font-black text-[9px] px-2 py-0.5 uppercase tracking-widest">
-                      +{course.pointsAwarded} XP
-                    </span>
+              return (
+                <motion.div
+                  key={enrollment.courseId}
+                  layout
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.85, y: -12 }}
+                  transition={{ duration: 0.25, delay: idx * 0.035 }}
+                  className="bg-white border border-neutral-200 shadow-sm flex flex-col"
+                >
+                  <div className="h-32 w-full overflow-hidden bg-neutral-200 relative">
+                    {course.image && <img src={course.image} alt={course.title} className="w-full h-full object-cover" />}
+                    <div className="absolute top-2 right-2">
+                      <motion.span
+                        whileHover={{ scale: 1.1 }}
+                        className="bg-[#B50E30] text-white font-black text-[9px] px-2 py-0.5 uppercase tracking-widest inline-block"
+                      >
+                        +{course.pointsAwarded} XP
+                      </motion.span>
+                    </div>
                   </div>
-                </div>
-                <div className="p-5 flex-grow">
-                  <div className="flex items-center gap-2 mb-3">
-                    {logos[course.provider] ? (
-                      <img src={logos[course.provider]} alt={course.provider} className="h-5 object-contain" />
-                    ) : (
-                      <span className="text-[9px] text-neutral-400 font-extrabold uppercase tracking-widest">{course.provider}</span>
+                  <div className="p-5 flex-grow">
+                    <div className="flex items-center gap-2 mb-3">
+                      {logos[course.provider] ? (
+                        <img src={logos[course.provider]} alt={course.provider} className="h-5 object-contain" />
+                      ) : (
+                        <span className="text-[9px] text-neutral-400 font-extrabold uppercase tracking-widest">{course.provider}</span>
+                      )}
+                    </div>
+                    <h3 className="font-black text-sm text-black uppercase tracking-tight leading-snug">{course.title}</h3>
+                    <p className="text-[11px] font-bold text-neutral-600 mt-2 uppercase">
+                      {course.duration}{course.modality ? ` | ${course.modality}` : ""}
+                    </p>
+                    {course.speaker && (
+                      <p className="text-[11px] font-semibold text-neutral-500 mt-1">{course.speaker}</p>
                     )}
                   </div>
-                  <h3 className="font-black text-sm text-black uppercase tracking-tight leading-snug">{course.title}</h3>
-                  <p className="text-[11px] font-bold text-neutral-600 mt-2 uppercase">
-                    {course.duration}{course.modality ? ` | ${course.modality}` : ""}
-                  </p>
-                  {course.speaker && (
-                    <p className="text-[11px] font-semibold text-neutral-500 mt-1">{course.speaker}</p>
-                  )}
-                </div>
-                <div className="px-5 pb-5">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold text-neutral-500">{enrollment.progress}%</span>
-                    <span className="text-[9px] font-bold text-neutral-400">{completedLessons}/{totalLessons} lecciones</span>
+                  <div className="px-5 pb-5">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-bold text-neutral-500">{enrollment.progress}%</span>
+                      <span className="text-[9px] font-bold text-neutral-400">{completedLessons}/{totalLessons} lecciones</span>
+                    </div>
+                    <div className="w-full bg-neutral-200 h-1.5 mb-3">
+                      <div className="bg-[#D35400] h-full transition-all" style={{ width: `${enrollment.progress}%` }} />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSelectCourse(enrollment.courseId)}
+                      className="w-full bg-[#B50E30] hover:bg-[#85061B] text-white py-2 text-xs font-black uppercase transition cursor-pointer border-0"
+                    >
+                      Continuar curso
+                    </button>
                   </div>
-                  <div className="w-full bg-neutral-200 h-1.5 mb-3">
-                    <div className="bg-[#D35400] h-full transition-all" style={{ width: `${enrollment.progress}%` }} />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectCourse(enrollment.courseId)}
-                    className="w-full bg-[#B50E30] hover:bg-[#85061B] text-white py-2 text-xs font-black uppercase transition cursor-pointer border-0"
-                  >
-                    Continuar curso
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+                </motion.div>
+              );
+            })}
 
-          {enrolledExternal.map((enrollment) => {
-            const suggestion = getExternalSuggestion(enrollment.courseId);
-            if (!suggestion) return null;
+            {filteredExternal.map((enrollment, idx) => {
+              const suggestion = getExternalSuggestion(enrollment.courseId);
+              if (!suggestion) return null;
 
-            return (
-              <div
-                key={enrollment.courseId}
-                className="bg-white border border-utp-border p-5 flex flex-col justify-between gap-4"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] bg-black text-white font-extrabold uppercase px-2 py-0.5">
-                      {suggestion.platform} • Externo
-                    </span>
-                    <span className="text-[10px] font-black text-[#B50E30]">
-                      {suggestion.price}
-                    </span>
-                  </div>
-                  <h3 className="font-extrabold text-sm text-black uppercase tracking-tight">
-                    {suggestion.title}
-                  </h3>
-                  <p className="text-[10px] text-neutral-500 font-medium">
-                    Guardado para cerrar brecha: {suggestion.linkedGap}
-                  </p>
-                </div>
-                <a
-                  href={suggestion.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-2.5 bg-[#B50E30] hover:bg-[#85061B] text-white font-black uppercase tracking-widest text-xs transition flex items-center justify-center gap-1"
+              return (
+                <motion.div
+                  key={enrollment.courseId}
+                  layout
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.85, y: -12 }}
+                  transition={{ duration: 0.25, delay: (filteredInternal.length + idx) * 0.035 }}
+                  className="bg-white border border-utp-border p-5 flex flex-col justify-between gap-4"
                 >
-                  Ir a {suggestion.platform}
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </div>
-            );
-          })}
-        </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] bg-black text-white font-extrabold uppercase px-2 py-0.5">
+                        {suggestion.platform} • Externo
+                      </span>
+                      <span className="text-[10px] font-black text-[#B50E30]">
+                        {suggestion.price}
+                      </span>
+                    </div>
+                    <h3 className="font-extrabold text-sm text-black uppercase tracking-tight">
+                      {suggestion.title}
+                    </h3>
+                    <p className="text-[10px] text-neutral-500 font-medium">
+                      Guardado para cerrar brecha: {suggestion.linkedGap}
+                    </p>
+                  </div>
+                  <a
+                    href={suggestion.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2.5 bg-[#B50E30] hover:bg-[#85061B] text-white font-black uppercase tracking-widest text-xs transition flex items-center justify-center gap-1"
+                  >
+                    Ir a {suggestion.platform}
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </motion.div>
+              );
+            })}
+          </div>
+        </AnimatePresence>
       )}
 
-      {relevantSuggestions.length > 0 && (
+      {filteredSuggestions.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="flex items-center gap-2"
+          >
             <Sparkles className="h-4 w-4 text-[#B50E30]" />
             <h3 className="text-xs font-black text-black uppercase tracking-widest">
               Sugerencias externas para tus brechas
             </h3>
-          </div>
+          </motion.div>
           <p className="text-xs text-neutral-500 font-medium -mt-2">
             Cursos de plataformas como Udemy o LinkedIn Learning que complementan el catálogo UTP+
             y te ayudan a cerrar brechas detectadas por la IA.
           </p>
 
-          <div className="space-y-3">
-            {relevantSuggestions.map((suggestion) => {
-              const gap = activeGaps.find((g) => g.skillName === suggestion.linkedGap);
-              const alreadySaved = enrolledExternal.some((e) => e.courseId === suggestion.id);
+          <AnimatePresence>
+            <div className="space-y-3">
+              {filteredSuggestions.map((suggestion, idx) => {
+                const gap = activeGaps.find((g) => g.skillName === suggestion.linkedGap);
+                const alreadySaved = enrolledExternal.some((e) => e.courseId === suggestion.id);
 
-              return (
-                <div
-                  key={suggestion.id}
-                  className="bg-white border border-utp-border p-5 space-y-3 relative overflow-hidden"
-                >
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#B50E30]" />
-                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 pl-2">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="bg-black text-white text-[9px] font-black px-2 py-0.5 uppercase">
-                          {suggestion.platform}
-                        </span>
-                        {gap && (
-                          <span className="text-[9px] font-black text-[#B50E30] uppercase tracking-wider flex items-center gap-1">
-                            <Tag className="h-3 w-3" />
-                            Cierra brecha: {gap.skillName}
+                return (
+                  <motion.div
+                    key={suggestion.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    transition={{ duration: 0.25, delay: idx * 0.04 }}
+                    className="bg-white border border-utp-border p-5 space-y-3 relative overflow-hidden"
+                  >
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#B50E30]" />
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 pl-2">
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="bg-black text-white text-[9px] font-black px-2 py-0.5 uppercase">
+                            {suggestion.platform}
                           </span>
-                        )}
-                      </div>
-                      <h4 className="font-extrabold text-sm text-black uppercase tracking-tight">
-                        {suggestion.title}
-                      </h4>
-                      <p className="text-xs text-neutral-600 font-medium leading-relaxed">
-                        {suggestion.highlight}
-                      </p>
-                      <div className="flex items-center gap-4 text-[10px] font-bold text-neutral-500 uppercase">
-                        <span className="flex items-center gap-1">
-                          <Star className="h-3 w-3 text-[#B50E30] fill-[#B50E30]" />
-                          {suggestion.rating}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {suggestion.students}
-                        </span>
-                        <span className="text-black font-black">{suggestion.price}</span>
-                        {suggestion.originalPrice && (
-                          <span className="line-through text-neutral-400">
-                            {suggestion.originalPrice}
+                          {gap && (
+                            <span className="text-[9px] font-black text-[#B50E30] uppercase tracking-wider flex items-center gap-1">
+                              <Tag className="h-3 w-3" />
+                              Cierra brecha: {gap.skillName}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-extrabold text-sm text-black uppercase tracking-tight">
+                          {suggestion.title}
+                        </h4>
+                        <p className="text-xs text-neutral-600 font-medium leading-relaxed">
+                          {suggestion.highlight}
+                        </p>
+                        <div className="flex items-center gap-4 text-[10px] font-bold text-neutral-500 uppercase">
+                          <span className="flex items-center gap-1">
+                            <Star className="h-3 w-3 text-[#B50E30] fill-[#B50E30]" />
+                            {suggestion.rating}
                           </span>
-                        )}
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {suggestion.students}
+                          </span>
+                          <span className="text-black font-black">{suggestion.price}</span>
+                          {suggestion.originalPrice && (
+                            <span className="line-through text-neutral-400">
+                              {suggestion.originalPrice}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex flex-col gap-2 shrink-0">
-                      <a
-                        href={suggestion.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-[#B50E30] hover:bg-[#85061B] text-white text-[10px] font-black uppercase tracking-widest px-4 py-2.5 transition flex items-center justify-center gap-1.5"
-                      >
-                        Ver en {suggestion.platform}
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                      {!alreadySaved && (
-                        <button
-                          type="button"
-                          onClick={() => onEnrollExternal(suggestion.id)}
-                          className="border border-black text-black text-[10px] font-black uppercase tracking-widest px-4 py-2.5 hover:bg-neutral-50 transition cursor-pointer"
+                      <div className="flex flex-col gap-2 shrink-0">
+                        <a
+                          href={suggestion.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-[#B50E30] hover:bg-[#85061B] text-white text-[10px] font-black uppercase tracking-widest px-4 py-2.5 transition flex items-center justify-center gap-1.5"
                         >
-                          Guardar en Mis Cursos
-                        </button>
-                      )}
+                          Ver en {suggestion.platform}
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                        {!alreadySaved && (
+                          <button
+                            type="button"
+                            onClick={() => onEnrollExternal(suggestion.id)}
+                            className="border border-black text-black text-[10px] font-black uppercase tracking-widest px-4 py-2.5 hover:bg-neutral-50 transition cursor-pointer"
+                          >
+                            Guardar en Mis Cursos
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </AnimatePresence>
         </div>
       )}
     </div>

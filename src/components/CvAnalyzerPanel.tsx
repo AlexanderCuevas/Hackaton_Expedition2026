@@ -409,7 +409,7 @@ export default function CvAnalyzerPanel({
           {/* -------- HAZ ESTO PRIMERO (CARRUSEL) -------- */}
           <div className="relative group">
             {/* Depth layer behind card */}
-            <div className="absolute inset-0 translate-y-1.5 bg-black/5 rounded-none pointer-events-none" />
+            <div className="absolute inset-0 translate-y-1.5 bgpul-black/5 rounded-none pointer-events-none" />
             {/* Main card */}
             <div className="relative bg-black text-white rounded-none p-7 border border-neutral-800 shadow-[0_4px_20px_-6px_rgba(0,0,0,0.35)] transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.5)]">
               <div className="flex items-start gap-5">

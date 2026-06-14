@@ -589,111 +589,156 @@ export default function SocialHub() {
               exit={{ scale: 0.92, y: 20, opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-[90vw] max-w-2xl"
+              className="w-[98vw] max-w-6xl"
             >
-              <div className="w-full bg-white shadow-xl border border-gray-200 relative overflow-hidden">
+              <div className="w-full bg-white shadow-2xl border border-neutral-200 relative overflow-hidden">
                 {/* Close Button */}
                 <button
                   type="button"
                   onClick={() => setSelectedUserProfile(null)}
-                  className="absolute top-3 right-3 z-20 h-8 w-8 flex items-center justify-center bg-white/80 backdrop-blur-sm text-gray-500 hover:text-gray-800 hover:bg-white border border-gray-200 transition-colors cursor-pointer"
+                  className="absolute top-3 right-3 z-20 h-8 w-8 flex items-center justify-center bg-white/90 backdrop-blur-sm text-neutral-500 hover:text-black hover:bg-white border border-neutral-200 transition-all duration-200 cursor-pointer shadow-sm"
                 >
                   <X className="h-4 w-4" />
                 </button>
 
-                {/* Cover Banner — UTP red gradient */}
-                <div className="h-32 bg-gradient-to-r from-[#B50E30] via-[#8a0b25] to-black relative">
-                  <div className="absolute inset-0 utp-diagonal-pattern opacity-[0.07]" />
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(255,255,255,0.08)_0px,transparent_120px)]" />
+                {/* Cover Banner */}
+                <div className="h-32 relative overflow-hidden bg-black">
+                  <img
+                    src={`https://images.unsplash.com/photo-${
+                      selectedUserProfile.type?.includes("Reclutador")
+                        ? "1573496359142-b8d87734a5a2?w=1000&q=80"
+                        : selectedUserProfile.type?.includes("Mentor")
+                        ? "1522071820081-009f0129c71c?w=1000&q=80"
+                        : "1517245386807-bb43f82c33c4?w=1000&q=80"
+                    }`}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute inset-0 utp-diagonal-pattern opacity-[0.05]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#B50E30] via-[#B50E30]/60 to-transparent" />
                 </div>
 
-                {/* Header: Avatar + Name + Role */}
-                <div className="relative px-8">
-                  <div className="relative -mt-14 mb-3 flex items-end gap-5">
+                {/* Avatar - overlapping cover */}
+                <div className="relative px-10">
+                  <div className="flex items-end gap-6 -mt-14">
                     <motion.div
-                      initial={{ scale: 0.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: "spring", damping: 14, stiffness: 260, delay: 0.1 }}
+                      initial={{ scale: 0, rotate: -8 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: "spring", damping: 13, stiffness: 230, delay: 0.1 }}
                       className="relative shrink-0"
                     >
+                      <div className="absolute -inset-[4px] bg-gradient-to-br from-[#B50E30] via-white/30 to-black rounded-full shadow-2xl" />
                       <img
-                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUserProfile.name.replace(" (Tú)", "").replace("Ing. ", "").replace("Lic. ", ""))}&background=000&color=fff&size=128&bold=true`}
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUserProfile.name.replace(" (Tú)", "").replace("Ing. ", "").replace("Lic. ", ""))}&background=000&color=fff&size=200&bold=true&font-size=0.35`}
                         alt={selectedUserProfile.name}
-                        className="h-24 w-24 border-[3px] border-white bg-white object-cover shadow-lg"
+                        className="relative h-28 w-28 rounded-full border-[4px] border-white bg-white object-cover shadow-xl"
                       />
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.3 }}
-                        className="absolute -bottom-0.5 -right-0.5 h-8 w-8 bg-[#B50E30] flex items-center justify-center text-xs font-bold text-white shadow-md border-[2.5px] border-white"
+                        transition={{ type: "spring", damping: 10, stiffness: 180, delay: 0.35 }}
+                        className="absolute -bottom-1 -right-1 h-9 w-9 bg-gradient-to-br from-[#B50E30] to-black flex items-center justify-center text-sm font-black text-white shadow-lg border-[3px] border-white rounded-full"
                       >
                         {selectedUserProfile.level}
                       </motion.div>
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.45 }}
+                        className="absolute top-1 right-1 h-3.5 w-3.5 bg-emerald-500 border-[3px] border-white rounded-full shadow-lg"
+                      />
                     </motion.div>
 
-                    <div className="min-w-0 flex-1 pt-3">
-                      <h2 className="heading-lg text-black truncate">
+                    <div className="min-w-0 flex-1 pt-10 pb-1">
+                      <motion.h2
+                        initial={{ opacity: 0, x: -15 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-xl font-black text-black truncate tracking-tight"
+                      >
                         {selectedUserProfile.name}
-                      </h2>
-                      <p className="heading-sm text-[#B50E30] mt-0.5 truncate">
+                      </motion.h2>
+                      <motion.p
+                        initial={{ opacity: 0, x: -15 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.25 }}
+                        className="text-sm font-black text-[#B50E30] mt-0.5 truncate"
+                      >
                         {selectedUserProfile.targetRole}
-                      </p>
-                      <p className="text-xs text-gray-500 font-medium mt-0.5 truncate">
-                        {selectedUserProfile.career} • {selectedUserProfile.semester}º Ciclo
-                      </p>
+                      </motion.p>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="flex items-center gap-3 mt-0.5"
+                      >
+                        <span className="text-xs text-neutral-500 font-semibold">
+                          {selectedUserProfile.career} • {selectedUserProfile.semester}º Ciclo
+                        </span>
+                        <span className="text-[10px] font-bold text-neutral-400">ID: UTP-{selectedUserProfile.xp + 1092}</span>
+                      </motion.div>
                     </div>
                   </div>
 
-                  {/* Type badge + status */}
-                  <div className="flex items-center gap-2 pb-4 border-b border-gray-200">
-                    <span className="heading-xs px-2.5 py-1 bg-black text-white">
+                  {/* Badge + Status row */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex items-center gap-3 mt-3 pb-4 border-b border-neutral-200"
+                  >
+                    <span className={`text-[11px] font-black tracking-widest px-4 py-1.5 ${
+                      selectedUserProfile.type?.includes("Reclutador")
+                        ? "bg-[#B50E30] text-white"
+                        : selectedUserProfile.type?.includes("Mentor")
+                        ? "bg-black text-white"
+                        : "bg-neutral-700 text-white"
+                    }`}>
                       {selectedUserProfile.type}
                     </span>
-                    <span className="text-[10px] font-semibold text-gray-400">ID: UTP-{selectedUserProfile.xp + 1092}</span>
-                    <span className="ml-auto flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Disponible
+                    <span className="flex items-center gap-1.5 text-[11px] font-black text-emerald-700 bg-emerald-50 px-3 py-1.5 border border-emerald-200/60">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Disponible para conectar
                     </span>
-                  </div>
+                  </motion.div>
                 </div>
 
-                {/* Content: 2-column grid */}
-                <div className="px-8 pt-5 pb-3 grid grid-cols-1 md:grid-cols-5 gap-6">
-                  {/* LEFT COL (3/5) */}
+                {/* Content */}
+                <div className="px-10 pt-5 pb-3 grid grid-cols-1 md:grid-cols-5 gap-6">
+                  {/* Left col — Bio + Skills + Social */}
                   <div className="md:col-span-3 space-y-5">
-                    {/* Bio */}
                     <motion.div
-                      initial={{ opacity: 0, y: 12 }}
+                      initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.15 }}
-                      className="bg-neutral-50 p-5 border-l-2 border-[#B50E30]"
+                      transition={{ delay: 0.25 }}
                     >
-                      <h4 className="heading-xs text-neutral-500 mb-2 flex items-center gap-1.5">
+                      <h4 className="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
                         <InfoSvg className="h-3.5 w-3.5 text-[#B50E30]" />
                         Acerca de
                       </h4>
-                      <p className="text-sm text-neutral-700 leading-relaxed font-[425] italic">
-                        &ldquo;{selectedUserProfile.bio}&rdquo;
-                      </p>
+                      <div className="bg-neutral-50 p-4 border-l-[3px] border-[#B50E30]">
+                        <p className="text-sm text-neutral-700 leading-relaxed font-[425] italic">
+                          &ldquo;{selectedUserProfile.bio}&rdquo;
+                        </p>
+                      </div>
                     </motion.div>
 
-                    {/* Skills */}
                     <motion.div
-                      initial={{ opacity: 0, y: 12 }}
+                      initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="space-y-3"
+                      transition={{ delay: 0.3 }}
                     >
-                      <h4 className="heading-xs text-[#B50E30] flex items-center gap-1.5">
-                        <SkillsSvg className="h-4 w-4" />
-                        Habilidades Destacadas
+                      <h4 className="text-[10px] text-black font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                        <SkillsSvg className="h-3.5 w-3.5 text-[#B50E30]" />
+                        Habilidades
                       </h4>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5">
                         {selectedUserProfile.skills.map((s: string) => (
                           <motion.span
                             key={s}
-                            whileHover={{ scale: 1.05, y: -2 }}
-                            className="bg-white text-black border border-gray-300 text-[11px] font-bold px-3 py-1.5 transition-colors duration-200 hover:bg-[#B50E30] hover:text-white hover:border-[#B50E30] cursor-default"
+                            whileHover={{ scale: 1.06, y: -2 }}
+                            className="bg-white text-black border border-neutral-300 text-[10px] font-bold px-3 py-1.5 transition-all duration-200 hover:bg-[#B50E30] hover:text-white hover:border-[#B50E30] hover:shadow-md cursor-default"
                           >
                             {s}
                           </motion.span>
@@ -701,125 +746,117 @@ export default function SocialHub() {
                       </div>
                     </motion.div>
 
-                    {/* Social networks */}
                     <motion.div
-                      initial={{ opacity: 0, y: 12 }}
+                      initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.25 }}
-                      className="space-y-3"
+                      transition={{ delay: 0.35 }}
                     >
-                      <h4 className="heading-xs text-neutral-500 flex items-center gap-1.5">
+                      <h4 className="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
                         <Share2 className="h-3.5 w-3.5 text-[#B50E30]" />
-                        Redes y Portafolio
+                        Redes
                       </h4>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="inline-flex items-center gap-1.5 bg-[#0077B5]/10 text-[#0077B5] border border-[#0077B5]/20 text-[11px] font-bold px-3 py-1.5">
-                          <ProfileSvg className="h-3.5 w-3.5" />
-                          LinkedIn
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="inline-flex items-center gap-1 bg-[#0077B5]/10 text-[#0077B5] border border-[#0077B5]/20 text-[10px] font-bold px-2.5 py-1 hover:bg-[#0077B5] hover:text-white transition-all duration-200 cursor-default">
+                          <ProfileSvg className="h-3 w-3" /> LinkedIn
                         </span>
-                        <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 border border-gray-200 text-[11px] font-bold px-3 py-1.5">
-                          <ConfigSvg className="h-3.5 w-3.5" />
-                          GitHub
+                        <span className="inline-flex items-center gap-1 bg-neutral-100 text-neutral-700 border border-neutral-200 text-[10px] font-bold px-2.5 py-1 hover:bg-neutral-800 hover:text-white transition-all duration-200 cursor-default">
+                          <ConfigSvg className="h-3 w-3" /> GitHub
                         </span>
-                        <span className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold px-3 py-1.5">
-                          <DownloadSvg className="h-3.5 w-3.5" />
-                          Portafolio
+                        <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-bold px-2.5 py-1 hover:bg-purple-700 hover:text-white transition-all duration-200 cursor-default">
+                          <DownloadSvg className="h-3 w-3" /> Portafolio
                         </span>
                       </div>
                     </motion.div>
                   </div>
 
-                  {/* RIGHT COL (2/5) */}
+                  {/* Right col — Stats + Activity + CTA */}
                   <div className="md:col-span-2 space-y-4">
-                    {/* Stats cards */}
                     <motion.div
-                      initial={{ opacity: 0, y: 12 }}
+                      initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
+                      transition={{ delay: 0.25 }}
                       className="grid grid-cols-2 gap-3"
                     >
-                      <div className="bg-neutral-50 border border-neutral-200 p-4 text-center space-y-1">
-                        <GrowthSvg className="h-5 w-5 text-[#B50E30] mx-auto" />
-                        <div className="text-lg font-black text-black">{selectedUserProfile.xp}</div>
-                        <div className="heading-xs text-neutral-400">XP Total</div>
+                      <div className="bg-neutral-50 border border-neutral-200 p-4 text-center space-y-1 shadow-sm hover:shadow-md transition-shadow">
+                        <GrowthSvg className="h-6 w-6 text-[#B50E30] mx-auto" />
+                        <div className="text-xl font-black text-black">{selectedUserProfile.xp}</div>
+                        <div className="text-[9px] text-neutral-400 font-black uppercase tracking-widest">XP Total</div>
                       </div>
-                      <div className="bg-neutral-50 border border-neutral-200 p-4 text-center space-y-1">
-                        <StarSvg className="h-5 w-5 text-[#B50E30] mx-auto" />
-                        <div className="text-lg font-black text-[#B50E30]">LVL {selectedUserProfile.level}</div>
-                        <div className="heading-xs text-neutral-400">Rango</div>
+                      <div className="bg-neutral-50 border border-neutral-200 p-4 text-center space-y-1 shadow-sm hover:shadow-md transition-shadow">
+                        <StarSvg className="h-6 w-6 text-[#B50E30] mx-auto" />
+                        <div className="text-xl font-black text-[#B50E30]">LVL {selectedUserProfile.level}</div>
+                        <div className="text-[9px] text-neutral-400 font-black uppercase tracking-widest">Rango</div>
                       </div>
                     </motion.div>
 
-                    {/* Activity */}
                     <motion.div
-                      initial={{ opacity: 0, y: 12 }}
+                      initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.25 }}
-                      className="bg-neutral-50 border border-neutral-200 p-4 space-y-3"
+                      transition={{ delay: 0.3 }}
+                      className="bg-neutral-50 border border-neutral-200 p-4 space-y-3 shadow-sm"
                     >
-                      <h4 className="heading-xs text-neutral-500 flex items-center gap-1.5">
-                        <Briefcase className="h-3.5 w-3.5 text-[#B50E30]" />
+                      <h4 className="text-[9px] text-neutral-500 font-black uppercase tracking-widest flex items-center gap-1.5">
+                        <Briefcase className="h-3 w-3 text-[#B50E30]" />
                         Actividad
                       </h4>
                       <div className="grid grid-cols-3 gap-2">
                         {[
-                          {
-                            label: "Proyectos",
-                            value: posts.filter(p => p.category === "proyecto" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length,
-                            icon: <TargetSvg className="h-4 w-4 text-[#B50E30]" />
-                          },
-                          {
-                            label: "Logros",
-                            value: posts.filter(p => p.category === "logro" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length,
-                            icon: <StarSvg className="h-4 w-4 text-[#B50E30]" />
-                          },
-                          {
-                            label: "Conexiones",
-                            value: contacts.filter(c => c.isConnected).length,
-                            icon: <NetworkSvg className="h-4 w-4 text-[#B50E30]" />
-                          },
+                          { label: "Proyectos", value: posts.filter(p => p.category === "proyecto" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length, icon: <TargetSvg className="h-4 w-4 text-[#B50E30]" /> },
+                          { label: "Logros", value: posts.filter(p => p.category === "logro" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length, icon: <StarSvg className="h-4 w-4 text-[#B50E30]" /> },
+                          { label: "Conexiones", value: contacts.filter(c => c.isConnected).length, icon: <NetworkSvg className="h-4 w-4 text-[#B50E30]" /> },
                         ].map((item, i) => (
-                          <div key={i} className="text-center py-3 bg-white border border-neutral-100">
+                          <div key={i} className="text-center py-2.5 bg-white border border-neutral-100 hover:border-[#B50E30]/30 transition-colors">
                             <div className="mb-1 flex justify-center">{item.icon}</div>
                             <span className="text-base font-black text-black block">{item.value}</span>
-                            <span className="heading-xs text-neutral-400">{item.label}</span>
+                            <span className="text-[8px] text-neutral-400 font-black uppercase tracking-widest">{item.label}</span>
                           </div>
                         ))}
                       </div>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.35 }}
+                    >
+                      {selectedUserProfile.name.includes("Tú") ? (
+                        <div className="w-full py-2.5 bg-neutral-100 text-neutral-400 border border-neutral-200 text-[10px] font-black tracking-wider text-center select-none">
+                          Tú (Estudiante)
+                        </div>
+                      ) : connectedProfiles[selectedUserProfile.name] || selectedUserProfile.name.includes("Andrea Salazar") ? (
+                        <div className="w-full py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black tracking-wider flex items-center justify-center gap-2 select-none">
+                          <Check className="h-3.5 w-3.5 text-emerald-600 stroke-[3]" />
+                          Conectados
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleUserProfileConnect(selectedUserProfile.name)}
+                          className="w-full py-2.5 bg-gradient-to-r from-[#B50E30] to-[#85061B] hover:from-[#85061B] hover:to-black text-white text-[10px] font-black tracking-wider flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg"
+                        >
+                          <HeartHandshake className="h-3.5 w-3.5" />
+                          Conectar
+                        </button>
+                      )}
                     </motion.div>
                   </div>
                 </div>
 
                 {/* Footer */}
-                <div className="px-8 pb-6 pt-4 flex justify-end gap-3 border-t border-gray-200">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="px-10 py-3 flex justify-end border-t border-neutral-200 bg-neutral-50/50"
+                >
                   <button
                     type="button"
                     onClick={() => setSelectedUserProfile(null)}
-                    className="px-4 py-2 border border-gray-300 text-xs font-bold tracking-wider text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="px-4 py-2 border border-neutral-300 text-[10px] font-black tracking-wider text-neutral-500 hover:bg-white hover:text-black hover:border-neutral-400 transition-all duration-200 cursor-pointer"
                   >
                     Cerrar
                   </button>
-
-                  {selectedUserProfile.name.includes("Tú") ? (
-                    <div className="px-5 py-2 bg-gray-100 text-gray-400 border border-gray-200 text-xs font-bold tracking-wider select-none">
-                      Tú (Estudiante)
-                    </div>
-                  ) : connectedProfiles[selectedUserProfile.name] || selectedUserProfile.name.includes("Andrea Salazar") ? (
-                    <div className="px-5 py-2 bg-gray-50 text-gray-700 border border-gray-200 text-xs font-bold tracking-wider flex items-center gap-1.5 select-none">
-                      <Check className="h-3.5 w-3.5 text-[#B50E30] stroke-[3]" />
-                      Conectados
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => handleUserProfileConnect(selectedUserProfile.name)}
-                      className="bg-[#B50E30] hover:bg-[#85061B] text-white text-xs font-bold tracking-wider px-5 py-2 flex items-center gap-1.5 transition-colors cursor-pointer"
-                    >
-                      <HeartHandshake className="h-3.5 w-3.5" />
-                      Conectar
-                    </button>
-                  )}
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           </motion.div>

@@ -159,6 +159,8 @@ interface CvAnalyzerPanelProps {
   targetRole: string;
   onAnalysisResult: (analysis: CvAnalysis) => void;
   savedAnalysis?: CvAnalysis;
+  cvInfo?: CvMeta;
+  cvText?: string;
   gaps?: SkillGap[];
   currentSkills?: string[];
   onNavigateToDiagnostico?: () => void;
@@ -170,20 +172,28 @@ interface CvAnalyzerPanelProps {
    ============================================================ */
 
 export default function CvAnalyzerPanel({
-  targetRole: _targetRole,
+  targetRole,
   onAnalysisResult: _onAnalysisResult,
   savedAnalysis,
+  cvInfo,
+  cvText: incomingCvText,
   gaps: incomingGaps,
   currentSkills: incomingSkills,
   onNavigateToDiagnostico,
   profile
 }: CvAnalyzerPanelProps) {
   const analysis = savedAnalysis ?? SIMULATED_ANALYSIS;
-  const optimizedScore = SIMULATED_OPTIMIZED_SCORE;
+  const optimizedScore = savedAnalysis
+    ? Math.min(95, Math.max(analysis.score + 15, analysis.score + Math.round((100 - analysis.score) * 0.35)))
+    : SIMULATED_OPTIMIZED_SCORE;
   const routeImpact = getRouteImpactData(analysis.score, optimizedScore);
 
   const gaps = incomingGaps ?? SIMULATED_GAPS;
   const skills = incomingSkills ?? SIMULATED_SKILLS;
+  const displayInfo = cvInfo ?? {
+    ...SIMULATED_CV,
+    targetRole: targetRole || SIMULATED_CV.targetRole,
+  };
 
   const [activeTab, setActiveTab] = useState<"resumen" | "mejoras" | "keywords" | "informe">("resumen");
   const [copiedExtract, setCopiedExtract] = useState(false);
@@ -312,90 +322,6 @@ export default function CvAnalyzerPanel({
                   {cvCopied ? "Copiado" : "Texto"}
                 </button>
               </div>
-            </div>
-          </div>
-          </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-black text-black uppercase tracking-wider flex items-center gap-1.5">
-                  CV actual cargado
-                  <CheckCircle className="h-3 w-3 text-[#B50E30]" />
-                </p>
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-0 text-[9px] font-semibold text-neutral-500">
-                  <span className="font-extrabold text-black">{displayInfo.fileName}</span>
-                  <span className="w-0.5 h-0.5 bg-neutral-300 rounded-full" />
-                  <span>{displayInfo.format}</span>
-                  <span className="w-0.5 h-0.5 bg-neutral-300 rounded-full" />
-                  <span>{displayInfo.source}</span>
-                  <span className="w-0.5 h-0.5 bg-neutral-300 rounded-full" />
-                  <span>{displayInfo.status}</span>
-                  <span className="w-0.5 h-0.5 bg-neutral-300 rounded-full" />
-                  <span>Score: {analysis.score}%</span>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-1.5 shrink-0 no-print">
-                <button
-                  type="button"
-                  onClick={handlePrintCv}
-                  className="px-3 py-1.5 bg-black hover:bg-neutral-800 text-white font-black uppercase tracking-wider rounded-none text-[10px] flex items-center gap-1.5 transition cursor-pointer"
-                  title="Imprimir o guardar como PDF"
-                >
-                  <Printer className="h-3.5 w-3.5" />
-                  PDF
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCopyCvText}
-                  className="px-3 py-1.5 border border-black hover:bg-neutral-50 text-black font-black uppercase tracking-wider rounded-none text-[10px] flex items-center gap-1.5 transition cursor-pointer"
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                  {cvCopied ? "Copiado" : "Texto"}
-                </button>
-              </div>
-=======
-          {/* -------- CARD: CV ACTUAL CARGADO -------- */}
-          <div className="bg-white rounded-none border border-utp-border p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-4 min-w-0">
-                <div className="h-12 w-12 bg-black flex items-center justify-center shrink-0">
-                  <FileText className="h-6 w-6 text-white" />
-                </div>
-                <div className="min-w-0 space-y-0.5">
-                  <p className="text-sm font-black text-black uppercase tracking-wider flex items-center gap-2">
-                    CV actual cargado
-                    <CheckCircle className="h-3.5 w-3.5 text-[#B50E30]" />
-                  </p>
-                  <p className="text-xs font-extrabold text-black truncate">{SIMULATED_CV.fileName}</p>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">
-                    <span>{SIMULATED_CV.format}</span>
-                    <span className="w-1 h-1 bg-neutral-300" />
-                    <span>Fuente: {SIMULATED_CV.source}</span>
-                    <span className="w-1 h-1 bg-neutral-300" />
-                    <span>Estado: {SIMULATED_CV.status}</span>
-                    <span className="w-1 h-1 bg-neutral-300" />
-                    <span>Vacante: {SIMULATED_CV.targetRole}</span>
-                    <span className="w-1 h-1 bg-neutral-300" />
-                    <span>Análisis: {SIMULATED_CV.analysisDate}</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const content = analysis.atsFormattedCvAdvice;
-                  const blob = new Blob([content], { type: "text/plain" });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = "CV_Aaron_Silva_Optimizado.txt";
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
-                className="px-4 py-2 border border-black text-black font-black uppercase tracking-wider rounded-none text-[11px] flex items-center gap-1.5 transition-all duration-200 cursor-pointer shrink-0 hover:bg-[#B50E30] hover:text-white hover:border-[#B50E30] active:bg-[#B50E30] active:text-white"
-              >
-                <Download className="h-3.5 w-3.5" />
-                Descargar CV
-              </button>
->>>>>>> origin/vacantes-match
             </div>
           </div>
 

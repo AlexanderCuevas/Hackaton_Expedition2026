@@ -854,7 +854,13 @@ export default function App() {
                 >
                   <UserProfilePanel
                     onNavigateToMyCourses={() => setView("mycourses")}
-                    onAvatarChange={(url) => setProfile((p) => ({ ...p, avatarUrl: url }))}
+                    onAvatarChange={(url) => {
+                      setProfile((p) => {
+                        const updated = { ...p, avatarUrl: url };
+                        localStorage.setItem("sp_profile", JSON.stringify(updated));
+                        return updated;
+                      });
+                    }}
                   />
                 </motion.div>
               )}

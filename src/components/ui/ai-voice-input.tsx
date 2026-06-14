@@ -1,167 +1,84 @@
-import { Mic } from "lucide-react";
-import { useState, useEffect } from "react";
-import { cn } from "@/src/lib/utils";
+import { Mic, MicOff } from "lucide-react"
+import { cn } from "@/src/lib/utils"
+import { useSpeechRecognition } from "@/src/hooks/use-speech-recognition"
 
 interface AIVoiceInputProps {
-  onStart?: () => void;
-  onStop?: (duration: number) => void;
-  visualizerBars?: number;
-  demoMode?: boolean;
-  demoInterval?: number;
-  className?: string;
-  compact?: boolean;
+  onInterimTranscript?: (text: string) => void
+  onFinalTranscript?: (text: string) => void
+  disabled?: boolean
+  className?: string
+  compact?: boolean
 }
 
 export function AIVoiceInput({
-  onStart,
-  onStop,
-  visualizerBars = 48,
-  demoMode = false,
-  demoInterval = 3000,
+  onInterimTranscript,
+  onFinalTranscript,
+  disabled = false,
   className,
-  compact = false
+  compact = false,
 }: AIVoiceInputProps) {
-  const [submitted, setSubmitted] = useState(false);
-  const [time, setTime] = useState(0);
-  const [isClient, setIsClient] = useState(false);
-  const [isDemo, setIsDemo] = useState(demoMode);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    if (submitted) {
-      onStart?.();
-      intervalId = setInterval(() => {
-        setTime((t) => t + 1);
-      }, 1000);
-    } else {
-      onStop?.(time);
-      setTime(0);
-    }
-
-    return () => clearInterval(intervalId);
-  }, [submitted, time, onStart, onStop]);
-
-  useEffect(() => {
-    if (!isDemo) return;
-
-    let timeoutId: NodeJS.Timeout;
-    const runAnimation = () => {
-      setSubmitted(true);
-      timeoutId = setTimeout(() => {
-        setSubmitted(false);
-        timeoutId = setTimeout(runAnimation, 1000);
-      }, demoInterval);
-    };
-
-    const initialTimeout = setTimeout(runAnimation, 100);
-    return () => {
-      clearTimeout(timeoutId);
-      clearTimeout(initialTimeout);
-    };
-  }, [isDemo, demoInterval]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+  const { isListening, startListening, stopListening, isSupported, error } =
+    useSpeechRecognition(onInterimTranscript, onFinalTranscript)
 
   const handleClick = () => {
-    if (isDemo) {
-      setIsDemo(false);
-      setSubmitted(false);
-    } else {
-      setSubmitted((prev) => !prev);
-    }
-  };
+    if (disabled) return
+    if (isListening) stopListening()
+    else startListening()
+  }
 
   if (compact) {
     return (
       <button
         type="button"
         onClick={handleClick}
+        disabled={disabled || !isSupported}
+        title={
+          !isSupported
+            ? "Reconocimiento de voz no disponible. Usa Chrome."
+            : isListening
+              ? "Detener"
+              : "Hablar"
+        }
         className={cn(
-          "h-10 w-10 flex items-center justify-center rounded-none transition shrink-0 border",
-          submitted
-            ? "bg-[#B50E30] text-white border-[#B50E30]"
+          "h-10 w-10 flex items-center justify-center rounded-none transition shrink-0 border cursor-pointer",
+          isListening
+            ? "bg-[#B50E30] text-white border-[#B50E30] animate-pulse"
             : "bg-white text-black border-utp-border hover:border-black",
-          className
+          disabled && "opacity-50 cursor-not-allowed",
+          className,
         )}
       >
-        {submitted ? (
-          <div className="w-4 h-4 rounded-sm animate-spin bg-white" style={{ animationDuration: "3s" }} />
-        ) : (
-          <Mic className="h-4 w-4" />
-        )}
+        {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
       </button>
-    );
+    )
   }
 
   return (
     <div className={cn("w-full py-4", className)}>
       <div className="relative max-w-xl w-full mx-auto flex items-center flex-col gap-2">
         <button
-          className={cn(
-            "group w-16 h-16 rounded-xl flex items-center justify-center transition-colors",
-            submitted
-              ? "bg-none"
-              : "bg-none hover:bg-black/10 dark:hover:bg-white/10"
-          )}
           type="button"
           onClick={handleClick}
-        >
-          {submitted ? (
-            <div
-              className="w-6 h-6 rounded-sm animate-spin bg-black dark:bg-white cursor-pointer pointer-events-auto"
-              style={{ animationDuration: "3s" }}
-            />
-          ) : (
-            <Mic className="w-6 h-6 text-black/70 dark:text-white/70" />
+          disabled={disabled || !isSupported}
+          className={cn(
+            "w-16 h-16 rounded-xl flex items-center justify-center transition-colors cursor-pointer",
+            isListening
+              ? "bg-[#B50E30] text-white animate-pulse"
+              : "bg-black/5 hover:bg-black/10 text-black/70",
+            disabled && "opacity-50 cursor-not-allowed",
           )}
+        >
+          {isListening ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
         </button>
 
-        <span
-          className={cn(
-            "font-mono text-sm transition-opacity duration-300",
-            submitted
-              ? "text-black/70 dark:text-white/70"
-              : "text-black/30 dark:text-white/30"
-          )}
-        >
-          {formatTime(time)}
-        </span>
+        {!isSupported && (
+          <p className="text-xs text-red-500 font-medium">
+            Tu navegador no soporta reconocimiento de voz. Usa Chrome.
+          </p>
+        )}
 
-        <div className="h-4 w-64 flex items-center justify-center gap-0.5">
-          {[...Array(visualizerBars)].map((_, i) => (
-            <div
-              key={i}
-              className={cn(
-                "w-0.5 rounded-full transition-all duration-300",
-                submitted
-                  ? "bg-black/50 dark:bg-white/50 animate-pulse"
-                  : "bg-black/10 dark:bg-white/10 h-1"
-              )}
-              style={
-                submitted && isClient
-                  ? {
-                      height: `${20 + Math.random() * 80}%`,
-                      animationDelay: `${i * 0.05}s`,
-                    }
-                  : undefined
-              }
-            />
-          ))}
-        </div>
-
-        <p className="h-4 text-xs text-black/70 dark:text-white/70">
-          {submitted ? "Listening..." : "Click to speak"}
-        </p>
+        {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
       </div>
     </div>
-  );
+  )
 }

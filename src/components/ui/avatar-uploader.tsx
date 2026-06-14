@@ -33,10 +33,12 @@ async function getCroppedImg(
     img.src = imageSrc
   })
 
-  const x = Math.round(pixelCrop.x)
-  const y = Math.round(pixelCrop.y)
-  const w = Math.round(pixelCrop.width)
-  const h = Math.round(pixelCrop.height)
+  if (!image.width || !image.height) throw new Error("Invalid image dimensions")
+
+  const x = Math.min(Math.max(0, Math.round(pixelCrop.x)), image.width - 1)
+  const y = Math.min(Math.max(0, Math.round(pixelCrop.y)), image.height - 1)
+  const w = Math.min(Math.round(pixelCrop.width), image.width - x)
+  const h = Math.min(Math.round(pixelCrop.height), image.height - y)
 
   if (w < 1 || h < 1) throw new Error("Invalid crop dimensions")
 
@@ -83,10 +85,10 @@ export function AvatarUploader({
     try {
       const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels)
       onChange(croppedImage)
-      setOpen(false)
     } catch {
-      // crop failed silently
+      onChange(imageSrc)
     } finally {
+      setOpen(false)
       setIsCropping(false)
     }
   }, [imageSrc, croppedAreaPixels, onChange])

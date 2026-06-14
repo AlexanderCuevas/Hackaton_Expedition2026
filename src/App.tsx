@@ -904,6 +904,7 @@ export default function App() {
                 >
                   <InterviewPanel 
                     targetRole={profile.targetRole}
+                    avatarUrl={profile.avatarUrl}
                     onSessionComplete={(newScore) => {
                       const scoreIncrease = Math.max(0, Math.floor((newScore - profile.employabilityScore) / 4));
                       if (scoreIncrease > 0) {

@@ -109,10 +109,10 @@ function Logo({ dark = false }: { dark?: boolean }) {
       <div>
         <p
           className={`font-black text-[15px] uppercase tracking-tight leading-none ${dark ? "text-white" : "text-black"}`}>
-          Ruta de <span className="text-[#B50E30]">Empleabilidad</span>
+          Despega <span className="text-[#B50E30]">UTP</span>
         </p>
         <p className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${dark ? "text-white/30" : "text-neutral-400"}`}>
-          Plataforma de Crecimiento Profesional
+         Tu ruta de empleabilidad
         </p>
       </div>
     </div>
@@ -213,7 +213,7 @@ function StoryCard({ story }: { story: (typeof STORY_CARDS)[number] }) {
             {story.roleTag}
           </span>
 
-          <p className="text-sm font-medium leading-relaxed text-[#4B5563] sm:text-[15px]">{story.description}</p>
+          <p className="font-sans text-sm font-normal leading-relaxed text-[#4B5563] sm:text-[15px]">{story.description}</p>
         </div>
       </div>
 

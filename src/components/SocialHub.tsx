@@ -4,14 +4,14 @@ import { useNotification } from "../context/NotificationContext";
 import { 
   Users, MessageSquare, ThumbsUp, Sparkles, Send, Tag, Share2, 
   Search, PlusCircle, Check, Briefcase, GraduationCap, Trophy,
-  User, HeartHandshake, Award, X, List
+  User, HeartHandshake, X, List
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { INITIAL_COMMUNITY_POSTS, INITIAL_NETWORKING_CONTACTS } from "../data";
 import { NavBar } from "./ui/tubelight-navbar";
 import { FeedView } from "./ui/feed-view";
 import { Button } from "./ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./ui/card";
+
 
 const COMMUNITY_USER_PROFILES: Record<string, any> = {
   "Diego Alva": {
@@ -584,183 +584,322 @@ export default function SocialHub() {
             onClick={() => setSelectedUserProfile(null)}
           >
             <motion.div
-              initial={{ scale: 0.95, y: 15 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 15 }}
-              transition={{ type: "spring", duration: 0.4 }}
+              initial={{ scale: 0.92, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.92, y: 20, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-[90vw] max-w-lg"
+              className="w-[90vw] max-w-2xl"
             >
-              <Card className="w-full bg-white shadow-xl border-gray-200 relative overflow-hidden rounded-2xl">
+              <div className="w-full bg-white shadow-xl border border-gray-200 relative overflow-hidden">
                 {/* Close Button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
+                <button
+                  type="button"
                   onClick={() => setSelectedUserProfile(null)}
-                  className="absolute top-3 right-3 z-20 h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm text-gray-500 hover:text-gray-800 hover:bg-white border border-gray-200"
+                  className="absolute top-3 right-3 z-20 h-8 w-8 flex items-center justify-center bg-white/80 backdrop-blur-sm text-gray-500 hover:text-gray-800 hover:bg-white border border-gray-200 transition-colors cursor-pointer"
                 >
                   <X className="h-4 w-4" />
-                </Button>
+                </button>
 
-                {/* Cover Banner */}
-                <div className="h-28 bg-gradient-to-r from-gray-900 via-neutral-800 to-gray-900 relative">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.05)_0px,transparent_100px)]" />
+                {/* Cover Banner — UTP red gradient */}
+                <div className="h-32 bg-gradient-to-r from-[#B50E30] via-[#8a0b25] to-black relative">
+                  <div className="absolute inset-0 utp-diagonal-pattern opacity-[0.07]" />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(255,255,255,0.08)_0px,transparent_120px)]" />
                 </div>
 
-                {/* Avatar overlapping cover */}
-                <div className="relative px-6">
-                  <div className="relative -mt-12 mb-2 flex items-end gap-4">
-                    <div className="relative shrink-0">
+                {/* Header: Avatar + Name + Role */}
+                <div className="relative px-8">
+                  <div className="relative -mt-14 mb-3 flex items-end gap-5">
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", damping: 14, stiffness: 260, delay: 0.1 }}
+                      className="relative shrink-0"
+                    >
                       <img
                         src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUserProfile.name.replace(" (Tú)", "").replace("Ing. ", "").replace("Lic. ", ""))}&background=000&color=fff&size=128&bold=true`}
                         alt={selectedUserProfile.name}
-                        className="h-20 w-20 rounded-2xl border-4 border-white bg-white object-cover shadow-lg"
+                        className="h-24 w-24 border-[3px] border-white bg-white object-cover shadow-lg"
                       />
-                      <div className="absolute -bottom-1 -right-1 h-7 w-7 bg-[#B50E30] rounded-full flex items-center justify-center text-[11px] font-bold text-white shadow-md border-2 border-white">
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.3 }}
+                        className="absolute -bottom-0.5 -right-0.5 h-8 w-8 bg-[#B50E30] flex items-center justify-center text-xs font-bold text-white shadow-md border-[2.5px] border-white"
+                      >
                         {selectedUserProfile.level}
-                      </div>
-                    </div>
+                      </motion.div>
+                    </motion.div>
 
-                    <div className="min-w-0 flex-1 pt-1">
-                      <CardTitle className="text-lg font-bold text-gray-900 tracking-tight truncate">
+                    <div className="min-w-0 flex-1 pt-3">
+                      <h2 className="heading-lg text-black truncate">
                         {selectedUserProfile.name}
-                      </CardTitle>
-                      <p className="text-xs font-semibold text-[#B50E30] tracking-wide truncate">
+                      </h2>
+                      <p className="heading-sm text-[#B50E30] mt-0.5 truncate">
                         {selectedUserProfile.targetRole}
                       </p>
-                      <p className="text-[11px] text-gray-500 font-medium truncate">
+                      <p className="text-xs text-gray-500 font-medium mt-0.5 truncate">
                         {selectedUserProfile.career} • {selectedUserProfile.semester}º Ciclo
                       </p>
                     </div>
                   </div>
 
-                  {/* Type badge + ID row */}
-                  <div className="flex items-center gap-2 pb-4 border-b border-gray-100">
-                    <span className="text-[9px] uppercase font-bold px-2.5 py-1 rounded-md tracking-wide bg-black text-white">
+                  {/* Type badge + status */}
+                  <div className="flex items-center gap-2 pb-4 border-b border-gray-200">
+                    <span className="heading-xs px-2.5 py-1 bg-black text-white">
                       {selectedUserProfile.type}
                     </span>
-                    <span className="text-[9px] font-semibold text-gray-400">ID: UTP-{selectedUserProfile.xp + 1092}</span>
-                    <span className="ml-auto text-[9px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
-                      ● Disponible para networking
+                    <span className="text-[10px] font-semibold text-gray-400">ID: UTP-{selectedUserProfile.xp + 1092}</span>
+                    <span className="ml-auto flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Disponible
                     </span>
                   </div>
                 </div>
 
-                <CardContent className="px-6 pt-4 pb-2 space-y-5">
-                  {/* Bio block */}
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <h4 className="text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-1">Acerca de</h4>
-                    <p className="text-xs text-gray-700 leading-relaxed font-[425] italic">
-                      "{selectedUserProfile.bio}"
-                    </p>
-                  </div>
+                {/* Content: 2-column grid */}
+                <div className="px-8 pt-5 pb-3 grid grid-cols-1 md:grid-cols-5 gap-6">
+                  {/* LEFT COL (3/5) */}
+                  <div className="md:col-span-3 space-y-5">
+                    {/* Bio */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.15 }}
+                      className="bg-neutral-50 p-5 border-l-2 border-[#B50E30]"
+                    >
+                      <h4 className="heading-xs text-neutral-500 mb-2 flex items-center gap-1.5">
+                        <InfoSvg className="h-3.5 w-3.5 text-[#B50E30]" />
+                        Acerca de
+                      </h4>
+                      <p className="text-sm text-neutral-700 leading-relaxed font-[425] italic">
+                        &ldquo;{selectedUserProfile.bio}&rdquo;
+                      </p>
+                    </motion.div>
 
-                  {/* Skill chips */}
-                  <div className="space-y-2.5">
-                    <h4 className="text-[9px] font-bold text-[#B50E30] uppercase tracking-wider flex items-center gap-1">
-                      <Award className="h-4 w-4" />
-                      Habilidades Destacadas
-                    </h4>
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedUserProfile.skills.map((s: string) => (
-                        <span
-                          key={s}
-                          className="bg-gray-900 text-white text-[10px] font-semibold px-3 py-1 rounded-md tracking-tight"
-                        >
-                          {s}
+                    {/* Skills */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="space-y-3"
+                    >
+                      <h4 className="heading-xs text-[#B50E30] flex items-center gap-1.5">
+                        <SkillsSvg className="h-4 w-4" />
+                        Habilidades Destacadas
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedUserProfile.skills.map((s: string) => (
+                          <motion.span
+                            key={s}
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            className="bg-white text-black border border-gray-300 text-[11px] font-bold px-3 py-1.5 transition-colors duration-200 hover:bg-[#B50E30] hover:text-white hover:border-[#B50E30] cursor-default"
+                          >
+                            {s}
+                          </motion.span>
+                        ))}
+                      </div>
+                    </motion.div>
+
+                    {/* Social networks */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.25 }}
+                      className="space-y-3"
+                    >
+                      <h4 className="heading-xs text-neutral-500 flex items-center gap-1.5">
+                        <Share2 className="h-3.5 w-3.5 text-[#B50E30]" />
+                        Redes y Portafolio
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="inline-flex items-center gap-1.5 bg-[#0077B5]/10 text-[#0077B5] border border-[#0077B5]/20 text-[11px] font-bold px-3 py-1.5">
+                          <ProfileSvg className="h-3.5 w-3.5" />
+                          LinkedIn
                         </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Actividad */}
-                  <div className="space-y-2.5">
-                    <h4 className="text-[9px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-                      <Briefcase className="h-4 w-4 text-[#B50E30]" />
-                      Actividad reciente
-                    </h4>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { label: "Proyectos", value: posts.filter(p => p.category === "proyecto" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length },
-                        { label: "Logros", value: posts.filter(p => p.category === "logro" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length },
-                        { label: "Eventos", value: posts.filter(p => p.category === "evento" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length },
-                      ].map((item, i) => (
-                        <div key={i} className="text-center py-3 bg-gray-50 rounded-xl border border-gray-100">
-                          <span className="text-sm font-bold text-gray-900 block">{item.value}</span>
-                          <span className="text-[9px] font-semibold text-gray-400 uppercase">{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Stats row */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="text-center py-3 bg-gray-50 rounded-xl border border-gray-100">
-                      <span className="text-[9px] font-bold uppercase text-gray-400 block pb-0.5">Puntos de XP</span>
-                      <span className="text-xs font-bold text-gray-900">{selectedUserProfile.xp} XP</span>
-                    </div>
-                    <div className="text-center py-3 bg-gray-50 rounded-xl border border-gray-100">
-                      <span className="text-[9px] font-bold uppercase text-gray-400 block pb-0.5">Rango Académico</span>
-                      <span className="text-xs font-bold text-[#B50E30]">MEMBER L{selectedUserProfile.level}</span>
-                    </div>
-                  </div>
-
-                  {/* Redes sociales */}
-                  <div className="space-y-2.5">
-                    <h4 className="text-[9px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-                      <Share2 className="h-4 w-4 text-[#B50E30]" />
-                      Redes y Portafolio
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        { icon: "in", label: "LinkedIn", color: "bg-blue-100 text-blue-700" },
-                        { icon: "gh", label: "GitHub", color: "bg-gray-100 text-gray-700" },
-                        { icon: "pf", label: "Portafolio", color: "bg-purple-100 text-purple-700" },
-                      ].map((net, i) => (
-                        <span
-                          key={i}
-                          className={`text-[10px] font-semibold px-3 py-1.5 rounded-lg ${net.color} flex items-center gap-1`}
-                        >
-                          {net.label}
+                        <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 border border-gray-200 text-[11px] font-bold px-3 py-1.5">
+                          <ConfigSvg className="h-3.5 w-3.5" />
+                          GitHub
                         </span>
-                      ))}
-                    </div>
+                        <span className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold px-3 py-1.5">
+                          <DownloadSvg className="h-3.5 w-3.5" />
+                          Portafolio
+                        </span>
+                      </div>
+                    </motion.div>
                   </div>
-                </CardContent>
 
-                <CardFooter className="px-6 pb-5 pt-3 flex justify-end gap-2 border-t border-gray-100">
-                  <Button
-                    variant="outline"
+                  {/* RIGHT COL (2/5) */}
+                  <div className="md:col-span-2 space-y-4">
+                    {/* Stats cards */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="grid grid-cols-2 gap-3"
+                    >
+                      <div className="bg-neutral-50 border border-neutral-200 p-4 text-center space-y-1">
+                        <GrowthSvg className="h-5 w-5 text-[#B50E30] mx-auto" />
+                        <div className="text-lg font-black text-black">{selectedUserProfile.xp}</div>
+                        <div className="heading-xs text-neutral-400">XP Total</div>
+                      </div>
+                      <div className="bg-neutral-50 border border-neutral-200 p-4 text-center space-y-1">
+                        <StarSvg className="h-5 w-5 text-[#B50E30] mx-auto" />
+                        <div className="text-lg font-black text-[#B50E30]">LVL {selectedUserProfile.level}</div>
+                        <div className="heading-xs text-neutral-400">Rango</div>
+                      </div>
+                    </motion.div>
+
+                    {/* Activity */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.25 }}
+                      className="bg-neutral-50 border border-neutral-200 p-4 space-y-3"
+                    >
+                      <h4 className="heading-xs text-neutral-500 flex items-center gap-1.5">
+                        <Briefcase className="h-3.5 w-3.5 text-[#B50E30]" />
+                        Actividad
+                      </h4>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          {
+                            label: "Proyectos",
+                            value: posts.filter(p => p.category === "proyecto" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length,
+                            icon: <TargetSvg className="h-4 w-4 text-[#B50E30]" />
+                          },
+                          {
+                            label: "Logros",
+                            value: posts.filter(p => p.category === "logro" && p.authorName.includes(selectedUserProfile.name.replace(" (Tú)", "").trim())).length,
+                            icon: <StarSvg className="h-4 w-4 text-[#B50E30]" />
+                          },
+                          {
+                            label: "Conexiones",
+                            value: contacts.filter(c => c.isConnected).length,
+                            icon: <NetworkSvg className="h-4 w-4 text-[#B50E30]" />
+                          },
+                        ].map((item, i) => (
+                          <div key={i} className="text-center py-3 bg-white border border-neutral-100">
+                            <div className="mb-1 flex justify-center">{item.icon}</div>
+                            <span className="text-base font-black text-black block">{item.value}</span>
+                            <span className="heading-xs text-neutral-400">{item.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="px-8 pb-6 pt-4 flex justify-end gap-3 border-t border-gray-200">
+                  <button
+                    type="button"
                     onClick={() => setSelectedUserProfile(null)}
-                    className="text-xs font-semibold rounded-lg border-gray-200 text-gray-600 hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-300 text-xs font-bold tracking-wider text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                   >
                     Cerrar
-                  </Button>
+                  </button>
 
                   {selectedUserProfile.name.includes("Tú") ? (
-                    <div className="px-4 py-2 bg-gray-100 text-gray-400 border border-gray-200 rounded-lg text-xs font-semibold select-none">
+                    <div className="px-5 py-2 bg-gray-100 text-gray-400 border border-gray-200 text-xs font-bold tracking-wider select-none">
                       Tú (Estudiante)
                     </div>
                   ) : connectedProfiles[selectedUserProfile.name] || selectedUserProfile.name.includes("Andrea Salazar") ? (
-                    <div className="px-4 py-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 select-none">
+                    <div className="px-5 py-2 bg-gray-50 text-gray-700 border border-gray-200 text-xs font-bold tracking-wider flex items-center gap-1.5 select-none">
                       <Check className="h-3.5 w-3.5 text-[#B50E30] stroke-[3]" />
                       Conectados
                     </div>
                   ) : (
-                    <Button
+                    <button
+                      type="button"
                       onClick={() => handleUserProfileConnect(selectedUserProfile.name)}
-                      className="bg-[#B50E30] hover:bg-[#85061B] text-white text-xs font-semibold rounded-lg shadow-none"
+                      className="bg-[#B50E30] hover:bg-[#85061B] text-white text-xs font-bold tracking-wider px-5 py-2 flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <HeartHandshake className="h-3.5 w-3.5 mr-1" />
+                      <HeartHandshake className="h-3.5 w-3.5" />
                       Conectar
-                    </Button>
+                    </button>
                   )}
-                </CardFooter>
-              </Card>
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
+}
+
+/* ── Inline SVG icon components (from iconos-empleabilidad-utp) ── */
+function InfoSvg({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="16" x2="12" y2="12" />
+    <line x1="12" y1="8" x2="12.01" y2="8" />
+  </svg>;
+}
+function SkillsSvg({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 4V2 M20 12h2 M4 12H2 M12 22v-2" />
+    <path d="M11 7H6a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h4" />
+    <path d="M18 11v5a2 2 0 0 1-2 2h-5" />
+    <path d="M14 4h4a2 2 0 0 1 2 2v5" />
+    <rect x="11" y="10" width="4" height="4" rx="1" />
+  </svg>;
+}
+function GrowthSvg({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="3" y="14" width="3" height="7" rx="0.5" />
+    <rect x="9" y="10" width="3" height="11" rx="0.5" />
+    <rect x="15" y="5" width="3" height="16" rx="0.5" />
+    <path d="M4 11l6-5 6 4 5-8" />
+    <polyline points="17 2 21 2 21 6" />
+  </svg>;
+}
+function StarSvg({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="9" r="6" />
+    <path d="M8.5 14.5L6 21l6-3 6 3-2.5-6.5" />
+    <polygon points="12 6 13 8 15 8 13.5 9.5 14 11.5 12 10.5 10 11.5 10.5 9.5 9 8 11 8" />
+  </svg>;
+}
+function TargetSvg({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" />
+    <path d="M22 2l-7.5 7.5" />
+    <polygon points="22 2 18 2 22 6 22 2" />
+  </svg>;
+}
+function NetworkSvg({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="3" />
+    <circle cx="4" cy="4" r="2" />
+    <circle cx="20" cy="4" r="2" />
+    <circle cx="4" cy="20" r="2" />
+    <circle cx="20" cy="20" r="2" />
+    <line x1="6" y1="6" x2="9.5" y2="9.5" />
+    <line x1="18" y1="6" x2="14.5" y2="9.5" />
+    <line x1="6" y1="20" x2="9.5" y2="14.5" />
+    <line x1="18" y1="20" x2="14.5" y2="14.5" />
+  </svg>;
+}
+function ProfileSvg({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>;
+}
+function ConfigSvg({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </svg>;
+}
+function DownloadSvg({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
+  </svg>;
 }

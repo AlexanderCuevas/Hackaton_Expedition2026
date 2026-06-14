@@ -8,7 +8,7 @@ import {
   TrendingUp, BarChart3, Shield, ChevronRight, ChevronLeft,
   Eye, EyeOff, ShieldAlert, ShieldCheck, CheckCircle, AlertTriangle, Info
 } from "lucide-react";
-import principalImg from "./assets/Principal.png";
+import principalImg from "./assets/Imagen-landingPage.png";
 import sofiaImg from "./assets/Sofia.png";
 import juanImg from "./assets/Juan.png";
 import { ImageGallery, ImageGalleryHandle } from "./ui/carousel-circular-image-gallery";
@@ -595,23 +595,22 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
         </header>
 
         {/* ══ HERO ════════════════════════════════════════════════════════ */}
-        <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center pt-24 pb-16 px-6 bg-white overflow-hidden">
+        <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center pt-24 pb-16 px-6 bg-cover overflow-hidden"
+          style={{ backgroundImage: `url(${principalImg})`, backgroundPosition: "center right -80px" }}>
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/55 to-black/65 pointer-events-none" />
           {/* Decorative blobs */}
           <div className="absolute top-0 right-0 w-[700px] h-[700px] rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(181,14,48,0.07) 0%, transparent 70%)", transform: "translate(30%, -30%)" }} />
+            style={{ background: "radial-gradient(circle, rgba(181,14,48,0.15) 0%, transparent 70%)", transform: "translate(30%, -30%)" }} />
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(181,14,48,0.05) 0%, transparent 70%)", transform: "translate(-30%, 30%)" }} />
-          {/* Dot grid */}
-          <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
-            style={{ backgroundImage: "radial-gradient(#000 1.5px, transparent 1.5px)", backgroundSize: "28px 28px" }} />
+            style={{ background: "radial-gradient(circle, rgba(181,14,48,0.12) 0%, transparent 70%)", transform: "translate(-30%, 30%)" }} />
 
-          <div className="max-w-7xl mx-auto w-full relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div className="max-w-7xl mx-auto w-full relative z-10">
 
-            {/* LEFT */}
-            <div className="space-y-7">
+            <div className="space-y-7 max-w-2xl">
               {/* Headline */}
               <div className="space-y-1">
-                <h1 className="hero-text-1 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-black"
+                <h1 className="hero-text-1 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-white"
                  >
                   Tu primer
                 </h1>
@@ -619,13 +618,13 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                  >
                   empleo
                 </h1>
-                <h1 className="hero-text-3 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-black"
+                <h1 className="hero-text-3 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-white"
                  >
                   empieza aquí.
                 </h1>
               </div>
 
-              <p className="hero-text-2 text-neutral-500 text-base sm:text-lg font-medium leading-relaxed max-w-md">
+              <p className="hero-text-2 text-white/80 text-base sm:text-lg font-medium leading-relaxed max-w-md">
                 IA que diagnostica tus brechas, optimiza tu CV para filtros ATS y conecta tu perfil verificado con las mejores empresas del Perú.
               </p>
 
@@ -637,42 +636,27 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </button>
                 <a href="#historias"
-                  className="group border-2 border-neutral-200 hover:border-neutral-400 text-black text-sm font-black uppercase tracking-widest px-8 py-4 rounded-2xl flex items-center justify-center gap-2 transition-all">
+                  className="group border-2 border-white/30 hover:border-white text-white text-sm font-black uppercase tracking-widest px-8 py-4 rounded-2xl flex items-center justify-center gap-2 transition-all">
                   Ver historias
                   <ChevronDown className="h-4 w-4 transition-transform group-hover:translate-y-1" />
                 </a>
               </div>
 
               {/* Mini stats */}
-              <div className="hero-stats flex items-center gap-8 pt-3 border-t border-neutral-100">
+              <div className="hero-stats flex items-center gap-8 pt-3 border-t border-white/20">
                 {[{ val: "1,500+", label: "Estudiantes" }, { val: "92%", label: "Contratados" }, { val: "20+", label: "Empresas" }].map((s) => (
                   <div key={s.label}>
-                    <p className="text-2xl font-black text-black">{s.val}</p>
-                    <p className="text-neutral-400 text-[9px] font-bold uppercase tracking-widest mt-0.5">{s.label}</p>
+                    <p className="text-2xl font-black text-white">{s.val}</p>
+                    <p className="text-white/60 text-[9px] font-bold uppercase tracking-widest mt-0.5">{s.label}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* RIGHT — Principal image */}
-            <div className="hidden lg:flex items-center justify-center relative">
-              <div className="absolute inset-0 pointer-events-none"
-                style={{ background: "radial-gradient(circle, rgba(181,14,48,0.08) 0%, transparent 65%)", filter: "blur(40px)", transform: "scale(1.15)" }} />
-              <img
-                src={principalImg}
-                alt="Ecosistema de Competencias Ruta de Empleabilidad"
-                className="hero-card relative w-full h-auto object-contain"
-                style={{
-                  maxHeight: "1000px",
-                  animation: "floatA 5s ease-in-out infinite",
-                  filter: "drop-shadow(0 20px 40px rgba(181,14,48,0.12))",
-                }}
-              />
-            </div>
           </div>
 
           {/* Scroll arrow */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-neutral-300">
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white/50">
             <span className="text-[9px] font-bold uppercase tracking-widest">Scroll</span>
             <ChevronDown className="h-4 w-4" style={{ animation: "floatB 1.8s ease-in-out infinite" }} />
           </div>

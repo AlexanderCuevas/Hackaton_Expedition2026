@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { UserProfile, SkillGap, CareerMission, CvAnalysis, InterviewSession, EnrolledCourse, CvMeta } from "./types";
 import { 
   Trophy, Award, BookOpen, AlertCircle, ArrowRight, CheckCircle, Lock, Play, Zap,
-  Briefcase, GraduationCap, FileText, MessageSquare, Users, PhoneCall, ChevronRight,
+  Briefcase, GraduationCap, FileText, MessageSquare, Users, PhoneCall, ChevronRight, ChevronLeft,
   Menu, X, Sparkles, LogOut, CheckSquare, Bell, Calendar, User
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -143,6 +143,7 @@ export default function App() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [diagnosisCompleted, setDiagnosisCompleted] = useState(false);
   const [cvAnalysis, setCvAnalysis] = useState<CvAnalysis | null>(null);
   const [cvMeta, setCvMeta] = useState<CvMeta | null>(null);
@@ -679,16 +680,23 @@ export default function App() {
       </AnimatePresence>
 
       {/* Main Framework Wrapper */}
-      <div className="flex flex-1">
-        {/* Sidebar Container */}
-        <div className="w-64 bg-black text-white/75 border-r border-[#1a1a1a] flex flex-col justify-between p-5 shrink-0 hidden md:flex">
+      <div className="flex min-h-screen">
+        {/* Sidebar Container - Fixed, full height */}
+        <div className={`${sidebarOpen ? 'w-64' : 'w-16'} fixed left-0 top-0 h-screen bg-black text-white/75 border-r border-[#1a1a1a] flex flex-col justify-between p-5 hidden md:flex transition-all duration-300 z-40 group`}>
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 bg-[#B50E30] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10 shadow-md"
+          >
+            {sidebarOpen ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+          </button>
           <div className="space-y-6">
             {/* Signature Brand Header */}
-            <div className="flex items-center gap-2.5 pb-5 border-b border-[#1a1a1a]">
+            <div className={`flex items-center gap-2.5 pb-5 border-b border-[#1a1a1a] ${sidebarOpen ? '' : 'justify-center'}`}>
               <div className="h-9 w-9 bg-utp-red flex items-center justify-center text-white rounded">
                 <Sparkles className="h-5 w-5 fill-white" />
               </div>
-              <div className="flex flex-col">
+              <div className={`flex-col ${sidebarOpen ? 'flex' : 'hidden'}`}>
                 <span className="font-black text-white text-base tracking-tight leading-none uppercase">SkillPath AI</span>
                 <span className="text-[10px] text-utp-red font-bold tracking-widest mt-1">HACKATHON UTP+</span>
               </div>
@@ -704,7 +712,7 @@ export default function App() {
                 { id: "interviewer", label: "Entrevistas IA", icon: MessageSquare },
                 { id: "jobs", label: "Vacantes & Match", icon: Briefcase },
                 { id: "resources", label: "Capacitaciones", icon: Award },
-                { id: "community", label: "Feed / Networking", icon: Users },
+                { id: "community", label: "Networking", icon: Users },
                 { id: "whatsapp", label: "WhatsApp Tutor", icon: PhoneCall },
               ]
                 .filter((item) => !(item.id === "diagnostico" && diagnosisCompleted))
@@ -712,17 +720,17 @@ export default function App() {
                 const IconComponent = item.icon;
                 const isActive = view === item.id;
                 return (
-                  <button
-                    key={item.id}
-                    onClick={() => setView(item.id)}
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-none text-xs font-bold font-sans uppercase tracking-wider transition cursor-pointer select-none ${
-                      isActive
-                        ? "bg-utp-red text-white"
-                        : "hover:bg-[#121212] text-white/80 hover:text-white"
-                    }`}
-                  >
-                    <IconComponent className={`h-4 w-4 ${isActive ? "text-white" : "text-neutral-400"}`} />
-                    <span>{item.label}</span>
+                    <button
+                      key={item.id}
+                      onClick={() => setView(item.id)}
+                      className={`w-full flex items-center ${sidebarOpen ? 'gap-3 px-3.5' : 'justify-center px-1'} py-2.5 rounded-none text-xs font-bold font-sans uppercase tracking-wider transition cursor-pointer select-none ${
+                        isActive
+                          ? "bg-utp-red text-white"
+                          : "hover:bg-[#121212] text-white/80 hover:text-white"
+                      }`}
+                    >
+                      <IconComponent className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-neutral-400"}`} />
+                    <span className={`${sidebarOpen ? 'inline' : 'hidden'}`}>{item.label}</span>
                   </button>
                 );
               })}
@@ -730,15 +738,15 @@ export default function App() {
           </div>
 
           {/* User Logged Info Capsule */}
-          <div className="bg-[#121212] p-4 rounded-none space-y-3.5 border border-[#1a1a1a]">
-            <div className="flex items-center justify-between">
-              <div className="text-xs font-extrabold text-white max-w-[120px] truncate">{profile.name}</div>
+          <div className={`${sidebarOpen ? 'p-4' : 'p-2'} bg-[#121212] rounded-none space-y-3.5 border border-[#1a1a1a]`}>
+            <div className={`flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
+              <div className={`text-xs font-extrabold text-white max-w-[120px] truncate ${sidebarOpen ? 'block' : 'hidden'}`}>{profile.name}</div>
               <span className="bg-utp-red text-white font-black text-[9px] px-2 py-0.5 rounded-none uppercase">
                 LVL {profile.level}
               </span>
             </div>
 
-            <div className="space-y-1.5">
+            <div className={`space-y-1.5 ${sidebarOpen ? 'block' : 'hidden'}`}>
               <div className="flex items-center justify-between text-[9px] text-neutral-400 uppercase font-bold tracking-wider">
                 <span>XP: {profile.xp}</span>
                 <span>{profile.progressToNextLevel}%</span>
@@ -756,14 +764,14 @@ export default function App() {
               onClick={handleLogout}
               className="w-full flex items-center justify-center gap-2 text-[9px] font-bold uppercase tracking-wider text-neutral-400 hover:text-white transition cursor-pointer pt-1"
             >
-              <LogOut className="h-3.5 w-3.5" />
-              Cerrar sesión
+              <LogOut className="h-3.5 w-3.5 shrink-0" />
+              <span className={sidebarOpen ? 'inline' : 'hidden'}>Cerrar sesión</span>
             </button>
           </div>
         </div>
 
         {/* Page Content viewport */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className={`flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-16'}`}>
           {/* Universal Header Layout */}
           <header className="bg-white border-b border-utp-border px-6 py-4 flex items-center justify-between z-20 shadow-none">
             {/* Left elements */}
@@ -780,9 +788,16 @@ export default function App() {
               </div>
             </div>
 
-            {/* Right side — notification bell */}
-            <div className="flex items-center gap-3">
+            {/* Right side — notification bell & profile */}
+            <div className="flex items-center gap-2">
               <NotificationBell onClick={() => setNotifDrawerOpen(true)} />
+              <button
+                type="button"
+                onClick={() => setView("profile")}
+                className="h-8 w-8 flex items-center justify-center bg-neutral-100 hover:bg-[#B50E30] hover:text-white transition cursor-pointer"
+              >
+                <User className="h-4 w-4" />
+              </button>
             </div>
           </header>
 
@@ -836,14 +851,7 @@ export default function App() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  <UserProfilePanel 
-                    profile={profile}
-                    onUpdateProfile={(updated) => {
-                      setProfile(updated);
-                      localStorage.setItem("sp_profile", JSON.stringify(updated));
-                    }}
-                    gaps={gaps}
-                    missions={missions}
+                  <UserProfilePanel
                     onNavigateToMyCourses={() => setView("mycourses")}
                   />
                 </motion.div>
@@ -862,8 +870,6 @@ export default function App() {
                     gaps={gaps}
                     currentSkills={profile.currentSkills}
                     savedAnalysis={cvAnalysis ?? undefined}
-                    cvInfo={cvMeta ?? undefined}
-                    cvText={cvText || undefined}
                     onNavigateToDiagnostico={() => setView("diagnostico")}
                     onAnalysisResult={(res) => {
                       setCvAnalysis(res);
@@ -921,7 +927,7 @@ export default function App() {
                   <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden flex items-center justify-between">
                     <div>
                       <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
-                      <h2 className="text-base font-black text-black uppercase tracking-widest flex items-center gap-2">
+                      <h2 className="heading-md text-black tracking-widest flex items-center gap-2">
                         <Award className="h-5 w-5 text-[#B50E30]" />
                         Beca UTP+: Capacitaciones & Cursos
                       </h2>
@@ -942,7 +948,7 @@ export default function App() {
                       };
                       return (
                         <div key={cert.id} className="bg-white border border-neutral-200 shadow-sm flex flex-col">
-                          <div className="h-32 w-full overflow-hidden bg-neutral-200">
+                          <div className="h-64 w-full overflow-hidden bg-neutral-200">
                             {cert.image && <img src={cert.image} alt={cert.title} className="w-full h-full object-cover" />}
                           </div>
                           <div className="p-5 flex-grow">

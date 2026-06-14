@@ -9,9 +9,12 @@ import {
   Eye, EyeOff, ShieldAlert, ShieldCheck, CheckCircle, AlertTriangle, Info
 } from "lucide-react";
 import principalImg from "./assets/Principal.png";
+import sofiaImg from "./assets/Sofia.jpeg";
+import juanImg from "./assets/Juan.jpeg";
 import { ImageGallery, ImageGalleryHandle } from "./ui/carousel-circular-image-gallery";
 import { UserProfile } from "../types";
 import { findStudentByCode, MockStudent } from "../mockStudents";
+import UvpIcon from "./ui/UvpIcon";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────
 interface LandingPageProps {
@@ -55,66 +58,53 @@ const COMPANIES = ["Interbank", "BCP", "BBVA", "Rimac", "Scotiabank", "Repsol", 
 
 const STORIES = [
   {
-    id: 1, name: "Valentina Ríos", career: "Ing. de Software", age: 22, location: "Lima",
-    company: "BCP", role: "Junior Developer", result: "Oferta antes de graduarse",
-    photo: "https://images.unsplash.com/photo-1630939687530-241d630735df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800",
-    badge: "RENACYT · Investigadora", badgeIcon: "🔬",
-    bio: "Egresada UTP · Ing. de Software. Hoy investigadora RENACYT y desarrolladora de innovación en el BCP. Publicó su primer paper sobre fintech en 2025.",
+    id: 1,
+    name: "Juan Carlos Chávez Pérez",
+    campusLabel: "INGENIERÍA DE SISTEMAS E INFORMÁTICA · UTP CHIMBOTE",
+    badge: "ESTUDIANTE INVESTIGADOR",
+    subtitle: "Embajador Estudiantil Microsoft Learn · Investigador RENACYT VII",
+    photo: juanImg,
+    stat: "RENACYT VII",
+    statLabel: "Nivel de Investigador reconocido por CONCYTEC",
     journey: [
-      { icon: "😰", label: "El problema", text: "8° ciclo sin experiencia laboral ni portafolio. Sentía que el mercado era inalcanzable." },
-      { icon: "🎯", label: "Lo que hizo", text: "Completó el diagnóstico IA, optimizó su CV para ATS y practicó entrevistas con el simulador." },
-      { icon: "🏆", label: "El resultado", text: "BCP la contrató como Junior Developer antes de terminar el ciclo. Hoy registrada en RENACYT." },
+      { label: "TALENTO TEMPRANO", text: "Inició su formación académica en Sistemas en UTP Chimbote, combinando sus estudios con una profunda pasión por la investigación desde los primeros ciclos." },
+      { label: "EL HITO HISTÓRICO", text: "Alcanzó un logro que muchos persiguen por años: ser reconocido como Investigador RENACYT Nivel VII por CONCYTEC, aún siendo estudiante universitario." },
+      { label: "EJEMPLO DE ÉXITO", text: "Su historia refleja talento y perseverancia, demostrando que el éxito profesional de alto impacto puede comenzar antes de obtener el título universitario." },
     ],
-    tags: ["CV ATS optimizado", "Simulador de entrevistas", "Portafolio verificado"],
-    stat: "3 meses",
-    statLabel: "de la plataforma a su primer empleo",
+    tags: ["RENACYT", "CONCYTEC", "MICROSOFT LEARN", "INVESTIGACIÓN"],
   },
   {
-    id: 2, name: "Carlos Mendoza", career: "Ing. de Sistemas", age: 23, location: "Lima",
-    company: "Interbank", role: "Full Stack Dev", result: "Contratado en empresa top",
-    photo: "https://images.unsplash.com/photo-1716471453667-94383b1e4859?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800",
-    badge: "RENACYT · Investigador", badgeIcon: "💻",
-    bio: "Egresado UTP · Ing. de Sistemas. Full Stack Developer en Interbank y miembro RENACYT. Lidera automatización que impacta a +50,000 clientes.",
+    id: 2,
+    name: "Sofía Flores Davelouis",
+    campusLabel: "INGENIERÍA INDUSTRIAL · UTP CHIMBOTE",
+    badge: "BECA DE EXCELENCIA",
+    subtitle: "Profesional en el Área de Logística de Austral Group S.A.A. · Egresada UTP",
+    photo: sofiaImg,
+    stat: "Generación Top",
+    statLabel: "de Empleabilidad UTP",
     journey: [
-      { icon: "😰", label: "El problema", text: "9° ciclo con buen promedio pero sin experiencia real ni habilidades de entrevista." },
-      { icon: "🎯", label: "Lo que hizo", text: "Realizó misiones de proyectos reales, acumuló XP y usó el simulador de entrevistas STAR." },
-      { icon: "🏆", label: "El resultado", text: "Interbank lo contrató como Full Stack Dev. Hoy su proyecto impacta a más de 50,000 clientes." },
+      { label: "EL PUNTO DE PARTIDA", text: "Demostró que el éxito se construye desde las aulas universitarias, destacando por su excelencia académica." },
+      { label: "LA RUTA DE CRECIMIENTO", text: "Participó activamente en el programa Generación Top, fortaleciendo sus competencias con el acompañamiento de Empleabilidad UTP." },
+      { label: "EL RESULTADO", text: "Su esfuerzo y preparación le permitieron incorporarse al área de logística de una de las empresas pesqueras más importantes del país, inspirando a otros estudiantes." },
     ],
-    tags: ["Proyectos reales", "Método STAR", "Match de vacantes"],
-    stat: "4 meses",
-    statLabel: "de la plataforma a su primer empleo",
-  },
-  {
-    id: 3, name: "Diego Farfán", career: "Diseño Digital", age: 24, location: "Lima",
-    company: "Startup Lima", role: "UX/UI Designer", result: "Portafolio verificado",
-    photo: "https://images.unsplash.com/photo-1603764377193-75b991876878?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800",
-    badge: "RENACYT · Investigador", badgeIcon: "🎨",
-    bio: "Egresado UTP · Diseño Digital. UX/UI Designer en startup con +10K usuarios activos. Investigador RENACYT en inclusión digital.",
-    journey: [
-      { icon: "😰", label: "El problema", text: "Proyectos universitarios buenos pero sin visibilidad. Ningún empleador los conocía." },
-      { icon: "🎯", label: "Lo que hizo", text: "Convirtió sus proyectos en portafolio verificado por mentores y activó el match de vacantes." },
-      { icon: "🏆", label: "El resultado", text: "Una startup lo contrató antes de graduarse. Su app hoy tiene más de 10,000 usuarios activos." },
-    ],
-    tags: ["Portafolio verificado", "Mentores expertos", "Match directo"],
-    stat: "2 meses",
-    statLabel: "de la plataforma a su primer empleo",
+    tags: ["GENERACIÓN TOP", "EMPLEABILIDAD UTP", "AUSTRAL GROUP"],
   },
 ];
 
 const STEPS = [
-  { n: "01", title: "Diagnóstico IA", desc: "Mapeamos tus competencias en 8 dimensiones y detectamos tus brechas frente al mercado laboral real.", icon: <Sparkles className="h-5 w-5" /> },
-  { n: "02", title: "Ruta Personalizada", desc: "Plan gamificado con misiones, simulacros de entrevista y proyectos reales adaptados a tu carrera.", icon: <Target className="h-5 w-5" /> },
-  { n: "03", title: "Portafolio Verificado", desc: "Proyectos completados generan badges avalados por mentores que los empleadores reconocen y confían.", icon: <Award className="h-5 w-5" /> },
-  { n: "04", title: "Conexión Laboral", desc: "Accede a +20 empresas aliadas que contratan perfiles verificados UTP directamente desde la plataforma.", icon: <Briefcase className="h-5 w-5" /> },
+  { n: "01", title: "Diagnóstico IA", desc: "Mapeamos tus competencias en 8 dimensiones y detectamos tus brechas frente al mercado laboral real.", icon: <UvpIcon name="test-evaluaciones" size={20} /> },
+  { n: "02", title: "Ruta Personalizada", desc: "Plan gamificado con misiones, simulacros de entrevista y proyectos reales adaptados a tu carrera.", icon: <UvpIcon name="metas-profesionales" size={20} /> },
+  { n: "03", title: "Portafolio Verificado", desc: "Proyectos completados generan badges avalados por mentores que los empleadores reconocen y confían.", icon: <UvpIcon name="crecimiento-personal" size={20} /> },
+  { n: "04", title: "Conexión Laboral", desc: "Accede a +20 empresas aliadas que contratan perfiles verificados UTP directamente desde la plataforma.", icon: <UvpIcon name="oportunidades-para-ti" size={20} /> },
 ];
 
 const FEATURES = [
-  { icon: <Sparkles className="h-6 w-6" />, title: "Diagnóstico IA", desc: "Escaneo inmediato de tu perfil. Identifica vacíos en código, metodologías ágiles y habilidades blandas." },
-  { icon: <FileText className="h-6 w-6" />, title: "CV ATS Optimizer", desc: "Optimiza tu currículum para superar los filtros automáticos de las grandes empresas del Perú." },
-  { icon: <Zap className="h-6 w-6" />, title: "Simulador de Entrevistas", desc: "Practica con escenarios reales. Feedback instantáneo con IA entrenada por reclutadores expertos." },
-  { icon: <Target className="h-6 w-6" />, title: "Ruta STAR Gamificada", desc: "Misiones, XP y niveles que convierten tu desarrollo profesional en un juego que sí importa." },
-  { icon: <Award className="h-6 w-6" />, title: "Portafolio Verificado", desc: "Credenciales avaladas por mentores reales. Diferénciate con evidencia, no con promesas." },
-  { icon: <Shield className="h-6 w-6" />, title: "Match de Vacantes", desc: "Tu perfil verificado conecta directamente con empresas que ya confían en el sistema UTP." },
+  { icon: <UvpIcon name="test-evaluaciones" size={24} />, title: "Diagnóstico IA", desc: "Escaneo inmediato de tu perfil. Identifica vacíos en código, metodologías ágiles y habilidades blandas." },
+  { icon: <UvpIcon name="plantillas-cv" size={24} />, title: "CV ATS Optimizer", desc: "Optimiza tu currículum para superar los filtros automáticos de las grandes empresas del Perú." },
+  { icon: <UvpIcon name="habilidades-blandas" size={24} />, title: "Simulador de Entrevistas", desc: "Practica con escenarios reales. Feedback instantáneo con IA entrenada por reclutadores expertos." },
+  { icon: <UvpIcon name="decisiones-proposito" size={24} />, title: "Ruta STAR Gamificada", desc: "Misiones, XP y niveles que convierten tu desarrollo profesional en un juego que sí importa." },
+  { icon: <UvpIcon name="logros-inspiran" size={24} />, title: "Portafolio Verificado", desc: "Credenciales avaladas por mentores reales. Diferénciate con evidencia, no con promesas." },
+  { icon: <UvpIcon name="conexion-empresas" size={24} />, title: "Match de Vacantes", desc: "Tu perfil verificado conecta directamente con empresas que ya confían en el sistema UTP." },
 ];
 
 // ─── ANIMATED SECTION WRAPPER ──────────────────────────────────────────────
@@ -145,7 +135,7 @@ function Logo({ dark = false }: { dark?: boolean }) {
         <circle cx="120" cy="102" r="7" fill="#B50E30" />
       </svg>
       <div>
-        <p style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+        <p
           className={`font-black text-[15px] uppercase tracking-tight leading-none ${dark ? "text-white" : "text-black"}`}>
           Ruta de <span className="text-[#B50E30]">Empleabilidad</span>
         </p>
@@ -181,7 +171,7 @@ function StoriesSection() {
           style={{ opacity: inView ? 1 : 0, transform: inView ? "none" : "translateY(24px)", transition: "all 0.6s ease" }}>
           <div>
             <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.22em] mb-2">Historias reales · Servicio de Empleabilidad</p>
-            <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+            <h2
               className="text-4xl md:text-5xl font-black uppercase text-black leading-none tracking-tight">
               Ellos ya<br /><span className="text-[#B50E30]">lo lograron.</span>
             </h2>
@@ -203,60 +193,94 @@ function StoriesSection() {
           style={{ opacity: inView ? 1 : 0, transition: "opacity 0.8s ease 0.15s" }}>
 
           {/* Circular image gallery */}
-          <div className="relative w-full flex items-center justify-center overflow-hidden rounded-3xl" style={{ minHeight: "320px" }}>
-            <ImageGallery ref={galleryRef} onActiveChange={(i) => setActive(i)} />
+          <div className="relative w-full flex items-center justify-center overflow-hidden rounded-3xl" style={{ minHeight: "420px" }}>
+            <ImageGallery
+              ref={galleryRef}
+              slides={STORIES.map(({ name, photo }) => ({ title: name, url: photo }))}
+              onActiveChange={(i) => setActive(i)}
+            />
           </div>
 
           {/* Content right */}
-          <div className="flex flex-col gap-3 py-1">
+          <div className="flex flex-col gap-6 py-1 lg:gap-8">
 
-            {/* Name + badge header */}
-            <div className="border-b border-neutral-100 pb-3">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[#B50E30] text-[8px] font-black uppercase tracking-[0.2em] mb-0.5">{s.career} · {s.age} años · {s.location}</p>
-                  <h3 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
-                    className="text-xl font-black uppercase text-black tracking-tight leading-none">{s.name}</h3>
-                  <p className="text-neutral-400 text-[11px] font-medium mt-0.5 leading-snug">{s.bio}</p>
+            {/* Etiquetas, nombre y badge */}
+            <div className="border-b border-gray-100 pb-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-[#B50E30] text-xs font-black uppercase tracking-widest mb-2">
+                    {s.campusLabel}
+                  </p>
+                  <h3
+                   
+                    className="text-2xl md:text-3xl font-extrabold uppercase text-black tracking-tight leading-tight"
+                  >
+                    {s.name}
+                  </h3>
+                  <p className="text-gray-600 text-sm font-medium mt-2 leading-relaxed">
+                    {s.subtitle}
+                  </p>
                 </div>
-                <span className="shrink-0 border border-[#B50E30] text-[#B50E30] text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full whitespace-nowrap">{s.badge}</span>
+                <span className="shrink-0 border border-[#B50E30] text-[#B50E30] text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full whitespace-nowrap">
+                  {s.badge}
+                </span>
               </div>
             </div>
 
-            {/* Big stat */}
-            <div className="flex items-end gap-3 border-b border-neutral-100 pb-3">
-              <p style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
-                className="text-4xl font-black text-black leading-none">{s.stat}</p>
-              <div className="mb-1 space-y-0.5">
-                <div className="h-px w-14 bg-[#B50E30]" />
-                <p className="text-neutral-400 text-[10px] font-medium">{s.statLabel}</p>
+            {/* Dato destacado */}
+            <div className="flex items-end gap-4 border-b border-gray-100 pb-4">
+              <p
+               
+                className="text-3xl md:text-4xl font-bold text-black leading-none"
+              >
+                {s.stat}
+              </p>
+              <div className="mb-1 space-y-1">
+                <div className="h-0.5 w-16 bg-[#B50E30]" />
+                <p className="text-gray-500 text-xs font-medium">{s.statLabel}</p>
               </div>
             </div>
 
-            {/* Journey — numbered */}
-            <div className="space-y-0">
+            {/* Lista numerada */}
+            <div className="flex flex-col">
               {s.journey.map((step, i) => (
-                <div key={i} className="flex gap-3 py-2 border-b border-neutral-100 last:border-0">
-                  <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
-                    className="text-[10px] font-black text-neutral-300 shrink-0 mt-0.5 w-4">0{i + 1}</span>
+                <div
+                  key={i}
+                  className="flex gap-4 border-b border-gray-100 pb-4 pt-4 first:pt-0 last:border-0"
+                >
+                  <span
+                   
+                    className="text-sm font-black text-gray-300 shrink-0 w-6"
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                   <div>
-                    <p className="text-[#B50E30] text-[8px] font-black uppercase tracking-widest mb-0.5">{step.label}</p>
-                    <p className="text-neutral-600 text-[11px] font-medium leading-snug">{step.text}</p>
+                    <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-widest mb-1.5">
+                      {step.label}
+                    </p>
+                    <p className="text-gray-600 text-sm font-medium leading-relaxed">
+                      {step.text}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Tags + nav */}
-            <div className="flex items-center justify-between pt-1">
-              <div className="flex flex-wrap gap-1">
+            {/* Tags + navegación */}
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex flex-wrap gap-2">
                 {s.tags.map((tag) => (
-                  <span key={tag} className="bg-neutral-100 text-neutral-500 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">{tag}</span>
+                  <span
+                    key={tag}
+                    className="bg-gray-100 text-gray-700 text-[9px] font-bold uppercase tracking-wider px-3 py-1 rounded-full"
+                  >
+                    {tag}
+                  </span>
                 ))}
               </div>
               <div className="flex items-center gap-1.5 shrink-0 ml-2">
                 {STORIES.map((_, i) => (
-                  <button key={i} onClick={() => setActive(i)}
+                  <button key={i} onClick={() => { galleryRef.current?.goTo(i); setActive(i); }}
                     className="rounded-full transition-all duration-300 cursor-pointer"
                     style={{ width: i === active ? 20 : 7, height: 7, background: i === active ? "#B50E30" : "#e5e7eb" }} />
                 ))}
@@ -361,11 +385,11 @@ function Modal({
               </g>
               <circle cx="120" cy="102" r="7" fill="#B50E30" />
             </svg>
-            <p style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }} className="font-black text-[15px] uppercase tracking-tight leading-none text-black">
+            <p className="font-black text-[15px] uppercase tracking-tight leading-none text-black">
               Ruta de <span className="text-[#B50E30]">Empleabilidad</span>
             </p>
           </div>
-          <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }} className="text-[34px] sm:text-[40px] font-black tracking-tighter text-center leading-tight text-slate-900 mt-6">
+          <h1 className="text-[34px] sm:text-[40px] font-black tracking-tighter text-center leading-tight text-slate-900 mt-6">
             Accede con tu código UTP
           </h1>
           <p className="text-xs font-semibold text-slate-400 mt-2 tracking-wide uppercase">Recuperaremos tu nombre, carrera y ciclo automáticamente</p>
@@ -460,23 +484,9 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
 
   return (
     <>
-      {/* ── FONTS + GLOBAL ANIMATIONS ── */}
+      {/* ── GLOBAL ANIMATIONS ── */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
         * { box-sizing: border-box; }
-
-        body, html {
-          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        }
-
-        .landing-page {
-          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        }
-
-        .display {
-          font-family: 'Bricolage Grotesque', system-ui, sans-serif;
-        }
 
         @keyframes ticker {
           from { transform: translateX(0); }
@@ -610,15 +620,15 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
               {/* Headline */}
               <div className="space-y-1">
                 <h1 className="hero-text-1 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-black"
-                  style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                 >
                   Tu primer
                 </h1>
                 <h1 className="hero-text-2 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-[#B50E30]"
-                  style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                 >
                   empleo
                 </h1>
                 <h1 className="hero-text-3 display text-6xl sm:text-7xl md:text-8xl font-black uppercase leading-[0.9] tracking-tight text-black"
-                  style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                 >
                   empieza aquí.
                 </h1>
               </div>
@@ -645,7 +655,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
               <div className="hero-stats flex items-center gap-8 pt-3 border-t border-neutral-100">
                 {[{ val: "1,500+", label: "Estudiantes" }, { val: "92%", label: "Contratados" }, { val: "20+", label: "Empresas" }].map((s) => (
                   <div key={s.label}>
-                    <p className="display text-2xl font-black text-black" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{s.val}</p>
+                    <p className="text-2xl font-black text-black">{s.val}</p>
                     <p className="text-neutral-400 text-[9px] font-bold uppercase tracking-widest mt-0.5">{s.label}</p>
                   </div>
                 ))}
@@ -697,8 +707,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
             <div className="lg:sticky lg:top-28">
               <Appear>
                 <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.22em] mb-3">Cómo funciona</p>
-                <h2 className="display text-5xl font-black uppercase text-black tracking-tight leading-[0.95]"
-                  style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                <h2 className="text-5xl font-black uppercase text-black tracking-tight leading-[0.95]"
+                 >
                   De estudiante<br />a empleable<br /><span className="text-[#B50E30]">en 4 pasos.</span>
                 </h2>
                 <p className="text-neutral-500 text-sm font-medium leading-relaxed max-w-sm mt-5 mb-8">
@@ -723,8 +733,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                     </div>
                     <div className="pt-1.5">
                       <span className="text-[9px] font-black uppercase tracking-widest text-neutral-300">{step.n}</span>
-                      <h3 className="display text-xl font-black uppercase text-black tracking-tight mt-0.5 mb-1.5"
-                        style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{step.title}</h3>
+                      <h3 className="text-xl font-black uppercase text-black tracking-tight mt-0.5 mb-1.5"
+                       >{step.title}</h3>
                       <p className="text-neutral-500 text-sm font-medium leading-relaxed">{step.desc}</p>
                     </div>
                   </div>
@@ -742,8 +752,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
           <div className="max-w-7xl mx-auto space-y-14">
             <Appear>
               <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.22em] mb-3">Herramientas incluidas</p>
-              <h2 className="display text-5xl font-black uppercase text-black tracking-tight leading-[0.95]"
-                style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              <h2 className="text-5xl font-black uppercase text-black tracking-tight leading-[0.95]"
+               >
                 Todo lo que necesitas<br />para ser <span className="text-[#B50E30]">contratado.</span>
               </h2>
             </Appear>
@@ -757,8 +767,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                     <div className="h-12 w-12 bg-black group-hover:bg-[#B50E30] text-white rounded-2xl flex items-center justify-center mb-5 transition-all duration-300">
                       {f.icon}
                     </div>
-                    <h3 className="display font-black text-base uppercase tracking-tight text-black mb-2"
-                      style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{f.title}</h3>
+                    <h3 className="font-black text-base uppercase tracking-tight text-black mb-2"
+                     >{f.title}</h3>
                     <p className="text-neutral-500 text-sm font-medium leading-relaxed">{f.desc}</p>
                   </div>
                 </Appear>
@@ -778,8 +788,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
               { target: 20, suffix: "+", label: "Empresas aliadas" },
             ].map((s) => (
               <div key={s.label}>
-                <p className="display text-4xl sm:text-5xl font-black text-white leading-none"
-                  style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                <p className="text-4xl sm:text-5xl font-black text-white leading-none"
+                 >
                   <StatNum target={s.target} suffix={s.suffix} />
                 </p>
                 <p className="text-white/60 text-[10px] font-bold uppercase tracking-wider mt-2">{s.label}</p>
@@ -795,8 +805,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
             <Appear>
               <div className="text-center mb-10">
                 <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.25em] mb-3">Mira cómo funciona</p>
-                <h2 className="display text-4xl sm:text-5xl font-black uppercase text-white tracking-tight leading-[0.95]"
-                  style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                <h2 className="text-4xl sm:text-5xl font-black uppercase text-white tracking-tight leading-[0.95]"
+                 >
                   Ve la plataforma<br /><span className="text-[#B50E30]">en acción.</span>
                 </h2>
               </div>
@@ -871,21 +881,13 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
           <div className="max-w-4xl mx-auto text-center relative z-10">
             <Appear>
               <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.25em] mb-5">¿Listo para empezar?</p>
-              <h2 className="display text-6xl sm:text-7xl md:text-8xl font-black uppercase tracking-tight leading-[0.9] text-black mb-6"
-                style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              <h2 className="text-6xl sm:text-7xl md:text-8xl font-black uppercase tracking-tight leading-[0.9] text-black mb-6"
+               >
                 Construye tu<br /><span className="text-[#B50E30]">futuro</span> hoy.
               </h2>
               <p className="text-neutral-500 text-base font-medium max-w-md mx-auto leading-relaxed mb-10">
                 Únete a los estudiantes UTP que consiguen empleo antes de graduarse. Gratis, real, verificado.
-              </p>
-              <button onClick={() => openModal("register")}
-                className="btn-primary group bg-[#B50E30] text-white text-sm font-black uppercase tracking-widest px-12 py-5 rounded-2xl inline-flex items-center gap-3 cursor-pointer border-0 shadow-2xl shadow-[#B50E30]/25">
-                Crea tu cuenta gratis
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-              <p className="text-neutral-300 text-[10px] font-bold uppercase tracking-widest mt-5">
-                Sin costo · Solo correo UTP
-              </p>
+              </p>  
             </Appear>
           </div>
         </section>

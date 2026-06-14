@@ -416,7 +416,7 @@ export default function DiagnosticoWizard({
               {step === 1 && (
                 <div className="space-y-5">
                   <div>
-                    <h2 className="text-xl font-black text-black">Tu currículum vitae</h2>
+                    <h2 className="heading-lg text-black">Tu currículum vitae</h2>
                     <p className="text-sm text-neutral-500 mt-1">
                       Si ya tienes un CV actualizado, súbelo. Si es tu primera vez, completa la plantilla Harvard.
                     </p>
@@ -945,7 +945,7 @@ export default function DiagnosticoWizard({
               {step === 2 && (
                 <div className="space-y-5">
                   <div>
-                    <h2 className="text-xl font-black text-black">Nivel de experiencia</h2>
+                    <h2 className="heading-lg text-black">Nivel de experiencia</h2>
                     <p className="text-sm text-neutral-500 mt-1">
                       Considerando que estás en el{" "}
                       <strong className="text-black">{semester}° ciclo</strong> de{" "}
@@ -994,7 +994,7 @@ export default function DiagnosticoWizard({
               {step === 3 && (
                 <div className="space-y-5">
                   <div>
-                    <h2 className="text-xl font-black text-black flex items-center gap-2">
+                    <h2 className="heading-lg text-black flex items-center gap-2">
                       <Target className="h-5 w-5 text-[#B50E30]" />
                       Áreas de especialización
                     </h2>
@@ -1067,7 +1067,7 @@ export default function DiagnosticoWizard({
               {step === 4 && (
                 <div className="space-y-5">
                   <div>
-                    <h2 className="text-xl font-black text-black">Revisa tus habilidades</h2>
+                    <h2 className="heading-lg text-black">Revisa tus habilidades</h2>
                     <p className="text-sm text-neutral-500 mt-1">
                       Extraídas de tu CV. Ajústalas a tu realidad: quita, añade o confirma.
                     </p>

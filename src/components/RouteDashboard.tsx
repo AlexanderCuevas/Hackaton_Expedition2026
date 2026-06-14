@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { CERTIFICATIONS_AND_COURSES, UNIVERSITY_EVENTS } from "../data";
 import { BentoGrid, type BentoItem } from "./ui/bento-grid";
+import UvpIcon from "./ui/UvpIcon";
 import { buildNetworkFromMissions, RouteNetworkNode, ROUTE_NETWORK_CANVAS_HEIGHT } from "../utils/courseMatcher";
 
 interface RouteDashboardProps {
@@ -449,14 +450,14 @@ export default function RouteDashboard({
 
         <div className="space-y-2 relative z-10">
           <div className="flex items-center gap-2">
-            <span className="bg-[#B50E30] text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-none">
+            <span className="bg-[#B50E30] text-white heading-xs px-2 py-0.5 rounded-none">
               Puesto Objetivo
             </span>
             <span className="text-black font-semibold text-xs uppercase tracking-wide">
               Ciclo {profile.semester}º Universidades UTP
             </span>
           </div>
-          <h2 className="text-2xl font-black text-black tracking-tight uppercase">
+          <h2 className="heading-xl text-black">
             {profile.targetRole || "Diagnóstico Pendiente"}
           </h2>
           <p className="text-neutral-600 text-xs max-w-xl font-medium leading-relaxed">
@@ -468,7 +469,7 @@ export default function RouteDashboard({
         <div className="flex items-center gap-6 divide-x divide-utp-border bg-neutral-50 p-4 border border-utp-border rounded-none self-start md:self-center relative z-10 shadow-none">
           <div className="flex items-center gap-3">
             <div className="bg-black text-white p-2.5 rounded-none flex items-center justify-center">
-              <Trophy className="h-5 w-5 text-[#B50E30]" />
+              <UvpIcon name="metas-profesionales" size={20} className="text-[#B50E30]" />
             </div>
             <div>
               <div className="text-[10px] text-neutral-400 font-extrabold uppercase tracking-wider">
@@ -479,7 +480,7 @@ export default function RouteDashboard({
           </div>
           <div className="pl-6 flex items-center gap-3">
             <div className="bg-[#B50E30] text-white p-2.5 rounded-none flex items-center justify-center">
-              <Award className="h-5 w-5" />
+              <UvpIcon name="crecimiento-personal" size={20} />
             </div>
             <div>
               <div className="text-[10px] text-neutral-400 font-extrabold uppercase tracking-wider">
@@ -498,7 +499,7 @@ export default function RouteDashboard({
           <div className="bg-white rounded-none border border-utp-border p-6">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-utp-border">
               <div>
-                <h3 className="text-sm font-black text-black uppercase tracking-widest flex items-center gap-2">
+                <h3 className="heading-md text-black tracking-widest flex items-center gap-2">
                   <Zap className="h-5 w-5 text-[#B50E30] fill-[#B50E30]" />
                   Misiones de Empleabilidad UTP
                 </h3>
@@ -551,7 +552,7 @@ export default function RouteDashboard({
         <div className="space-y-6">
           <div className="bg-white rounded-none border border-utp-border p-6">
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-utp-border">
-              <h3 className="text-xs font-black text-black uppercase tracking-widest flex items-center gap-2">
+              <h3 className="heading-sm text-black tracking-widest flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-[#B50E30]" />
                 Skills & Brechas
               </h3>
@@ -600,7 +601,7 @@ export default function RouteDashboard({
           <div className="bg-white rounded-none border border-utp-border p-6 space-y-4">
             <div className="pb-2 border-b border-utp-border flex items-center gap-2">
               <Calendar className="h-4 w-4 text-[#B50E30]" />
-              <h3 className="text-xs font-black text-black uppercase tracking-widest">
+              <h3 className="heading-sm text-black tracking-widest">
                 Eventos & Hackathons de Interés
               </h3>
             </div>

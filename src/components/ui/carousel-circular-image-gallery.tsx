@@ -6,22 +6,16 @@ export interface ImageGalleryHandle {
   prev: () => void
 }
 
-const images = [
-  {
-    title: "Valentina Ríos",
-    url: "https://images.unsplash.com/photo-1630939687530-241d630735df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800",
-  },
-  {
-    title: "Carlos Mendoza",
-    url: "https://images.unsplash.com/photo-1716471453667-94383b1e4859?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800",
-  },
-  {
-    title: "Diego Farfán",
-    url: "https://images.unsplash.com/photo-1603764377193-75b991876878?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800",
-  },
-]
+export interface GallerySlide {
+  title: string
+  url: string
+}
 
-export const ImageGallery = forwardRef<ImageGalleryHandle, { onActiveChange?: (index: number) => void }>(function ImageGallery({ onActiveChange }, ref) {
+export const ImageGallery = forwardRef<
+  ImageGalleryHandle,
+  { slides: GallerySlide[]; onActiveChange?: (index: number) => void }
+>(function ImageGallery({ slides, onActiveChange }, ref) {
+  const count = slides.length
   const [opened, setOpened] = useState(0)
   const [inPlace, setInPlace] = useState(0)
   const [disabled, setDisabled] = useState(false)
@@ -39,16 +33,16 @@ export const ImageGallery = forwardRef<ImageGalleryHandle, { onActiveChange?: (i
     next() {
       if (!disabled) {
         isManualPause.current = true
-        setOpened((c) => (c + 1) % images.length)
+        setOpened((c) => (c + 1) % count)
       }
     },
     prev() {
       if (!disabled) {
         isManualPause.current = true
-        setOpened((c) => (c - 1 + images.length) % images.length)
+        setOpened((c) => (c - 1 + count) % count)
       }
     },
-  }), [disabled])
+  }), [disabled, count])
 
   useEffect(() => {
     const loadScripts = () => {
@@ -93,19 +87,19 @@ export const ImageGallery = forwardRef<ImageGalleryHandle, { onActiveChange?: (i
     isManualPause.current = true
     setOpened((currentOpened) => {
       let nextIndex = currentOpened + 1
-      if (nextIndex >= images.length) nextIndex = 0
+      if (nextIndex >= count) nextIndex = 0
       return nextIndex
     })
-  }, [])
+  }, [count])
 
   const prev = useCallback(() => {
     isManualPause.current = true
     setOpened((currentOpened) => {
       let prevIndex = currentOpened - 1
-      if (prevIndex < 0) prevIndex = images.length - 1
+      if (prevIndex < 0) prevIndex = count - 1
       return prevIndex
     })
-  }, [])
+  }, [count])
 
   useEffect(() => setDisabled(true), [opened])
   useEffect(() => setDisabled(false), [inPlace])
@@ -131,16 +125,16 @@ export const ImageGallery = forwardRef<ImageGalleryHandle, { onActiveChange?: (i
 
   return (
     <div className="flex items-center justify-center w-full">
-      <div className="relative w-full max-w-[500px] h-[320px] overflow-hidden rounded-[20px]">
+      <div className="relative w-full max-w-[500px] h-[420px] overflow-hidden rounded-[20px]">
         {gsapReady &&
-          images.map((image, i) => (
+          slides.map((image, i) => (
             <div
-              key={image.url}
+              key={`${image.title}-${i}`}
               className="absolute left-0 top-0 h-full w-full"
-              style={{ zIndex: inPlace === i ? i : images.length + 1 }}
+              style={{ zIndex: inPlace === i ? i : slides.length + 1 }}
             >
               <GalleryImage
-                total={images.length}
+                total={slides.length}
                 id={i}
                 url={image.url}
                 title={image.title}
@@ -151,7 +145,7 @@ export const ImageGallery = forwardRef<ImageGalleryHandle, { onActiveChange?: (i
             </div>
           ))}
         <div className="absolute left-0 top-0 z-[100] h-full w-full pointer-events-none">
-          <Tabs images={images} onSelect={onClick} />
+          <Tabs images={slides} onSelect={onClick} />
         </div>
       </div>
 
@@ -199,7 +193,7 @@ function GalleryImage({ url, title, open, inPlace, id, onInPlace, total }: Galle
   const defaults = { transformOrigin: "center center" }
   const duration = 0.4
   const width = 600
-  const height = 400
+  const height = 500
   const scale = 700
 
   const bigSize = circleRadius * scale
@@ -303,7 +297,7 @@ function Tabs({ images, onSelect }: TabsProps) {
   const gap = 10
   const circleRadius = 7
   const width = 600
-  const height = 400
+  const height = 500
 
   const getPosX = (i: number) =>
     width / 2 - (images.length * (circleRadius * 2 + gap) - gap) / 2 + i * (circleRadius * 2 + gap)

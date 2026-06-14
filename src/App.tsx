@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import type { LucideIcon } from "lucide-react";
 import { UserProfile, SkillGap, CareerMission, CvAnalysis, InterviewSession, EnrolledCourse, CvMeta } from "./types";
 import { 
   Trophy, Award, BookOpen, AlertCircle, ArrowRight, CheckCircle, Lock, Play, Zap,
@@ -27,115 +28,31 @@ import CourseFilters from "./components/CourseFilters";
 import { Logo } from "./components/ui/logo";
 
 // Mock Data
-import { INITIAL_VACANCIES, CERTIFICATIONS_AND_COURSES, UNIVERSITY_EVENTS } from "./data";
+import { CERTIFICATIONS_AND_COURSES, INITIAL_VACANCIES, UNIVERSITY_EVENTS } from "./data";
 import { integrateRouteWithCourses, syncMissionsWithEnrollments, unlockSequentialMissions } from "./utils/courseMatcher";
 import { MockStudent } from "./mockStudents";
+import { getStudentCareerBundle } from "./cvMockData";
+import { EMPTY_APP_PROFILE } from "./studentProfileData";
 
-
-// Preloaded state for Hackathon demo so that it's highly populated instantly
-const MOCK_INITIAL_PROFILE: UserProfile = {
-  name: "Valeria Alva",
-  career: "Ingeniería de Sistemas",
-  semester: 7,
-  experienceLevel: "Proyectos personales o académicos de alta exigencia",
-  targetRole: "Junior Full Stack Developer",
-  currentSkills: ["HTML/CSS", "JavaScript", "SQL Server", "TypeScript", "React"],
-  interests: ["Inteligencia Artificial", "Cloud Computing"],
-  employabilityScore: 68,
-  xp: 320,
-  level: 2,
-  progressToNextLevel: 60,
-  cognitiveProfile: [
-    { subject: 'Razonamiento Lógico', A: 85, B: 65, fullMark: 100 },
-    { subject: 'Razonamiento Verbal', A: 65, B: 70, fullMark: 100 },
-    { subject: 'Razonamiento Numérico', A: 90, B: 60, fullMark: 100 },
-    { subject: 'Resolución de Problemas', A: 80, B: 68, fullMark: 100 },
-    { subject: 'Pensamiento Crítico', A: 75, B: 65, fullMark: 100 },
-  ],
-  personalityTraits: [
-    { name: "Apertura a la experiencia", userScore: 82, averageScore: 65, leftLabel: "Convencional, concreto", rightLabel: "Curioso, abstracto" },
-    { name: "Responsabilidad", userScore: 88, averageScore: 70, leftLabel: "Descuidado, indisciplinado", rightLabel: "Meticuloso, orientado a metas" },
-    { name: "Disposición al riesgo", userScore: 45, averageScore: 60, leftLabel: "Tiende a ser cauteloso", rightLabel: "Propenso a tomar riesgos" },
-    { name: "Reconocimiento emocional", userScore: 75, averageScore: 68, leftLabel: "Dificultad para identificar", rightLabel: "Gran habilidad de lectura" }
-  ]
-};
-
-const MOCK_INITIAL_GAPS: SkillGap[] = [
-  {
-    skillName: "Modelamiento de Bases de Datos SQL",
-    category: "tecnica",
-    priority: "alta",
-    description: "Es indispensable consolidar bases de datos estructuradas y realizar consultas complejas multi-tabla para resolver requisitos backend en BCP o Interbank.",
-    recommendedResource: "Curso Práctico de SQL en SkillPath Academy",
-    status: "pendiente"
-  },
-  {
-    skillName: "Metodologías Ágiles (Scrum)",
-    category: "blanda",
-    priority: "media",
-    description: "Muy demandado en equipos interdisciplinarios para entregas semanales de productos en sprints ágiles.",
-    recommendedResource: "Fundamentos de Scrum en LinkedIn Learning",
-    status: "pendiente"
-  },
-  {
-    skillName: "AWS Certified Cloud Practitioner",
-    category: "certificacion",
-    priority: "alta",
-    description: "Saber estructurar y desplegar arquitecturas en la nube te otorgará distinción competitiva frente a otros egresados.",
-    recommendedResource: "Ruta AWS Foundations AWS Academy",
-    status: "pendiente"
-  }
-];
-
-const BASE_INITIAL_MISSIONS: CareerMission[] = [
-  {
-    id: "m_cv_01",
-    title: "Optimizar CV para filtros ATS",
-    description: "Asegura términos óptimos exigidos por los escáneres de contratación automáticos.",
-    xpValue: 80,
-    type: "documento",
-    status: "disponible",
-    order: 1,
-    actionLabel: "Ir al Analizador de CV",
-    subtasks: [
-      { text: "Copiar tu currículum en el CV Analyzer", done: false },
-      { text: "Implementar las palabras clave exigidas", done: false },
-      { text: "Lograr un score ATS mayor a 75%", done: false }
-    ]
-  },
-  {
-    id: "m_int_01",
-    title: "Simular Entrevista Técnico-Comportamental",
-    description: "Practica respuestas clave con nuestro Mentor Reclutador IA.",
-    xpValue: 120,
-    type: "simulacion",
-    status: "bloqueado",
-    order: 2,
-    actionLabel: "Empezar simulación",
-    subtasks: [
-      { text: "Contactar con el simulador interactivo", done: false },
-      { text: "Responder al menos 3 preguntas de la IA", done: false },
-      { text: "Obtener feedback aprobatorio", done: false }
-    ]
-  },
-  {
-    id: "m_net_01",
-    title: "Conectar con 2 Mentores Especializados",
-    description: "Propulsa tu red de contactos interactuando con egresados profesionales.",
-    xpValue: 100,
-    type: "networking",
-    status: "bloqueado",
-    order: 3,
-    actionLabel: "Buscar en Comunidad",
-    subtasks: [
-      { text: "Enviar solicitud a un mentor en el campus", done: false },
-      { text: "Comentar en una publicación del feed de proyectos", done: false }
-    ]
-  }
-];
+const MOCK_INITIAL_PROFILE = EMPTY_APP_PROFILE;
+const MOCK_INITIAL_GAPS: SkillGap[] = [];
+const BASE_INITIAL_MISSIONS: CareerMission[] = [];
+const MOCK_CV_ANALYSIS: CvAnalysis | null = null;
+const MOCK_CV_META: CvMeta | null = null;
 
 const { gaps: MOCK_INITIAL_GAPS_ENRICHED, missions: MOCK_INITIAL_MISSIONS } =
   integrateRouteWithCourses(MOCK_INITIAL_GAPS, BASE_INITIAL_MISSIONS);
+
+const APP_NAV_ITEMS: { navKey: string; id: string; label: string; icon: LucideIcon }[] = [
+  { navKey: "profile", id: "profile", label: "Mi Perfil", icon: User },
+  { navKey: "cvanalyzer", id: "cvanalyzer", label: "Análisis", icon: FileText },
+  { navKey: "dashboard", id: "dashboard", label: "Mi Ruta", icon: Trophy },
+  { navKey: "resources", id: "resources", label: "Capacitaciones", icon: Award },
+  { navKey: "interviewer", id: "interviewer", label: "Entrevistas IA", icon: MessageSquare },
+  { navKey: "jobs-match", id: "jobs", label: "Vacantes & Match", icon: Briefcase },
+  { navKey: "community", id: "community", label: "Networking", icon: Users },
+  { navKey: "whatsapp", id: "whatsapp", label: "WhatsApp Tutor", icon: PhoneCall },
+];
 
 export default function App() {
   const [view, setView] = useState<string>("dashboard");
@@ -151,10 +68,13 @@ export default function App() {
   const [catalogSearchTerm, setCatalogSearchTerm] = useState("");
   const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [diagnosisCompleted, setDiagnosisCompleted] = useState(false);
-  const [cvAnalysis, setCvAnalysis] = useState<CvAnalysis | null>(null);
-  const [cvMeta, setCvMeta] = useState<CvMeta | null>(null);
+  const [routeGenerated, setRouteGenerated] = useState(false);
+  const [cvAnalysis, setCvAnalysis] = useState<CvAnalysis | null>(MOCK_CV_ANALYSIS);
+  const [cvMeta, setCvMeta] = useState<CvMeta | null>(MOCK_CV_META);
   const [cvText, setCvText] = useState<string>("");
+  const [interviewSession, setInterviewSession] = useState<InterviewSession | undefined>(undefined);
   const [currentStudentCode, setCurrentStudentCode] = useState<string | null>(null);
 
   const catalogLogos: Record<string, string> = {
@@ -194,6 +114,10 @@ export default function App() {
     const savedCvMeta = localStorage.getItem("sp_cv_meta");
     const authenticated = localStorage.getItem("sp_authenticated") === "true";
     const diagnosisDone = localStorage.getItem("sp_diagnosis_completed") === "true";
+    const routeDone = localStorage.getItem("sp_route_generated") === "true";
+    const savedStudentCode = localStorage.getItem("sp_student_code");
+
+    if (savedStudentCode) setCurrentStudentCode(savedStudentCode);
 
     if (savedProfile) {
       const parsed = JSON.parse(savedProfile);
@@ -214,16 +138,29 @@ export default function App() {
     setEnrolledCourses(loadedCourses);
     setIsAuthenticated(authenticated);
     setDiagnosisCompleted(diagnosisDone);
+    setRouteGenerated(routeDone);
     if (savedCvAnalysis) setCvAnalysis(JSON.parse(savedCvAnalysis));
+    else setCvAnalysis(null);
     if (savedCvMeta) setCvMeta(JSON.parse(savedCvMeta));
+    else setCvMeta(null);
     setCvText(localStorage.getItem("sp_cv_text") || "");
 
+    const savedInterview = localStorage.getItem("sp_interview_session");
+    if (savedInterview) setInterviewSession(JSON.parse(savedInterview));
+    else setInterviewSession(undefined);
+
     if (authenticated) {
-      setView(diagnosisDone ? "dashboard" : "diagnostico");
+      if (!diagnosisDone) setView("diagnostico");
+      else if (!routeDone) setView("cvanalyzer");
+      else setView("dashboard");
     }
 
     setIsHydrated(true);
   }, []);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [view]);
 
   // Save changes to state
   const saveEnrolledCourses = (courses: EnrolledCourse[]) => {
@@ -516,16 +453,79 @@ export default function App() {
     cvText: string,
     meta: CvMeta
   ) => {
-    setProfile(updatedProfile);
-    localStorage.setItem("sp_profile", JSON.stringify(updatedProfile));
+    const code = currentStudentCode || localStorage.getItem("sp_student_code");
+    const bundle = code ? getStudentCareerBundle(code) : undefined;
+
+    let finalProfile = updatedProfile;
+    let finalMeta = meta;
+
+    if (bundle) {
+      finalProfile = {
+        ...updatedProfile,
+        targetRole: bundle.targetRole,
+        currentSkills: bundle.cv.hardSkills,
+        softSkills: bundle.cv.softSkills,
+        experienceLevel: bundle.cv.experienceLevel,
+        employabilityScore: bundle.initialEmployabilityScore,
+        interests: bundle.cv.specializations.length > 0
+          ? bundle.cv.specializations
+          : updatedProfile.interests,
+      };
+      finalMeta = { ...bundle.cvMeta, targetRole: bundle.targetRole };
+
+      setCvAnalysis(bundle.cvAnalysis);
+      setGaps(bundle.skillGaps);
+      localStorage.setItem("sp_cv_analysis", JSON.stringify(bundle.cvAnalysis));
+      localStorage.setItem("sp_gaps", JSON.stringify(bundle.skillGaps));
+    }
+
+    setProfile(finalProfile);
+    localStorage.setItem("sp_profile", JSON.stringify(finalProfile));
     localStorage.setItem("sp_cv_text", cvText);
-    localStorage.setItem("sp_cv_meta", JSON.stringify(meta));
+    localStorage.setItem("sp_cv_meta", JSON.stringify(finalMeta));
     localStorage.setItem("sp_diagnosis_completed", "true");
     setDiagnosisCompleted(true);
-    setCvMeta(meta);
+    setRouteGenerated(false);
+    localStorage.removeItem("sp_route_generated");
+    setCvMeta(finalMeta);
     setCvText(cvText);
     setView("cvanalyzer");
-    triggerNotification("✅ Diagnóstico completado. Continúa en la sección Análisis.");
+    triggerNotification(
+      bundle
+        ? `✅ Análisis listo para ${bundle.studentName}. Revisa tu score y genera tu ruta.`
+        : "✅ Diagnóstico completado. Continúa en la sección Análisis."
+    );
+  };
+
+  const handleRouteGenerated = () => {
+    const code = currentStudentCode || localStorage.getItem("sp_student_code");
+    const bundle = code ? getStudentCareerBundle(code) : undefined;
+
+    if (bundle) {
+      const { gaps: enrichedGaps, missions } = integrateRouteWithCourses(
+        bundle.skillGaps,
+        bundle.careerMissions
+      );
+      const updatedProfile: UserProfile = {
+        ...profile,
+        targetRole: bundle.targetRole,
+        currentSkills: bundle.cv.hardSkills,
+        softSkills: bundle.cv.softSkills,
+        employabilityScore: Math.min(100, bundle.cvAnalysis.score + 6),
+      };
+      saveState(updatedProfile, enrichedGaps, missions);
+    } else if (gaps.length === 0 || missions.length === 0) {
+      const { gaps: enrichedGaps, missions } = integrateRouteWithCourses(
+        MOCK_INITIAL_GAPS,
+        BASE_INITIAL_MISSIONS
+      );
+      saveState(profile, enrichedGaps, missions);
+    }
+
+    setRouteGenerated(true);
+    localStorage.setItem("sp_route_generated", "true");
+    setView("dashboard");
+    triggerNotification("🎯 ¡Tu ruta personalizada está lista! Explora tus misiones.");
   };
 
   const handleApplicationCompleted = (company: string, roleName: string) => {
@@ -560,10 +560,12 @@ export default function App() {
 
       setProfile(studentProfile);
       setCurrentStudentCode(student.code);
+      localStorage.setItem("sp_student_code", student.code);
       setGaps([]);
       setMissions([]);
       setEnrolledCourses([]);
       setDiagnosisCompleted(false);
+      setRouteGenerated(false);
       setCvAnalysis(null);
       setCvMeta(null);
       setCvText("");
@@ -573,13 +575,17 @@ export default function App() {
       localStorage.setItem("sp_missions", JSON.stringify([]));
       localStorage.setItem("sp_enrolled_courses", JSON.stringify([]));
       localStorage.removeItem("sp_diagnosis_completed");
+      localStorage.removeItem("sp_route_generated");
       localStorage.removeItem("sp_cv_analysis");
       localStorage.removeItem("sp_cv_meta");
       localStorage.removeItem("sp_cv_text");
 
       setView("diagnostico");
+      const bundle = getStudentCareerBundle(student.code);
       triggerNotification(
-        `👋 ¡Bienvenido, ${student.name}! Usa "Extraer con IA" para cargar tus datos simulados.`
+        bundle
+          ? `👋 ¡Bienvenido, ${student.name}! Usa "Extraer con IA" para cargar tu CV simulado.`
+          : `👋 ¡Bienvenido, ${student.name}! Usa "Extraer con IA" para cargar tus datos simulados.`
       );
       return;
     }
@@ -607,6 +613,8 @@ export default function App() {
     if (isNewUser) {
       setProfile(studentProfile);
       setCurrentStudentCode(student?.code || null);
+      if (student?.code) localStorage.setItem("sp_student_code", student.code);
+      else localStorage.removeItem("sp_student_code");
       setGaps([]);
       setMissions([]);
       setEnrolledCourses([]);
@@ -615,16 +623,21 @@ export default function App() {
       localStorage.setItem("sp_missions", JSON.stringify([]));
       localStorage.setItem("sp_enrolled_courses", JSON.stringify([]));
       localStorage.removeItem("sp_diagnosis_completed");
+      localStorage.removeItem("sp_route_generated");
       localStorage.removeItem("sp_cv_analysis");
       localStorage.removeItem("sp_cv_meta");
       localStorage.removeItem("sp_cv_text");
       setDiagnosisCompleted(false);
+      setRouteGenerated(false);
       setCvAnalysis(null);
       setCvMeta(null);
       setCvText("");
       setView("diagnostico");
+      const bundle = student?.code ? getStudentCareerBundle(student.code) : undefined;
       triggerNotification(
-        `🎉 ¡Bienvenido, ${studentProfile.name}! Completa tu diagnóstico para continuar.`
+        bundle
+          ? `🎉 ¡Bienvenido, ${studentProfile.name}! Usa "Extraer con IA" para cargar tu CV simulado.`
+          : `🎉 ¡Bienvenido, ${studentProfile.name}! Completa tu diagnóstico para continuar.`
       );
       return;
     }
@@ -636,14 +649,20 @@ export default function App() {
       : studentProfile;
     setProfile({ ...MOCK_INITIAL_PROFILE, ...merged });
     setCurrentStudentCode(student?.code || null);
+    if (student?.code) localStorage.setItem("sp_student_code", student.code);
 
     const diagnosisDone = localStorage.getItem("sp_diagnosis_completed") === "true";
+    const routeDone = localStorage.getItem("sp_route_generated") === "true";
     setDiagnosisCompleted(diagnosisDone);
-    setView(diagnosisDone ? "dashboard" : "diagnostico");
-    triggerNotification(`👋 ¡Hola de nuevo, ${merged.name}! ${diagnosisDone ? "Retoma tu ruta." : "Termina tu diagnóstico."}`);
+    setRouteGenerated(routeDone);
+    if (!diagnosisDone) setView("diagnostico");
+    else if (!routeDone) setView("cvanalyzer");
+    else setView("dashboard");
+    triggerNotification(`👋 ¡Hola de nuevo, ${merged.name}! ${diagnosisDone ? (routeDone ? "Retoma tu ruta." : "Genera tu ruta en Análisis.") : "Termina tu diagnóstico."}`);
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("sp_student_code");
     localStorage.removeItem("sp_authenticated");
     setIsAuthenticated(false);
     setView("dashboard");
@@ -691,7 +710,7 @@ export default function App() {
 
   return (
     <NotificationProvider>
-    <div className="min-h-screen bg-[#FFFFFF] text-black flex flex-col font-sans">
+    <div className="min-h-screen bg-[#FFFFFF] text-black flex flex-col font-sans overflow-x-hidden">
       {/* Absolute Dynamic Celebrations Banner */}
       <AnimatePresence>
         {activeNotification && (
@@ -712,60 +731,66 @@ export default function App() {
       {/* Main Framework Wrapper */}
       <div className="flex min-h-screen">
         {/* Sidebar Container - Fixed, full height */}
-        <div className={`${sidebarOpen ? 'w-64' : 'w-16'} fixed left-0 top-0 h-screen bg-[#000F37] text-white/75 border-r border-white/10 flex flex-col justify-between p-5 hidden md:flex transition-all duration-300 z-40 group`}>
+        <div className={`${sidebarOpen ? 'w-64' : 'w-16'} fixed left-0 top-0 h-screen bg-[#26262b] text-neutral-300 border-r border-white/5 flex flex-col justify-between p-4 hidden md:flex transition-all duration-300 z-40 group shadow-[2px_0_20px_rgba(0,0,0,0.18)]`}>
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#B50E30]" aria-hidden />
+
           <button
             type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 bg-[#B50E30] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10 shadow-md"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 h-7 w-7 bg-[#B50E30] text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer z-10 shadow-md hover:scale-105 hover:bg-[#85061B]"
           >
-            {sidebarOpen ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+            {sidebarOpen ? <ChevronLeft className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
           </button>
-          <div className="space-y-6">
-            {/* Signature Brand Header */}
-            <div className={`flex items-center gap-2.5 pb-5 border-b border-white/10 ${sidebarOpen ? '' : 'justify-center'}`}>
-              <Logo dark showText={sidebarOpen} />
+
+          <div className="flex flex-col flex-1 min-h-0 gap-4">
+            {/* Brand */}
+            <div className={`shrink-0 pb-4 border-b border-white/10 ${sidebarOpen ? 'pl-1' : 'flex justify-center'}`}>
+              <Logo variant="sidebar" showText={sidebarOpen} />
             </div>
 
-            {/* Menu Sections Navigation */}
-            <nav className="space-y-1">
-              {[
-                { id: "dashboard", label: "Mi Ruta", icon: Trophy },
-                { id: "profile", label: "Mi Perfil", icon: User },
-                { id: "diagnostico", label: "Diagnóstico IA", icon: GraduationCap },
-                { id: "cvanalyzer", label: "Análisis", icon: FileText },
-                { id: "interviewer", label: "Entrevistas IA", icon: MessageSquare },
-                { id: "jobs", label: "Vacantes & Match", icon: Briefcase },
-                { id: "resources", label: "Capacitaciones", icon: Award },
-                { id: "community", label: "Networking", icon: Users },
-                { id: "whatsapp", label: "WhatsApp Tutor", icon: PhoneCall },
-              ]
-                .filter((item) => !(item.id === "diagnostico" && diagnosisCompleted))
-                .map((item) => {
+            {/* Navigation */}
+            <nav className={`flex-1 min-h-0 overflow-y-auto scrollbar-none space-y-1 ${sidebarOpen ? 'pl-1' : 'px-0'}`}>
+              {APP_NAV_ITEMS.map((item) => {
                 const IconComponent = item.icon;
                 const isActive = view === item.id;
+                const isLocked = item.id === "dashboard" && !routeGenerated;
                 return (
                     <button
-                      key={item.id}
-                      onClick={() => setView(item.id)}
-                      className={`w-full flex items-center ${sidebarOpen ? 'gap-3 px-3.5' : 'justify-center px-1'} py-2.5 rounded-none text-xs font-bold font-sans uppercase tracking-wider transition-all duration-200 cursor-pointer select-none ${
-                        isActive
-                          ? "bg-[#EFF6FF] text-[#000F37] border-l-2 border-[#B50E30]"
-                          : "hover:bg-white/5 text-white/80 hover:text-white border-l-2 border-transparent"
+                      key={item.navKey}
+                      type="button"
+                      disabled={isLocked}
+                      onClick={() => {
+                        if (isLocked) return;
+                        setView(item.id);
+                      }}
+                      title={isLocked ? "Genera tu ruta en Análisis para desbloquear" : undefined}
+                      className={`w-full flex items-center ${sidebarOpen ? 'gap-3 px-3' : 'justify-center px-1'} py-2.5 rounded-xl text-[11px] font-bold font-sans uppercase tracking-wider transition-all duration-200 select-none ${
+                        isLocked
+                          ? "opacity-35 cursor-not-allowed text-neutral-500"
+                          : isActive
+                            ? "bg-[#B50E30] text-white shadow-md cursor-pointer"
+                            : "text-neutral-400 hover:bg-white/8 hover:text-white cursor-pointer"
                       }`}
                     >
-                      <IconComponent className={`h-4 w-4 shrink-0 ${isActive ? "text-[#000F37]" : "text-white/50"}`} />
-                    <span className={`${sidebarOpen ? 'inline' : 'hidden'}`}>{item.label}</span>
-                  </button>
+                      {isLocked ? (
+                        <Lock className="h-4 w-4 shrink-0" />
+                      ) : (
+                        <IconComponent className="h-4 w-4 shrink-0" />
+                      )}
+                      <span className={`${sidebarOpen ? 'inline' : 'hidden'}`}>{item.label}</span>
+                    </button>
                 );
               })}
             </nav>
           </div>
 
-          {/* User Logged Info Capsule */}
-          <div className={`${sidebarOpen ? 'p-4' : 'p-2'} bg-white/5 rounded-none space-y-3.5 border border-white/10`}>
-            <div className={`flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
-              <div className={`text-xs font-extrabold text-white max-w-[120px] truncate ${sidebarOpen ? 'block' : 'hidden'}`}>{profile.name}</div>
-              <span className="bg-utp-red text-white font-black text-[9px] px-2 py-0.5 rounded-none uppercase">
+          {/* User footer */}
+          <div className={`shrink-0 rounded-xl bg-white/5 border border-white/8 p-3 space-y-3 ${sidebarOpen ? 'ml-1' : ''}`}>
+            <div className={`flex items-center gap-2 ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
+              <div className={`text-xs font-extrabold text-white max-w-[130px] truncate ${sidebarOpen ? 'block' : 'hidden'}`}>
+                {profile.name}
+              </div>
+              <span className="bg-[#B50E30] text-white font-black text-[9px] px-2.5 py-0.5 rounded-full uppercase shrink-0">
                 LVL {profile.level}
               </span>
             </div>
@@ -775,9 +800,9 @@ export default function App() {
                 <span>XP: {profile.xp}</span>
                 <span>{profile.progressToNextLevel}%</span>
               </div>
-              <div className="w-full bg-white/10 h-1 rounded-none overflow-hidden">
+              <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
                 <div
-                  className="bg-utp-red h-full transition-all duration-300"
+                  className="bg-[#B50E30] h-full rounded-full transition-all duration-300"
                   style={{ width: `${profile.progressToNextLevel}%` }}
                 />
               </div>
@@ -786,7 +811,7 @@ export default function App() {
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 text-[9px] font-bold uppercase tracking-wider text-neutral-400 hover:text-white transition cursor-pointer pt-1"
+              className={`flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-neutral-500 hover:text-white transition cursor-pointer py-1 ${sidebarOpen ? 'justify-start' : 'justify-center w-full'}`}
             >
               <LogOut className="h-3.5 w-3.5 shrink-0" />
               <span className={sidebarOpen ? 'inline' : 'hidden'}>Cerrar sesión</span>
@@ -794,15 +819,126 @@ export default function App() {
           </div>
         </div>
 
+        {/* Mobile navigation drawer */}
+        <AnimatePresence>
+          {mobileNavOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-black/50 md:hidden"
+                onClick={() => setMobileNavOpen(false)}
+              />
+              <motion.aside
+                initial={{ x: "-100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "-100%" }}
+                transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                className="fixed inset-y-0 left-0 z-[51] w-[min(280px,85vw)] bg-[#26262b] text-neutral-300 border-r border-white/5 flex flex-col justify-between p-4 md:hidden shadow-2xl"
+              >
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#B50E30]" aria-hidden />
+                <div className="flex flex-col flex-1 min-h-0 gap-4">
+                  <div className="shrink-0 pb-4 border-b border-white/10 pl-1 flex items-center justify-between">
+                    <Logo variant="sidebar" showText />
+                    <button
+                      type="button"
+                      onClick={() => setMobileNavOpen(false)}
+                      className="p-1.5 text-neutral-400 hover:text-white cursor-pointer"
+                      aria-label="Cerrar menú"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <nav className="flex-1 min-h-0 overflow-y-auto scrollbar-none space-y-1 pl-1">
+                    {APP_NAV_ITEMS.map((item) => {
+                      const IconComponent = item.icon;
+                      const isActive = view === item.id;
+                      const isLocked = item.id === "dashboard" && !routeGenerated;
+                      return (
+                        <button
+                          key={item.navKey}
+                          type="button"
+                          disabled={isLocked}
+                          onClick={() => {
+                            if (isLocked) return;
+                            setView(item.id);
+                            setMobileNavOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[11px] font-bold font-sans uppercase tracking-wider transition-all duration-200 select-none ${
+                            isLocked
+                              ? "opacity-35 cursor-not-allowed text-neutral-500"
+                              : isActive
+                                ? "bg-[#B50E30] text-white shadow-md cursor-pointer"
+                                : "text-neutral-400 hover:bg-white/8 hover:text-white cursor-pointer"
+                          }`}
+                        >
+                          {isLocked ? (
+                            <Lock className="h-4 w-4 shrink-0" />
+                          ) : (
+                            <IconComponent className="h-4 w-4 shrink-0" />
+                          )}
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </nav>
+                </div>
+                <div className="shrink-0 rounded-xl bg-white/5 border border-white/8 p-3 space-y-3 ml-1">
+                  <div className="flex items-center gap-2 justify-between">
+                    <div className="text-xs font-extrabold text-white max-w-[130px] truncate">
+                      {profile.name}
+                    </div>
+                    <span className="bg-[#B50E30] text-white font-black text-[9px] px-2.5 py-0.5 rounded-full uppercase shrink-0">
+                      LVL {profile.level}
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-[9px] text-neutral-400 uppercase font-bold tracking-wider">
+                      <span>XP: {profile.xp}</span>
+                      <span>{profile.progressToNextLevel}%</span>
+                    </div>
+                    <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-[#B50E30] h-full rounded-full transition-all duration-300"
+                        style={{ width: `${profile.progressToNextLevel}%` }}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileNavOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-neutral-500 hover:text-white transition cursor-pointer py-1 justify-start"
+                  >
+                    <LogOut className="h-3.5 w-3.5 shrink-0" />
+                    <span>Cerrar sesión</span>
+                  </button>
+                </div>
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+
         {/* Page Content viewport */}
         <div className={`flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-16'}`}>
           {/* Universal Header Layout */}
-          <header className="bg-white border-b border-utp-border px-6 py-4 flex items-center justify-between z-20 shadow-none">
+          <header className="bg-white border-b border-utp-border px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-20 shadow-none gap-3">
             {/* Left elements */}
-            <div className="flex items-center gap-4">
-              <div className="md:hidden flex items-center gap-1.5">
-                <span className="h-8 w-8 bg-utp-red text-white flex items-center justify-center font-bold text-xs rounded">SP</span>
-                <span className="font-bold text-black text-sm uppercase tracking-tight">SkillPath</span>
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(true)}
+                className="md:hidden p-2 -ml-1 text-neutral-600 hover:text-black cursor-pointer shrink-0"
+                aria-label="Abrir menú"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+              <div className="md:hidden flex items-center gap-1.5 min-w-0">
+                <span className="h-8 w-8 bg-utp-red text-white flex items-center justify-center font-bold text-xs rounded shrink-0">SP</span>
+                <span className="font-bold text-black text-sm uppercase tracking-tight truncate">SkillPath</span>
               </div>
               <div className="hidden sm:block">
                 <div className="text-xs text-neutral-650 font-bold font-sans flex items-center gap-2">
@@ -832,9 +968,9 @@ export default function App() {
           <NotificationDrawer open={notifDrawerOpen} onClose={() => setNotifDrawerOpen(false)} />
 
           {/* Active Work Flow Rendering Frame */}
-          <main className="flex-grow p-6 overflow-y-auto max-w-6xl w-full mx-auto flex flex-col justify-between">
+          <main className="flex-grow p-4 sm:p-6 pb-8 overflow-x-hidden overflow-y-auto max-w-6xl w-full mx-auto flex flex-col justify-between min-w-0">
             <AnimatePresence mode="wait">
-              {view === "dashboard" && (
+              {view === "dashboard" && routeGenerated && (
                 <motion.div
                   key="dashboard_view"
                   initial={{ opacity: 0 }}
@@ -880,6 +1016,10 @@ export default function App() {
                   exit={{ opacity: 0 }}
                 >
                   <UserProfilePanel
+                    studentCode={currentStudentCode}
+                    appProfile={profile}
+                    missions={missions}
+                    enrolledCoursesCount={enrolledCourses.length}
                     onNavigateToMyCourses={() => setView("mycourses")}
                     onAvatarChange={(url) => {
                       setProfile((p) => {
@@ -904,9 +1044,12 @@ export default function App() {
                     targetRole={profile.targetRole}
                     gaps={gaps}
                     currentSkills={profile.currentSkills}
+                    cvInfo={cvMeta ?? undefined}
+                    cvText={cvText}
                     savedAnalysis={cvAnalysis ?? undefined}
                     onNavigateToDiagnostico={() => setView("diagnostico")}
-                    onNavigateToRuta={() => setView("dashboard")}
+                    onNavigateToRuta={handleRouteGenerated}
+                    routeGenerated={routeGenerated}
                     onAnalysisResult={(res) => {
                       setCvAnalysis(res);
                       localStorage.setItem("sp_cv_analysis", JSON.stringify(res));
@@ -932,6 +1075,7 @@ export default function App() {
                   <InterviewPanel 
                     targetRole={profile.targetRole}
                     avatarUrl={profile.avatarUrl}
+                    savedSession={interviewSession}
                     onSessionComplete={(newScore) => {
                       const scoreIncrease = Math.max(0, Math.floor((newScore - profile.employabilityScore) / 4));
                       if (scoreIncrease > 0) {
@@ -961,14 +1105,14 @@ export default function App() {
                   exit={{ opacity: 0 }}
                   className="space-y-6"
                 >
-                  <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden flex items-center justify-between">
+                  <div className="bg-white rounded-none border border-utp-border p-4 sm:p-6 relative overflow-hidden">
                     <div>
                       <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
                       <h2 className="heading-md text-black tracking-widest flex items-center gap-2">
-                        <Award className="h-5 w-5 text-[#B50E30]" />
+                        <Award className="h-5 w-5 text-[#B50E30] shrink-0" />
                         Capacitaciones & Cursos
                       </h2>
-                      <p className="text-[#64748B] text-xs font-semibold mt-1 ml-7">
+                      <p className="text-[#64748B] text-xs font-semibold mt-1 sm:ml-7">
                         Para mitigar las brechas del mercado, hemos convenido con plataformas líderes estos accesos gratuitos con tu cuenta universitaria:
                       </p>
                     </div>

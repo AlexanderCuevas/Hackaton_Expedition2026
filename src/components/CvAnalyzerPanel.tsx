@@ -3,8 +3,8 @@ import { CvAnalysis, SkillGap, CvMeta, UserProfile } from "../types";
 import {
   FileText, Sparkles, AlertCircle, CheckCircle,
   BookOpen, AlertTriangle, TrendingUp, X,
-  ArrowRight, Check, Shield, ThumbsDown, Copy, Route,
-  Brain, Target, Map, Printer
+  ArrowRight, Check, Shield, Route,
+  Brain, Target, Map, ListOrdered, Zap
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { buildHtmlCv, buildPlainTextCv, copyPlainTextToClipboard, triggerPrintCv } from "../utils/cvGenerator";
@@ -139,6 +139,109 @@ const getRouteImpactData = (score: number, optimizedScore: number) => {
   };
 };
 
+const FLOW_STEPS = [
+  { icon: FileText, label: "CV cargado", state: "done" as const },
+  { icon: Sparkles, label: "IA analizó brechas", state: "done" as const },
+  { icon: TrendingUp, label: "Mejora tu CV", state: "current" as const },
+] as const;
+
+function FlowStepper() {
+  return (
+    <div className="flex items-center gap-0 sm:gap-1">
+      {FLOW_STEPS.map((step, idx) => {
+        const Icon = step.icon;
+        const isDone = step.state === "done";
+        const isCurrent = step.state === "current";
+        return (
+          <div key={step.label} className="flex flex-1 items-center min-w-0">
+            <div className="flex flex-1 items-center gap-2 min-w-0 py-1">
+              <div
+                className={`h-7 w-7 shrink-0 flex items-center justify-center rounded-full border ${
+                  isCurrent
+                    ? "bg-[#B50E30] border-[#B50E30] text-white"
+                    : isDone
+                      ? "bg-[#B50E30]/10 border-[#B50E30]/25 text-[#B50E30]"
+                      : "bg-neutral-50 border-neutral-200 text-neutral-400"
+                }`}
+              >
+                {isDone ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
+              </div>
+              <p
+                className={`text-xs font-semibold truncate ${
+                  isCurrent ? "text-[#B50E30]" : isDone ? "text-neutral-700" : "text-neutral-400"
+                }`}
+              >
+                {step.label}
+              </p>
+            </div>
+            {idx < FLOW_STEPS.length - 1 && (
+              <div
+                className={`hidden sm:block h-px w-4 lg:w-8 shrink-0 mx-1 ${
+                  isDone ? "bg-[#B50E30]/30" : "bg-neutral-200"
+                }`}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function PriorityBadge({ priority }: { priority: SkillGap["priority"] }) {
+  const styles: Record<SkillGap["priority"], string> = {
+    alta: "bg-[#B50E30] text-white",
+    media: "bg-amber-100 text-amber-900 border border-amber-200",
+    baja: "bg-emerald-50 text-emerald-800 border border-emerald-200",
+  };
+  const labels: Record<SkillGap["priority"], string> = {
+    alta: "Alta",
+    media: "Media",
+    baja: "Baja",
+  };
+  return (
+    <span className={`text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wide shrink-0 ${styles[priority]}`}>
+      {labels[priority]}
+    </span>
+  );
+}
+
+function CategoryBadge({ category }: { category: SkillGap["category"] }) {
+  const label = category === "tecnica" ? "Técnica" : category === "blanda" ? "Blanda" : "Certificación";
+  return (
+    <span className="text-[10px] font-medium text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-md">
+      {label}
+    </span>
+  );
+}
+
+function GapMiniCard({ gap }: { gap: SkillGap }) {
+  return (
+    <div className="rounded-lg border border-neutral-100 bg-neutral-50/60 p-3 space-y-1.5">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs font-semibold text-neutral-900 leading-snug">{gap.skillName}</p>
+        <PriorityBadge priority={gap.priority} />
+      </div>
+      <CategoryBadge category={gap.category} />
+      {gap.recommendedResource && (
+        <p className="text-[11px] text-neutral-500 leading-relaxed pt-1">
+          <span className="font-medium text-neutral-700">Recurso: </span>
+          {gap.recommendedResource}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function SkillChip({ skill }: { skill: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 bg-neutral-800 text-white text-xs font-medium px-2.5 py-1 rounded-md">
+      <CheckCircle className="h-3 w-3 text-[#B50E30]" />
+      {skill}
+    </span>
+  );
+}
+
 /* ============================================================
    Guide Overlay — Avatar + walkthrough
    ============================================================ */
@@ -158,39 +261,33 @@ function AvatarGuide({ className }: { className?: string }) {
 const GUIDE_STEPS_DATA = [
   {
     id: "header",
-    title: "Cabecera del Panel",
+    title: "Resumen",
     bubblePosition: "right" as const,
-    text: "¡Hola! Bienvenido a tu panel de análisis. Aquí arriba, en la Cabecera, confirmamos que tu CV ha sido escaneado por nuestra IA. Este es el punto de partida: te dice de inmediato que la revisión de tu CV está lista para mostrarte cómo llegar a la entrevista. A la derecha, el botón 'Generar mi ruta' arma tu plan de empleabilidad personalizado conectando este análisis con tus brechas y las misiones que debes cumplir."
-  },
-  {
-    id: "cv-card",
-    title: "Identificación del CV",
-    bubblePosition: "right" as const,
-    text: "Justo debajo de la cabecera, esta sección es la Identificación del CV. Aquí confirmamos los detalles del archivo que subiste, como su nombre y formato. Lo más importante: te mostramos tu 'Score' actual aquí mismo. Y si necesitas una copia rápida, usa los botones de la derecha para imprimir o copiar el texto extraído."
+    text: "Aquí ves el estado de tu análisis y el botón para generar tu ruta de empleabilidad. También puedes descargar o copiar tu CV desde los accesos discretos del encabezado."
   },
   {
     id: "step-guide",
-    title: "Guía de 3 Pasos",
+    title: "Tu progreso",
     bubblePosition: "right" as const,
-    text: "Esta barra visual es tu Mapa de Ruta. Te recuerda el proceso simplificado: primero cargaste tu CV (Paso 1), luego la IA analizó las brechas (Paso 2, resaltado en rojo), y ahora estamos en el Paso 3: ¡Mejorar tu CV para maximizar tu impacto!"
+    text: "Esta guía resume el flujo: ya cargaste tu CV, la IA detectó brechas y ahora toca mejorar tu perfil con las prioridades que verás abajo."
   },
   {
     id: "score",
-    title: "Círculo de Puntuación",
+    title: "Diagnóstico",
     bubblePosition: "right" as const,
-    text: "¡Llegamos al corazón del análisis! Aquí está tu Score IA. El círculo rojo a la izquierda es tu puntuación Actual según el análisis de tu CV. El círculo negro a la derecha es tu puntuación Óptima si aplicas las mejoras recomendadas. ¡Nuestro objetivo es ayudarte a cerrar esa brecha!"
-  },
-  {
-    id: "status",
-    title: "Resumen de Estado",
-    bubblePosition: "left" as const,
-    text: "A la derecha de los puntajes, te damos el Diagnóstico Rápido. Interpretamos tu Score (por ejemplo, 'Requiere ajustes') y, crucialmente, identificamos el Problema principal que detectó la IA. Esto te dice exactamente qué te está frenando, como la falta de keywords técnicas o logros medibles."
+    text: "El bloque principal reúne tu score actual, el potencial optimizado y el problema que más te frena. Es lo primero que debes revisar."
   },
   {
     id: "skills",
-    title: "Skills & Brechas",
+    title: "Skills y brechas",
     bubblePosition: "right" as const,
-    text: "En la columna derecha tienes el panel de Skills & Brechas. Aquí la IA contrasta tus habilidades actuales contra las brechas detectadas. Las brechas de prioridad 'alta' se marcan en rojo. Cada una incluye un recurso recomendado para que puedas cerrarla desde hoy mismo."
+    text: "Aquí contrastamos tus fortalezas detectadas con las brechas por prioridad. Cada brecha incluye un recurso para cerrarla."
+  },
+  {
+    id: "priorities",
+    title: "Prioridades",
+    bubblePosition: "right" as const,
+    text: "Esta lista te indica qué hacer primero, por qué importa y el impacto estimado. Úsala como checklist de mejora."
   },
 ];
 
@@ -213,35 +310,42 @@ function GuideOverlay({
 }) {
   const pad = 10;
   const gap = 28;
-  const groupW = 520; // avatar (~100px) + gap + bubble (~380px max)
+  const vw = typeof window !== "undefined" ? window.innerWidth : 1024;
+  const vh = typeof window !== "undefined" ? window.innerHeight : 768;
+  const isNarrow = vw < 640;
+  const groupW = isNarrow ? vw - pad * 2 : 520;
 
   let groupLeft: number;
   let groupTop: number;
 
+  if (isNarrow) {
+    groupLeft = pad;
+    groupTop = Math.max(pad, vh - 300);
+  }
   // Try right of highlight
-  if (highlightRect.right + gap + groupW <= window.innerWidth) {
+  else if (highlightRect.right + gap + groupW <= vw) {
     groupLeft = highlightRect.right + gap;
-    groupTop = Math.max(pad, Math.min(highlightRect.top, window.innerHeight - 240));
+    groupTop = Math.max(pad, Math.min(highlightRect.top, vh - 240));
   }
   // Try left of highlight (for sections on the right edge)
   else if (highlightRect.left - gap - groupW >= 0) {
     groupLeft = highlightRect.left - gap - groupW - 40;
-    groupTop = Math.max(pad, Math.min(highlightRect.top, window.innerHeight - 240));
+    groupTop = Math.max(pad, Math.min(highlightRect.top, vh - 240));
   }
   // Try below
-  else if (highlightRect.bottom + gap + 200 <= window.innerHeight) {
-    groupLeft = Math.max(pad, Math.min(highlightRect.left, window.innerWidth - groupW - pad));
+  else if (highlightRect.bottom + gap + 200 <= vh) {
+    groupLeft = Math.max(pad, Math.min(highlightRect.left, vw - groupW - pad));
     groupTop = highlightRect.bottom + gap;
   }
   // Try above
   else if (highlightRect.top - gap - 200 >= 0) {
-    groupLeft = Math.max(pad, Math.min(highlightRect.left, window.innerWidth - groupW - pad));
+    groupLeft = Math.max(pad, Math.min(highlightRect.left, vw - groupW - pad));
     groupTop = highlightRect.top - gap - 200;
   }
   // Fallback: bottom-right
   else {
-    groupLeft = window.innerWidth - groupW - pad;
-    groupTop = window.innerHeight - 200 - pad;
+    groupLeft = vw - groupW - pad;
+    groupTop = vh - 200 - pad;
   }
 
   return (
@@ -263,17 +367,17 @@ function GuideOverlay({
 
       {/* Avatar + speech bubble side by side */}
       <div
-        className="absolute flex items-start gap-4"
-        style={{ left: groupLeft, top: groupTop, pointerEvents: "auto" }}
+        className={`absolute flex items-start gap-3 sm:gap-4 ${isNarrow ? "flex-col items-stretch w-[calc(100vw-20px)]" : ""}`}
+        style={{ left: groupLeft, top: groupTop, pointerEvents: "auto", maxWidth: isNarrow ? vw - pad * 2 : undefined }}
       >
         {/* Avatar */}
-        <div className="relative shrink-0">
-          <AvatarGuide className="h-72 drop-shadow-lg" />
+        <div className={`relative shrink-0 ${isNarrow ? "flex justify-center" : ""}`}>
+          <AvatarGuide className={`${isNarrow ? "h-20" : "h-72"} drop-shadow-lg`} />
           <span className="absolute -top-1 -right-1 h-3 w-3 bg-emerald-400 border-2 border-white rounded-full animate-pulse" />
         </div>
 
         {/* Speech bubble + controls */}
-        <div className="bg-white border border-neutral-300 shadow-2xl p-5 max-w-[380px] relative rounded-2xl">
+        <div className="bg-white border border-neutral-300 shadow-2xl p-4 sm:p-5 max-w-[380px] relative rounded-2xl w-full">
           {/* Arrow pointing left to avatar */}
           <div className="absolute -left-[7px] top-7 h-3.5 w-3.5 bg-white border-l border-b border-neutral-300 rotate-45 rounded-bl-sm" />
           {/* Label */}
@@ -460,6 +564,7 @@ interface CvAnalyzerPanelProps {
   currentSkills?: string[];
   onNavigateToDiagnostico?: () => void;
   onNavigateToRuta?: () => void;
+  routeGenerated?: boolean;
   profile?: UserProfile;
 }
 
@@ -473,6 +578,7 @@ export default function CvAnalyzerPanel({
   currentSkills: incomingSkills,
   onNavigateToDiagnostico,
   onNavigateToRuta,
+  routeGenerated = false,
   profile
 }: CvAnalyzerPanelProps) {
   const analysis = savedAnalysis ?? SIMULATED_ANALYSIS;
@@ -497,13 +603,12 @@ export default function CvAnalyzerPanel({
   const [guideStep, setGuideStep] = useState(0);
 
   const headerRef = useRef<HTMLDivElement>(null);
-  const cvCardRef = useRef<HTMLDivElement>(null);
   const stepGuideRef = useRef<HTMLDivElement>(null);
   const scoreCardRef = useRef<HTMLDivElement>(null);
-  const statusRef = useRef<HTMLDivElement>(null);
   const skillsRef = useRef<HTMLDivElement>(null);
+  const prioritiesRef = useRef<HTMLDivElement>(null);
 
-  const stepRefs = [headerRef, cvCardRef, stepGuideRef, scoreCardRef, statusRef, skillsRef];
+  const stepRefs = [headerRef, stepGuideRef, scoreCardRef, skillsRef, prioritiesRef];
   const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
 
   const updateHighlight = useCallback(() => {
@@ -536,7 +641,7 @@ export default function CvAnalyzerPanel({
   };
 
   const handleGuideNext = () => {
-    if (guideStep < 5) {
+    if (guideStep < stepRefs.length - 1) {
       setGuideStep(prev => prev + 1);
     } else {
       dismissGuide();
@@ -609,173 +714,323 @@ export default function CvAnalyzerPanel({
     { key: "informe", label: "Informe" }
   ] as const;
 
-  return (
-    <div className="space-y-6">
-      {/* ==================== HEADER ==================== */}
-      <div ref={headerRef} className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-32 h-full utp-diagonal-pattern opacity-20 pointer-events-none" />
-        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
+  const statusLabel =
+    analysis.score >= 80 ? "CV sobresaliente" : analysis.score >= 60 ? "Requiere ajustes" : "CV en riesgo";
+  const mainProblem = analysis.weaknesses[0] ?? "Faltan keywords técnicas y logros medibles.";
+  const nextStepHint =
+    analysis.weaknesses[1] ?? "Aplicar formato profesional y agregar logros con números.";
+  const gapsAlta = gaps.filter((g) => g.priority === "alta");
+  const gapsMedia = gaps.filter((g) => g.priority === "media");
+  const gapsBaja = gaps.filter((g) => g.priority === "baja");
 
-        <div className="relative z-10 space-y-1">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="heading-lg text-black flex items-center gap-2">
-              <FileText className="h-5.5 w-5.5 text-[#B50E30]" />
-              CV Analyzer IA
-            </h2>
+  return (
+    <div className="space-y-5 min-w-0 overflow-x-hidden">
+      {/* A. Encabezado compacto */}
+      <div ref={headerRef} className="bg-white rounded-xl border border-neutral-200/80 shadow-sm px-5 py-4 sm:px-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="min-w-0 space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h2 className="text-lg sm:text-xl font-bold text-neutral-900 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-[#B50E30]" />
+                CV Analyzer IA
+              </h2>
+              {routeGenerated && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                  <CheckCircle className="h-3 w-3" />
+                  Ruta generada
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-neutral-600 leading-relaxed">
+              Tu CV fue analizado. Revisa tus brechas y prioridades de mejora.
+            </p>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500">
+              <span className="truncate max-w-[200px] sm:max-w-none">{displayInfo.fileName}</span>
+              <span className="text-neutral-300 hidden sm:inline">·</span>
+              <span>Score {analysis.score}%</span>
+              <span className="text-neutral-300 hidden sm:inline">·</span>
+              <span className="no-print flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handlePrintCv}
+                  className="text-neutral-600 hover:text-[#B50E30] font-medium transition cursor-pointer"
+                  title="Imprimir o guardar como PDF"
+                >
+                  PDF
+                </button>
+                <span className="text-neutral-300">·</span>
+                <button
+                  type="button"
+                  onClick={handleCopyCvText}
+                  className="text-neutral-600 hover:text-[#B50E30] font-medium transition cursor-pointer"
+                >
+                  {cvCopied ? "Copiado" : "Texto"}
+                </button>
+              </span>
+            </div>
+          </div>
+          {!routeGenerated && (
             <button
               type="button"
               onClick={handleCreateRoute}
-              className="bg-[#B50E30] hover:bg-[#85061B] active:bg-[#B50E30] text-white font-black uppercase tracking-wider rounded-none text-[11px] px-5 py-2.5 flex items-center gap-2 transition cursor-pointer shrink-0"
+              className="bg-[#B50E30] hover:bg-[#85061B] text-white font-semibold rounded-lg text-sm px-5 py-2.5 flex items-center justify-center gap-2 transition cursor-pointer shrink-0 shadow-sm"
             >
               <Route className="h-4 w-4" />
               Generar mi ruta
             </button>
-          </div>
-          <p className="text-neutral-500 text-sm font-semibold leading-relaxed">
-            Tu CV ya fue analizado. La IA detectó todo lo que necesitas mejorar para llegar a la entrevista.
-          </p>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      {/* B. Stepper compacto */}
+      <div ref={stepGuideRef} className="px-1 sm:px-2">
+        <FlowStepper />
+      </div>
 
-          {/* -------- 1. CV current card -------- */}
-          <div ref={cvCardRef} className="bg-white rounded-none border border-utp-border p-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="h-10 w-10 bg-black flex items-center justify-center shrink-0">
-                <FileText className="h-5 w-5 text-white" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-black text-black uppercase tracking-wider flex items-center gap-1.5">
-                  CV actual cargado
-                  <CheckCircle className="h-3 w-3 text-[#B50E30]" />
-                </p>
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-0 text-[9px] font-semibold text-neutral-500">
-                  <span className="font-extrabold text-black">{displayInfo.fileName}</span>
-                  <span className="w-0.5 h-0.5 bg-neutral-300 rounded-full" />
-                  <span>{displayInfo.format}</span>
-                  <span className="w-0.5 h-0.5 bg-neutral-300 rounded-full" />
-                  <span>{displayInfo.source}</span>
-                  <span className="w-0.5 h-0.5 bg-neutral-300 rounded-full" />
-                  <span>{displayInfo.status}</span>
-                  <span className="w-0.5 h-0.5 bg-neutral-300 rounded-full" />
-                  <span>Score: {analysis.score}%</span>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-1.5 shrink-0 no-print">
-                <button
-                  type="button"
-                  onClick={handlePrintCv}
-                  className="px-3 py-1.5 bg-black hover:bg-neutral-800 text-white font-black uppercase tracking-wider rounded-none text-[10px] flex items-center gap-1.5 transition cursor-pointer"
-                  title="Imprimir o guardar como PDF"
-                >
-                  <Printer className="h-3.5 w-3.5" />
-                  PDF
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCopyCvText}
-                  className="px-3 py-1.5 border border-black hover:bg-neutral-50 text-black font-black uppercase tracking-wider rounded-none text-[10px] flex items-center gap-1.5 transition cursor-pointer"
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                  {cvCopied ? "Copiado" : "Texto"}
-                </button>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 lg:gap-6">
+        {/* C. Resumen del análisis */}
+        <div
+          ref={scoreCardRef}
+          className="lg:col-span-3 order-1 bg-white rounded-xl border border-neutral-200/80 shadow-sm p-5 sm:p-6"
+        >
+          <div className="flex items-center gap-2 mb-5">
+            <Sparkles className="h-4 w-4 text-[#B50E30]" />
+            <h3 className="text-base font-semibold text-neutral-900">Resumen del análisis</h3>
           </div>
 
-          {/* -------- 3-STEP GUIDE -------- */}
-          <div ref={stepGuideRef} className="bg-white rounded-none border border-utp-border p-5">
-            <div className="flex items-center justify-between gap-2">
-              {[
-                { icon: FileText, label: "CV cargado" },
-                { icon: Sparkles, label: "IA analizó brechas" },
-                { icon: TrendingUp, label: "Mejora tu CV" }
-              ].map((step, idx) => (
-                <div key={idx} className="flex items-center gap-2 flex-1">
-                  <div className="h-8 w-8 bg-neutral-100 flex items-center justify-center shrink-0">
-                    <step.icon className={`h-4 w-4 ${idx === 0 ? "text-black" : idx === 1 ? "text-[#B50E30]" : "text-black"}`} />
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+            <div className="flex flex-wrap justify-center gap-4 md:gap-6 shrink-0">
+              <div className="text-center">
+                <ScoreCircleAnimated score={analysis.score} label="actual" color="stroke-[#B50E30]" />
+                <p className="text-xs text-neutral-500 mt-2">Score actual</p>
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <TrendingUp className="h-4 w-4 text-[#B50E30]" />
+                <span className="text-sm font-bold text-[#B50E30]">
+                  +<DeltaBadge value={optimizedScore - analysis.score} />%
+                </span>
+                <span className="text-[10px] text-neutral-400">Impacto</span>
+              </div>
+              <div className="text-center">
+                <ScoreCircleAnimated score={optimizedScore} label="óptimo" color="stroke-neutral-700" />
+                <p className="text-xs text-neutral-500 mt-2">Score optimizado</p>
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-0 space-y-4 md:border-l md:border-neutral-100 md:pl-6">
+              <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm">
+                <div>
+                  <span className="text-neutral-500">Estado: </span>
+                  <span className="font-semibold text-neutral-900">{statusLabel}</span>
+                </div>
+                <div>
+                  <span className="text-neutral-500">Potencial: </span>
+                  <span className="font-semibold text-[#B50E30]">{optimizedScore}%</span>
+                </div>
+              </div>
+
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-[#B50E30] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-neutral-800">Problema principal</p>
+                    <p className="text-neutral-600 mt-0.5 leading-relaxed">{mainProblem}</p>
                   </div>
-                  <span className={`text-[10px] font-black uppercase tracking-wider ${idx < 2 ? "text-black" : "text-black"}`}>
-                    {step.label}
-                  </span>
-                  {idx < 2 && <div className="flex-1 h-px bg-neutral-200 mx-2" />}
                 </div>
-              ))}
+                <div className="flex items-start gap-2">
+                  <Target className="h-4 w-4 text-[#B50E30] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-neutral-800">Siguiente paso</p>
+                    <p className="text-neutral-600 mt-0.5 leading-relaxed">{nextStepHint}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* -------- CARD: ANÁLISIS IA DEL CV -------- */}
-          <div ref={scoreCardRef} className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
-            <div className="absolute right-0 top-0 w-24 h-full utp-diagonal-pattern opacity-10 pointer-events-none" />
-            <div className="relative z-10">
-              <h3 className="heading-sm text-black tracking-widest flex items-center gap-2 pb-4 border-b border-utp-border">
-                <Sparkles className="h-4 w-4 text-[#B50E30] fill-[#B50E30]" />
-                Análisis IA del CV
+        {/* D. Skills y brechas + impacto + evaluación IA */}
+        <div className="lg:col-span-2 order-2 lg:row-span-2 flex flex-col gap-4">
+          <div ref={skillsRef} className="bg-white rounded-xl border border-neutral-200/80 shadow-sm p-5">
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <h3 className="text-base font-semibold text-neutral-900 flex items-center gap-2">
+                <Zap className="h-4 w-4 text-[#B50E30]" />
+                Skills y brechas
               </h3>
+              {gapsAlta.filter((g) => g.status !== "completado").length > 0 && (
+                <span className="bg-[#B50E30] text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0">
+                  {gapsAlta.filter((g) => g.status !== "completado").length} críticas
+                </span>
+              )}
+            </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch gap-6 pt-5">
-                <div className="flex items-center gap-5 shrink-0">
-                  <ScoreCircleAnimated score={analysis.score} label="actual" color="stroke-[#B50E30]" />
-                  <div className="flex flex-col items-center">
-                    <TrendingUp className="h-5 w-5 text-black" />
-                    <span className="text-[9px] font-black text-black uppercase tracking-wider mt-0.5">
-                      +<DeltaBadge value={optimizedScore - analysis.score} />%
-                    </span>
-                  </div>
-                  <ScoreCircleAnimated score={optimizedScore} label="óptimo" color="stroke-black" />
-                </div>
-
-                {/* Right: status + problem + next step */}
-                <div ref={statusRef} className="flex-1 space-y-3">
-                  <div className="flex items-center justify-between border-b border-utp-border pb-2">
-                    <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Estado</span>
-                    <span className="text-sm font-black text-black uppercase">
-                      {analysis.score >= 80 ? "CV sobresaliente" : analysis.score >= 60 ? "Requiere ajustes" : "CV en riesgo"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between border-b border-utp-border pb-2">
-                    <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Score optimizado</span>
-                    <span className="text-sm font-extrabold text-black">{optimizedScore}%</span>
-                  </div>
-
-                  <div className="p-4 bg-neutral-50 border border-utp-border space-y-3">
-                    <div className="flex items-start gap-2">
-                      <AlertCircle className="h-4 w-4 text-[#B50E30] shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-[10px] font-black text-black uppercase tracking-wider">Problema principal</p>
-                        <p className="text-xs text-neutral-600 font-semibold mt-0.5 leading-relaxed">
-                          Faltan keywords técnicas y logros medibles.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2 pt-2 border-t border-utp-border">
-                      <Sparkles className="h-4 w-4 text-[#B50E30] shrink-0 fill-[#B50E30] mt-0.5" />
-                      <div>
-                        <p className="text-[10px] font-black text-black uppercase tracking-wider">Siguiente paso</p>
-                        <p className="text-xs text-neutral-600 font-semibold mt-0.5 leading-relaxed">
-                          Aplicar formato profesional y agregar logros con números.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+            {skills.length > 0 && (
+              <div className="mb-4 pb-4 border-b border-neutral-100">
+                <p className="text-xs font-medium text-neutral-700 mb-2">Fortalezas detectadas en tu CV</p>
+                <p className="text-[11px] text-neutral-500 mb-2.5">La IA identificó estas habilidades en tu perfil.</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {skills.map((skill) => (
+                    <SkillChip key={skill} skill={skill} />
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
+
+            {gaps.length === 0 ? (
+              <div className="text-center py-6 px-3 rounded-lg bg-neutral-50">
+                <AlertCircle className="h-5 w-5 text-[#B50E30] mx-auto mb-2" />
+                <p className="text-sm font-medium text-neutral-800">Sin diagnóstico registrado</p>
+                {onNavigateToDiagnostico && (
+                  <button
+                    type="button"
+                    onClick={onNavigateToDiagnostico}
+                    className="mt-2 inline-flex items-center gap-1 text-[#B50E30] text-xs font-medium hover:underline cursor-pointer"
+                  >
+                    Ir al diagnóstico
+                    <ArrowRight className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {gapsAlta.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-[#B50E30] mb-2 flex items-center gap-1">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      Brechas críticas
+                    </p>
+                    <div className="space-y-2">
+                      {gapsAlta.map((gap, idx) => (
+                        <GapMiniCard key={`alta-${gap.skillName}-${idx}`} gap={gap} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {gapsMedia.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-amber-800 mb-2">Brechas medias</p>
+                    <div className="space-y-2">
+                      {gapsMedia.map((gap, idx) => (
+                        <GapMiniCard key={`media-${gap.skillName}-${idx}`} gap={gap} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {gapsBaja.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-emerald-800 mb-2">Brechas bajas</p>
+                    <div className="space-y-2">
+                      {gapsBaja.map((gap, idx) => (
+                        <GapMiniCard key={`baja-${gap.skillName}-${idx}`} gap={gap} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className="bg-white rounded-none border border-utp-border">
-            <div className="flex border-b border-utp-border">
+          {routeImpact && (
+            <div className="bg-white rounded-xl border border-neutral-200/80 shadow-sm p-4">
+              <h4 className="text-sm font-semibold text-neutral-900 flex items-center gap-2 mb-3">
+                <TrendingUp className="h-4 w-4 text-[#B50E30]" />
+                Impacto en tu ruta
+              </h4>
+              <div className="flex items-center gap-3 text-sm mb-3">
+                <span className="font-bold text-neutral-500">{routeImpact.compatibilityBefore}%</span>
+                <div className="flex-1 h-2 bg-neutral-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[#B50E30] rounded-full"
+                    style={{ width: `${Math.min(routeImpact.compatibilityAfter, 100)}%` }}
+                  />
+                </div>
+                <span className="font-bold text-[#B50E30]">{routeImpact.compatibilityAfter}%</span>
+              </div>
+              <p className="text-xs text-neutral-600">
+                Mejora esperada: <span className="font-semibold text-[#B50E30]">+{routeImpact.impact}%</span>
+              </p>
+              <p className="text-xs text-neutral-500 mt-2 flex items-start gap-1.5">
+                <ArrowRight className="h-3.5 w-3.5 text-[#B50E30] shrink-0 mt-0.5" />
+                <span>Próximo: {routeImpact.nextMission}</span>
+              </p>
+            </div>
+          )}
+
+          <div className="rounded-xl border border-neutral-100 bg-neutral-50/80 p-4">
+            <h4 className="text-sm font-semibold text-neutral-800 mb-2">¿Qué evalúa la IA?</h4>
+            <ul className="space-y-2 text-xs text-neutral-600">
+              <li className="flex items-start gap-2">
+                <CheckCircle className="h-3.5 w-3.5 text-[#B50E30] mt-0.5 shrink-0" />
+                <span><strong className="font-medium text-neutral-800">Estructura</strong> — legibilidad y organización.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="h-3.5 w-3.5 text-[#B50E30] mt-0.5 shrink-0" />
+                <span><strong className="font-medium text-neutral-800">Palabras clave</strong> — herramientas del mercado.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Shield className="h-3.5 w-3.5 text-[#B50E30] mt-0.5 shrink-0" />
+                <span><strong className="font-medium text-neutral-800">Formato</strong> — claridad del perfil profesional.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* E. Prioridades + tabs */}
+        <div className="lg:col-span-3 order-3 flex flex-col gap-5">
+          {gaps.length > 0 && (
+            <div ref={prioritiesRef} className="bg-white rounded-xl border border-neutral-200/80 shadow-sm p-5 sm:p-6">
+              <div className="flex items-center gap-2 mb-1">
+                <ListOrdered className="h-4 w-4 text-[#B50E30]" />
+                <h3 className="text-base font-semibold text-neutral-900">Prioridades de mejora</h3>
+              </div>
+              <p className="text-xs text-neutral-500 mb-4">Acciones recomendadas según las brechas detectadas.</p>
+              <ol className="space-y-3">
+                {gaps.slice(0, 4).map((gap, idx) => (
+                  <li
+                    key={`${gap.skillName}-${idx}`}
+                    className="flex gap-3 rounded-lg border border-neutral-100 bg-neutral-50/50 p-3.5"
+                  >
+                    <span className="h-6 w-6 shrink-0 rounded-full bg-[#B50E30] text-white text-xs font-semibold flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <p className="text-sm font-semibold text-neutral-900">{gap.skillName}</p>
+                      <p className="text-xs text-neutral-600 leading-relaxed">
+                        <span className="font-medium text-neutral-700">Qué hacer: </span>
+                        {gap.description || `Refuerza ${gap.skillName} en tu CV y perfil profesional.`}
+                      </p>
+                      <p className="text-xs text-neutral-500">
+                        Impacto estimado:{" "}
+                        <span
+                          className={`font-semibold ${
+                            gap.priority === "alta"
+                              ? "text-[#B50E30]"
+                              : gap.priority === "media"
+                                ? "text-amber-700"
+                                : "text-emerald-700"
+                          }`}
+                        >
+                          {gap.priority === "alta" ? "Alto" : gap.priority === "media" ? "Medio" : "Bajo"}
+                        </span>
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          <div className="bg-white rounded-xl border border-neutral-200/80 shadow-sm overflow-hidden">
+            <div className="flex border-b border-neutral-100 overflow-x-auto scrollbar-none">
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
                   type="button"
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex-1 py-3 px-4 text-[11px] font-black uppercase tracking-wider transition cursor-pointer ${
+                  className={`shrink-0 sm:flex-1 py-3 px-3 sm:px-4 text-xs sm:text-sm font-medium transition cursor-pointer whitespace-nowrap ${
                     activeTab === tab.key
                       ? "text-[#B50E30] border-b-2 border-[#B50E30] bg-white"
-                      : "text-neutral-500 hover:text-black bg-neutral-50/50"
+                      : "text-neutral-500 hover:text-neutral-800 bg-neutral-50/40"
                   }`}
                 >
                   {tab.label}
@@ -783,98 +1038,75 @@ export default function CvAnalyzerPanel({
               ))}
             </div>
 
-            <div className="p-6">
-              {/* ============ TAB: MEJORAS ============ */}
+            <div className="p-5 sm:p-6">
               {activeTab === "mejoras" && (
-                <div className="space-y-6">
-                  <p className="text-xs text-neutral-500 font-semibold border-b border-utp-border pb-3 -mt-2">Tus acciones prioritarias.</p>
-
-                  <div className="space-y-3">
-                    {[
-                        { title: "Adaptar a formato profesional", que: "Ordena tu CV en secciones claras.", por: "Ayuda al reclutador a leer tu perfil.", impacto: "+8%" },
-                      { title: "Agregar logros medibles", que: "Incluye resultados con números, porcentajes o tiempos.", por: "Los reclutadores buscan impacto medible, no descripciones.", impacto: "+10%" },
-                      { title: "Alinear habilidades con la vacante", que: "Agrega SQL, APIs REST, Git/GitHub y metodologías ágiles.", por: "Sin estas keywords tu CV no pasa el primer filtro automático.", impacto: "+12%" }
-                    ].map((rec, idx) => (
-                      <div key={idx} className="p-4 bg-neutral-50 border border-utp-border">
-                        <div className="flex items-start gap-3">
-                          <div className="h-6 w-6 bg-black flex items-center justify-center shrink-0 mt-0.5">
-                            <span className="text-white text-[10px] font-black">{idx + 1}</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-extrabold text-black uppercase tracking-tight">{rec.title}</p>
-                            <div className="mt-2 space-y-1 text-xs">
-                              <p className="text-neutral-600 font-semibold"><span className="font-black text-black uppercase tracking-wider text-[10px]">Qué hacer:</span> {rec.que}</p>
-                              <p className="text-neutral-600 font-semibold"><span className="font-black text-black uppercase tracking-wider text-[10px]">Por qué importa:</span> {rec.por}</p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="mt-2 pt-2 border-t border-utp-border flex items-center justify-end">
-                          <span className="text-[10px] font-black text-[#B50E30] uppercase tracking-wider">Impacto: {rec.impacto}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
+                <div className="space-y-3">
+                  <p className="text-xs text-neutral-500 pb-2 border-b border-neutral-100">
+                    Acciones para elevar tu score.
+                  </p>
+                  {[
+                    { title: "Adaptar a formato profesional", que: "Ordena tu CV en secciones claras.", por: "Ayuda al reclutador a leer tu perfil.", impacto: "+8%" },
+                    { title: "Agregar logros medibles", que: "Incluye resultados con números, porcentajes o tiempos.", por: "Los reclutadores buscan impacto medible.", impacto: "+10%" },
+                    { title: "Alinear habilidades con la vacante", que: "Agrega keywords técnicas y metodologías del puesto.", por: "Sin ellas tu CV no pasa el filtro automático.", impacto: "+12%" },
+                  ].map((rec, idx) => (
+                    <div key={idx} className="rounded-lg border border-neutral-100 p-3.5 space-y-2">
+                      <p className="text-sm font-semibold text-neutral-900">{rec.title}</p>
+                      <p className="text-xs text-neutral-600"><span className="font-medium">Qué hacer: </span>{rec.que}</p>
+                      <p className="text-xs text-neutral-600"><span className="font-medium">Por qué importa: </span>{rec.por}</p>
+                      <p className="text-xs font-semibold text-[#B50E30]">Impacto: {rec.impacto}</p>
+                    </div>
+                  ))}
                 </div>
               )}
 
               {activeTab === "keywords" && (
                 <div className="space-y-4">
-                  <p className="text-xs text-neutral-500 font-semibold border-b border-utp-border pb-3 -mt-2">Palabras clave que fortalecen tu perfil.</p>
-
-                  <div className="flex items-center gap-1.5 pb-2">
-                    <Shield className="h-4 w-4 text-[#B50E30]" />
-                    <span className="text-[11px] font-black text-black uppercase tracking-wider">Palabras clave detectadas</span>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-[10px] font-black text-black uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                        <CheckCircle className="h-3.5 w-3.5 text-[#B50E30]" />
-                        Encontradas ({Math.min(5, analysis.keywordsFound.length)})
-                      </span>
-                      <div className="flex flex-wrap gap-1">
-                        {analysis.keywordsFound.slice(0, 5).map((kw, idx) => (
-                          <span key={idx} className="bg-black text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-tight">{kw}</span>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-black text-[#B50E30] uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                        <AlertTriangle className="h-3.5 w-3.5 text-[#B50E30]" />
-                        Faltantes ({Math.min(5, analysis.keywordsMissing.length)})
-                      </span>
-                      <div className="flex flex-wrap gap-1">
-                        {analysis.keywordsMissing.slice(0, 5).map((kw, idx) => (
-                          <span key={idx} className="bg-[#B50E30]/10 text-[#B50E30] border border-[#B50E30]/25 text-[10px] font-bold px-2 py-0.5 uppercase tracking-tight">{kw}</span>
-                        ))}
-                      </div>
+                  <p className="text-xs text-neutral-500 pb-2 border-b border-neutral-100">
+                    Palabras clave que fortalecen tu perfil.
+                  </p>
+                  <div>
+                    <p className="text-xs font-medium text-neutral-700 mb-2 flex items-center gap-1">
+                      <CheckCircle className="h-3.5 w-3.5 text-[#B50E30]" />
+                      Encontradas ({Math.min(5, analysis.keywordsFound.length)})
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {analysis.keywordsFound.slice(0, 5).map((kw, idx) => (
+                        <span key={idx} className="bg-neutral-800 text-white text-xs font-medium px-2.5 py-1 rounded-md">{kw}</span>
+                      ))}
                     </div>
                   </div>
-
-                  <div className="p-3 bg-neutral-50 border border-utp-border text-xs font-semibold text-neutral-600 leading-relaxed">
-                    <AlertCircle className="h-3.5 w-3.5 text-[#B50E30] inline mr-1 -mt-0.5" />
-                    Las palabras clave aumentan las oportunidades de tu CV. Tienes {analysis.keywordsFound.length} de {analysis.keywordsFound.length + analysis.keywordsMissing.length} términos clave identificados.
+                  <div>
+                    <p className="text-xs font-medium text-[#B50E30] mb-2 flex items-center gap-1">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      Faltantes ({Math.min(5, analysis.keywordsMissing.length)})
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {analysis.keywordsMissing.slice(0, 5).map((kw, idx) => (
+                        <span key={idx} className="bg-[#B50E30]/8 text-[#B50E30] border border-[#B50E30]/20 text-xs font-medium px-2.5 py-1 rounded-md">{kw}</span>
+                      ))}
+                    </div>
                   </div>
+                  <p className="text-xs text-neutral-500 leading-relaxed">
+                    Tienes {analysis.keywordsFound.length} de {analysis.keywordsFound.length + analysis.keywordsMissing.length} términos clave identificados.
+                  </p>
                 </div>
               )}
 
               {activeTab === "informe" && (
-                <div className="space-y-4 text-xs font-semibold text-neutral-700 leading-relaxed">
-                  <p className="text-xs text-neutral-500 font-semibold border-b border-utp-border pb-3 -mt-2">Detalle completo para revisar con calma.</p>
-
-                  <h4 className="text-[11px] font-black text-black uppercase tracking-widest flex items-center gap-2 pb-2 border-b border-utp-border">
+                <div className="space-y-4 text-sm text-neutral-700 leading-relaxed">
+                  <p className="text-xs text-neutral-500 pb-2 border-b border-neutral-100">
+                    Detalle completo del análisis.
+                  </p>
+                  <h4 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
                     <BookOpen className="h-4 w-4 text-[#B50E30]" />
-                    Informe detallado del análisis del CV
+                    Informe detallado
                   </h4>
-
                   <div>
-                    <p className="text-[11px] font-black text-black uppercase tracking-wider mb-1.5">1. Estructura del CV</p>
+                    <p className="text-xs font-medium text-neutral-800 mb-1">1. Estructura del CV</p>
                     <p className="text-xs text-neutral-600">El CV tiene una base útil, pero necesita mayor jerarquía visual y organización por secciones.</p>
                   </div>
-
                   <div>
-                    <p className="text-[11px] font-black text-black uppercase tracking-wider mb-1.5">2. Contenido</p>
+                    <p className="text-xs font-medium text-neutral-800 mb-1">2. Contenido</p>
                     <ul className="space-y-1 list-disc list-inside text-xs text-neutral-600">
                       <li><strong>Perfil profesional:</strong> falta un resumen inicial orientado al puesto.</li>
                       <li><strong>Educación:</strong> correcta, pero puede reforzarse con logros académicos.</li>
@@ -882,9 +1114,8 @@ export default function CvAnalyzerPanel({
                       <li><strong>Habilidades:</strong> listadas, pero sin contexto de aplicación.</li>
                     </ul>
                   </div>
-
                   <div>
-                    <p className="text-[11px] font-black text-black uppercase tracking-wider mb-1.5">3. Recomendaciones clave</p>
+                    <p className="text-xs font-medium text-neutral-800 mb-1">3. Recomendaciones clave</p>
                     <ul className="space-y-1 list-disc list-inside text-xs text-neutral-600">
                       <li>Agregar un perfil profesional de 3 a 4 líneas orientado a la vacante.</li>
                       <li>Incluir proyectos prácticos relacionados a la vacante objetivo.</li>
@@ -896,146 +1127,6 @@ export default function CvAnalyzerPanel({
                 </div>
               )}
             </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {/* -------- Skills & Brechas -------- */}
-          <div ref={skillsRef} className="bg-white rounded-none border border-utp-border p-6">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-utp-border">
-              <h3 className="heading-sm text-black tracking-widest flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-[#B50E30]" />
-                Skills & Brechas
-              </h3>
-              {gaps.filter(g => g.priority === "alta" && g.status !== "completado").length > 0 && (
-                <span className="bg-black text-white text-[10px] font-black px-2 py-0.5 rounded-none uppercase">
-                  {gaps.filter(g => g.priority === "alta" && g.status !== "completado").length} Críticas
-                </span>
-              )}
-            </div>
-
-            <p className="text-[11px] text-neutral-500 font-semibold mb-4 leading-relaxed">
-              Estas brechas explican por qué tu CV aún no llega al score ideal.
-            </p>
-
-            {skills.length > 0 && (
-              <div className="mb-4">
-                <p className="text-[11px] font-black text-neutral-500 uppercase tracking-widest mb-2">Tus habilidades actuales</p>
-                <div className="flex flex-wrap gap-2">
-                  {skills.map((skill) => (
-                    <span key={skill} className="bg-black text-white text-[11px] font-bold px-3 py-1.5 uppercase tracking-tight">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {gaps.length === 0 ? (
-              <div className="text-center py-6 px-4">
-                <AlertCircle className="h-6 w-6 text-[#B50E30] mx-auto mb-2" />
-                <p className="text-black text-[11px] font-extrabold uppercase tracking-wide">Sin diagnóstico registrado</p>
-                {onNavigateToDiagnostico && (
-                  <button
-                    type="button"
-                    onClick={onNavigateToDiagnostico}
-                    className="mt-2 inline-flex items-center gap-1 text-[#B50E30] text-[10px] font-black uppercase tracking-wider hover:underline cursor-pointer"
-                  >
-                    Ir al diagnóstico
-                    <ArrowRight className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {gaps.slice(0, 3).map((gap, idx) => (
-                  <div key={idx} className="p-3 bg-neutral-50 rounded-none border border-utp-border space-y-1.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-extrabold text-black uppercase tracking-tight text-xs">{gap.skillName}</span>
-                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-none uppercase shrink-0 ${
-                        gap.priority === "alta" ? "bg-[#B50E30] text-white"
-                          : gap.priority === "media" ? "bg-black text-white"
-                          : "bg-neutral-200 text-black"
-                      }`}>
-                        {gap.priority}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-[10px]">
-                      <span className={`font-black uppercase tracking-wider ${
-                        gap.category === "tecnica" ? "text-black"
-                          : gap.category === "blanda" ? "text-neutral-500"
-                          : "text-[#B50E30]"
-                      }`}>
-                        {gap.category === "tecnica" ? "Técnica" : gap.category === "blanda" ? "Blanda" : gap.category === "certificacion" ? "Certificación" : gap.category}
-                      </span>
-                    </div>
-                    {gap.recommendedResource && (
-                      <div className="text-[10px] text-neutral-400 font-semibold">
-                        Recurso: {gap.recommendedResource}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {routeImpact && (
-            <div className="bg-white rounded-none border border-utp-border p-6 space-y-3">
-              <div className="flex items-center gap-1.5 pb-2 border-b border-utp-border">
-                <TrendingUp className="h-4 w-4 text-[#B50E30]" />
-                <span className="text-[11px] font-black text-black uppercase tracking-wider">Impacto en tu Ruta</span>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500 font-semibold text-[11px]">Misión</span>
-                  <span className="font-extrabold text-black text-right max-w-[55%] text-xs">Optimizar CV para mejorar el alcance</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500 font-semibold text-[11px]">Evidencia</span>
-                  <span className="font-extrabold text-black flex items-center gap-1 text-xs">
-                    <CheckCircle className="h-3.5 w-3.5 text-[#B50E30]" />
-                    {routeImpact.evidence}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500 font-semibold text-[11px]">Antes</span>
-                  <span className="font-extrabold text-black">{routeImpact.compatibilityBefore}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500 font-semibold text-[11px]">Después</span>
-                  <span className="font-extrabold text-black">{routeImpact.compatibilityAfter}%</span>
-                </div>
-                <div className="flex items-center justify-between border-t border-utp-border pt-1.5">
-                  <span className="font-black text-black uppercase tracking-wider text-[11px]">Impacto</span>
-                  <span className="bg-[#B50E30]/10 text-[#B50E30] font-black text-[11px] px-2 py-0.5 border border-[#B50E30]/20">+{routeImpact.impact}%</span>
-                </div>
-              </div>
-              <p className="text-[10px] text-neutral-400 font-semibold -mb-1">Este avance desbloquea tu siguiente misión.</p>
-              <div className="flex items-center gap-2 pt-2 border-t border-utp-border text-xs">
-                <ArrowRight className="h-3.5 w-3.5 text-[#B50E30] shrink-0" />
-                <span className="text-neutral-500 font-semibold text-[11px]">Siguiente:</span>
-                <span className="font-extrabold text-black text-xs">{routeImpact.nextMission}</span>
-              </div>
-            </div>
-          )}
-
-          <div className="bg-neutral-50 rounded-none border border-utp-border p-6 space-y-3">
-            <h4 className="text-[11px] font-black text-black uppercase tracking-wider">¿Qué evalúa la IA?</h4>
-            <ul className="space-y-2 text-black text-xs font-semibold">
-              <li className="flex items-start gap-1.5">
-                <CheckCircle className="h-4 w-4 text-[#B50E30] mt-0.5 shrink-0" />
-                <span><strong>Estructura del CV</strong>: Legibilidad y organización del currículum.</span>
-              </li>
-              <li className="flex items-start gap-1.5">
-                <CheckCircle className="h-4 w-4 text-[#B50E30] mt-0.5 shrink-0" />
-                <span><strong>Palabras Clave</strong>: Lenguajes y herramientas esenciales del mercado.</span>
-              </li>
-              <li className="flex items-start gap-1.5">
-                <Shield className="h-4 w-4 text-[#B50E30] mt-0.5 shrink-0" />
-                <span><strong>Formato y Contenido</strong>: Organización y claridad del perfil profesional.</span>
-              </li>
-            </ul>
           </div>
         </div>
       </div>

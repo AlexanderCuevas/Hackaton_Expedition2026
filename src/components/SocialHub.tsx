@@ -328,7 +328,7 @@ export default function SocialHub() {
     /* left panel */
     const LeftPanel = () => (
       <div
-        className="relative flex flex-col w-64 shrink-0 overflow-hidden overflow-y-auto"
+        className="relative flex flex-col w-full md:w-64 md:shrink-0 overflow-hidden overflow-y-auto max-h-[42vh] md:max-h-none"
         style={{ background: "linear-gradient(160deg, #fdf4f4 0%, #fafafa 60%, #fdf6f5 100%)", borderRight: "1px solid #e2e0dd", scrollbarWidth: "none" }}
       >
         <div className="h-[3px] w-full shrink-0" style={{ background: "linear-gradient(90deg, #B50E30, transparent)" }} />
@@ -455,7 +455,7 @@ export default function SocialHub() {
     const TabActividad = () => (
       <motion.div key="actividad" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }} className="flex flex-col gap-6">
         <SectionRow label="Métricas de actividad" />
-        <div className="grid grid-cols-3 gap-3 -mt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 -mt-2">
           {[
             { icon: <FolderGit2 className="h-5 w-5" />, value: projectCount, label: "Proyectos" },
             { icon: <Trophy className="h-5 w-5" />, value: logroCount, label: "Logros" },
@@ -520,7 +520,7 @@ export default function SocialHub() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-6"
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6"
         style={{ background: "rgba(0,0,0,0.45)" }}
         onClick={onClose}
       >
@@ -530,13 +530,13 @@ export default function SocialHub() {
           exit={{ opacity: 0, scale: 0.96, y: 32 }}
           transition={{ type: "spring", damping: 30, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-5xl flex overflow-hidden"
-          style={{ height: "min(88vh, 640px)", background: "#f8f7f5", border: "1px solid #e2e0dd" }}
+          className="w-full max-w-5xl flex flex-col md:flex-row overflow-hidden max-h-[95vh] sm:max-h-[88vh] md:rounded-none"
+          style={{ height: "auto", minHeight: 0, background: "#f8f7f5", border: "1px solid #e2e0dd" }}
         >
           <LeftPanel />
           <div className="flex flex-col flex-1 min-w-0">
-            <div className="flex items-center justify-between px-8 py-4 shrink-0 bg-white" style={{ borderBottom: "1px solid #e2e0dd" }}>
-              <div className="flex items-center">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-8 py-3 sm:py-4 shrink-0 bg-white" style={{ borderBottom: "1px solid #e2e0dd" }}>
+              <div className="flex items-center overflow-x-auto scrollbar-none -mx-1 px-1">
                 {TABS.map((t) => (
                   <button
                     key={t}
@@ -551,7 +551,7 @@ export default function SocialHub() {
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap shrink-0">
                 {isSelf ? (
                   <div className="px-3 py-1.5 text-[11px] font-black text-neutral-400" style={{ border: "1px solid #d4d4d8" }}>
                     Tú (Estudiante)
@@ -584,7 +584,7 @@ export default function SocialHub() {
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto px-8 py-7 bg-white" style={{ scrollbarWidth: "none" }}>
+            <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-5 sm:py-7 bg-white min-h-0" style={{ scrollbarWidth: "none" }}>
               <AnimatePresence mode="wait">
                 {tab === "Perfil" && <TabPerfil />}
                 {tab === "Actividad" && <TabActividad />}

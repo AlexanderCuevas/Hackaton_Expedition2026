@@ -408,14 +408,14 @@ Interviewer:`;
         /* Chat Session Active */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Chat Panel Column */}
-          <div className="lg:col-span-2 bg-white rounded-none border border-utp-border flex flex-col h-[520px]">
+          <div className="lg:col-span-2 bg-white rounded-none border border-utp-border flex flex-col min-h-[400px] h-[min(520px,70vh)] sm:h-[520px]">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-utp-border flex items-center justify-between bg-neutral-50">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-utp-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-neutral-50">
               <div className="flex items-center gap-2">
-                <div className="h-2.5 w-2.5 rounded-full bg-[#B50E30] animate-ping" />
-                <span className="text-xs font-black text-black uppercase tracking-wider">RECLUTADOR VIRTUAL UTP</span>
+                <div className="h-2.5 w-2.5 rounded-full bg-[#B50E30] animate-ping shrink-0" />
+                <span className="text-[10px] sm:text-xs font-black text-black uppercase tracking-wider">RECLUTADOR VIRTUAL UTP</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 {ttsSupported && (
                   <button
                     type="button"
@@ -441,7 +441,7 @@ Interviewer:`;
             </div>
 
             {/* Message History */}
-            <div className="flex-1 p-6 overflow-y-auto space-y-4 max-h-[400px]">
+            <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 min-h-0">
               {messages.map((msg, idx) => {
                 const isAI = msg.role === "assistant";
                 return (

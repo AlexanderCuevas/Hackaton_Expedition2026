@@ -9,6 +9,11 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import UvpIcon from "./ui/UvpIcon";
 import { AvatarUploader } from "./ui/avatar-uploader";
+import { UserProfile as AppUserProfile, CareerMission } from "../types";
+import {
+  getProfilePanelData,
+  buildTechSkillLevels,
+} from "../studentProfileData";
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, Tooltip,
@@ -33,54 +38,83 @@ interface UserProfile {
   streak: number;
 }
 
+const TRAIT_ICONS: Record<string, React.ReactNode> = {
+  "Apertura a la experiencia": <Sparkles className="h-3.5 w-3.5" />,
+  Responsabilidad: <Shield className="h-3.5 w-3.5" />,
+  "Tolerancia al riesgo": <Flame className="h-3.5 w-3.5" />,
+  "Orientación a resultados": <Target className="h-3.5 w-3.5" />,
+  "Trabajo en equipo": <Layers className="h-3.5 w-3.5" />,
+};
+
+const ACHIEVEMENT_ICONS: Record<string, React.ReactNode> = {
+  trophy: <Trophy className="h-4 w-4" />,
+  layers: <Layers className="h-4 w-4" />,
+  cpu: <Cpu className="h-4 w-4" />,
+  shield: <Shield className="h-4 w-4" />,
+  award: <Award className="h-4 w-4" />,
+  star: <Star className="h-4 w-4" />,
+  file: <FileText className="h-4 w-4" />,
+};
+
+function buildPanelProfile(
+  appProfile: AppUserProfile,
+  studentCode: string | null | undefined,
+  missions: CareerMission[],
+  enrolledCoursesCount: number
+): UserProfile {
+  const panel = getProfilePanelData(studentCode);
+  const completedMissions = missions.filter((m) => m.status === "completado").length;
+  const totalMissions = missions.length || 4;
+  const xpToNext = Math.max(500, appProfile.level * 500);
+
+  return {
+    name: appProfile.name,
+    career: appProfile.career,
+    targetRole: appProfile.targetRole,
+    bio: panel.bio,
+    semester: appProfile.semester,
+    experienceLevel: appProfile.experienceLevel,
+    location: panel.location,
+    avatarUrl: appProfile.avatarUrl,
+    currentSkills: appProfile.currentSkills.length > 0 ? appProfile.currentSkills : Object.keys(panel.techSkillLevels),
+    interests: appProfile.interests.length > 0 ? appProfile.interests : panel.skillsToDevelop,
+    cognitiveProfile: panel.cognitiveProfile,
+    personalityTraits: panel.personalityTraits.map((t) => ({
+      ...t,
+      icon: TRAIT_ICONS[t.name] ?? <Sparkles className="h-3.5 w-3.5" />,
+    })),
+    achievements: panel.achievements.map((a) => ({
+      id: a.id,
+      label: a.label,
+      unlocked:
+        a.id === "ach_route"
+          ? localStorage.getItem("sp_route_generated") === "true"
+          : a.id === "ach_first_cv"
+            ? localStorage.getItem("sp_diagnosis_completed") === "true"
+            : a.unlocked,
+      xp: a.xp,
+      icon: ACHIEVEMENT_ICONS[a.iconKey] ?? <Star className="h-4 w-4" />,
+    })),
+    level: appProfile.level,
+    xp: appProfile.xp,
+    xpToNext,
+    completedCourses: enrolledCoursesCount,
+    completedMissions,
+    totalMissions,
+    streak: panel.streak,
+  };
+}
+
+type Tab = "perfil" | "habilidades" | "analisis" | "logros";
+
 interface UserProfilePanelProps {
+  studentCode?: string | null;
+  appProfile?: AppUserProfile;
+  missions?: CareerMission[];
+  enrolledCoursesCount?: number;
   onNavigateToMyCourses?: () => void;
   onAvatarChange?: (url: string) => void;
 }
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
-const INITIAL_PROFILE: UserProfile = {
-  name: "Valeria Alva",
-  career: "Ingeniería de Sistemas",
-  targetRole: "Junior Full Stack Developer",
-  bio: "Apasionada por la tecnología y el desarrollo de software. Busco especializarme en desarrollo full stack y contribuir a proyectos de alto impacto. Me motiva aprender nuevas tecnologías y aplicarlas a problemas reales.",
-  semester: 7,
-  experienceLevel: "Proyectos personales o académicos de alta exigencia",
-  location: "Lima, Perú",
-  currentSkills: ["HTML/CSS", "JavaScript", "TypeScript", "React", "SQL Server"],
-  interests: ["Inteligencia Artificial", "Cloud Computing", "Desarrollo Web"],
-  cognitiveProfile: [
-    { subject: "Lógica", A: 85, B: 65 },
-    { subject: "Analítico", A: 78, B: 60 },
-    { subject: "Memoria", A: 70, B: 68 },
-    { subject: "Verbal", A: 65, B: 72 },
-    { subject: "Numérico", A: 90, B: 63 },
-    { subject: "Espacial", A: 60, B: 58 },
-  ],
-  personalityTraits: [
-    { name: "Apertura a la experiencia", userScore: 75, averageScore: 55, leftLabel: "Convencional", rightLabel: "Innovador", icon: <Sparkles className="h-3.5 w-3.5" /> },
-    { name: "Responsabilidad", userScore: 82, averageScore: 60, leftLabel: "Flexible", rightLabel: "Metódico", icon: <Shield className="h-3.5 w-3.5" /> },
-    { name: "Tolerancia al riesgo", userScore: 58, averageScore: 50, leftLabel: "Conservador", rightLabel: "Arriesgado", icon: <Flame className="h-3.5 w-3.5" /> },
-    { name: "Trabajo en equipo", userScore: 70, averageScore: 65, leftLabel: "Independiente", rightLabel: "Colaborativo", icon: <Layers className="h-3.5 w-3.5" /> },
-  ],
-  achievements: [
-    { id: "a1", label: "Primera lección", icon: <Star className="h-4 w-4" />, unlocked: true, xp: 50 },
-    { id: "a2", label: "Racha 7 días", icon: <Flame className="h-4 w-4" />, unlocked: true, xp: 100 },
-    { id: "a3", label: "Curso completado", icon: <Trophy className="h-4 w-4" />, unlocked: true, xp: 300 },
-    { id: "a4", label: "SQL Master", icon: <Cpu className="h-4 w-4" />, unlocked: false, xp: 500 },
-    { id: "a5", label: "Top 10%", icon: <Award className="h-4 w-4" />, unlocked: false, xp: 750 },
-    { id: "a6", label: "Certificado UTP+", icon: <Shield className="h-4 w-4" />, unlocked: false, xp: 1000 },
-  ],
-  level: 2, xp: 320, xpToNext: 500,
-  completedCourses: 1, completedMissions: 2, totalMissions: 8, streak: 5,
-};
-
-const SKILL_LEVELS: Record<string, number> = {
-  "HTML/CSS": 85, JavaScript: 70, TypeScript: 60, React: 65, "SQL Server": 55,
-};
-
-type Tab = "perfil" | "habilidades" | "analisis" | "logros";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "perfil", label: "Perfil", icon: <User className="h-4 w-4" /> },
@@ -150,8 +184,8 @@ function TraitSlider({ trait, index }: { trait: PersonalityTrait; index: number 
 
 // ─── Skill bar ────────────────────────────────────────────────────────────────
 
-function SkillBar({ skill, index, onRemove }: { skill: string; index: number; onRemove: () => void }) {
-  const level = SKILL_LEVELS[skill] ?? Math.floor(Math.random() * 40 + 40);
+function SkillBar({ skill, index, onRemove, skillLevels }: { skill: string; index: number; onRemove: () => void; skillLevels: Record<string, number> }) {
+  const level = skillLevels[skill] ?? Math.floor(Math.random() * 40 + 40);
   const [hovered, setHovered] = useState(false);
   return (
     <motion.div
@@ -209,8 +243,50 @@ function AchievementBadge({ achievement, delay }: { achievement: Achievement; de
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function UserProfilePanel({ onNavigateToMyCourses, onAvatarChange }: UserProfilePanelProps) {
-  const [profile, setProfile] = useState<UserProfile>(INITIAL_PROFILE);
+export default function UserProfilePanel({
+  studentCode,
+  appProfile,
+  missions = [],
+  enrolledCoursesCount = 0,
+  onNavigateToMyCourses,
+  onAvatarChange,
+}: UserProfilePanelProps) {
+  const baseAppProfile = appProfile ?? {
+    name: "Estudiante UTP",
+    career: "",
+    semester: 1,
+    experienceLevel: "",
+    targetRole: "",
+    currentSkills: [],
+    interests: [],
+    employabilityScore: 0,
+    xp: 0,
+    level: 1,
+    progressToNextLevel: 0,
+  };
+
+  const [profile, setProfile] = useState<UserProfile>(() =>
+    buildPanelProfile(baseAppProfile, studentCode, missions, enrolledCoursesCount)
+  );
+  const skillLevels = buildTechSkillLevels(studentCode, profile.currentSkills);
+
+  useEffect(() => {
+    setProfile(buildPanelProfile(baseAppProfile, studentCode, missions, enrolledCoursesCount));
+    setEditedBio(getProfilePanelData(studentCode).bio);
+  }, [
+    studentCode,
+    baseAppProfile.name,
+    baseAppProfile.career,
+    baseAppProfile.targetRole,
+    baseAppProfile.semester,
+    baseAppProfile.xp,
+    baseAppProfile.level,
+    baseAppProfile.currentSkills.join(","),
+    missions.length,
+    missions.filter((m) => m.status === "completado").length,
+    enrolledCoursesCount,
+  ]);
+
   const [activeTab, setActiveTab] = useState<Tab>("perfil");
   const [isEditing, setIsEditing] = useState(false);
   const [editedBio, setEditedBio] = useState(profile.bio);
@@ -238,8 +314,8 @@ export default function UserProfilePanel({ onNavigateToMyCourses, onAvatarChange
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col -m-6">
-      <div className="max-w-6xl w-full mx-auto space-y-5 flex-1 py-6 px-6">
+    <div className="w-full flex-1 flex flex-col -m-4 sm:-m-6">
+      <div className="max-w-6xl w-full mx-auto space-y-5 flex-1 py-4 sm:py-6 px-4 sm:px-6">
 
         {/* ── Hero banner ───────────────────────────────────────────────── */}
         <motion.div
@@ -257,8 +333,8 @@ export default function UserProfilePanel({ onNavigateToMyCourses, onAvatarChange
             className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#B50E30] via-[#e0173a] to-[#B50E30]"
           />
 
-          <div className="relative z-10 p-6 md:p-8">
-            <div className="flex items-start gap-6">
+          <div className="relative z-10 p-4 sm:p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-start gap-5 md:gap-6">
 
               {/* Avatar */}
               <motion.div
@@ -342,7 +418,7 @@ export default function UserProfilePanel({ onNavigateToMyCourses, onAvatarChange
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.45 }}
-                  className="pt-1 space-y-0.5 w-52"
+                  className="pt-1 space-y-0.5 w-full max-w-sm"
                 >
                   <div className="flex justify-between text-[9px] font-black uppercase">
                     <span className="text-neutral-400">XP — {profile.xp.toLocaleString()} / {profile.xpToNext.toLocaleString()}</span>
@@ -377,7 +453,7 @@ export default function UserProfilePanel({ onNavigateToMyCourses, onAvatarChange
                 initial={{ opacity: 0, x: 12 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.45, delay: 0.25 }}
-                className="hidden md:flex flex-col justify-center flex-1 space-y-1.5"
+                className="flex flex-col justify-center flex-1 space-y-1.5 min-w-0"
               >
                 <p className="text-[9px] font-black uppercase tracking-widest text-neutral-400 flex items-center gap-1.5">
                   <FileText className="h-3 w-3 text-[#B50E30]" /> Acerca de mí
@@ -395,7 +471,7 @@ export default function UserProfilePanel({ onNavigateToMyCourses, onAvatarChange
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
-                className="flex flex-col gap-2 shrink-0 items-end"
+                className="flex flex-row flex-wrap gap-2 md:flex-col shrink-0 items-stretch md:items-end w-full md:w-auto"
               >
                 {isEditing ? (
                   <>
@@ -433,7 +509,7 @@ export default function UserProfilePanel({ onNavigateToMyCourses, onAvatarChange
           </div>
 
           {/* Stats strip */}
-          <div className="border-t border-neutral-100 grid grid-cols-4">
+          <div className="border-t border-neutral-100 grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-neutral-100">
             {[
               { label: "Cursos", value: profile.completedCourses, icon: <UvpIcon name="capacitacion-talleres" size={14} /> },
               { label: "Misiones", value: `${profile.completedMissions}/${profile.totalMissions}`, icon: <UvpIcon name="logros-inspiran" size={14} /> },
@@ -446,7 +522,7 @@ export default function UserProfilePanel({ onNavigateToMyCourses, onAvatarChange
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.35 + i * 0.07 }}
                 whileHover={{ backgroundColor: (s as any).accent ? "rgba(181,14,48,0.08)" : "#f9fafb" }}
-                className={`px-4 py-3.5 flex items-center gap-2.5 border-r border-neutral-100 last:border-r-0 cursor-default transition-colors ${(s as any).accent ? "bg-[#B50E30]/5" : ""}`}
+                className={`px-3 sm:px-4 py-3.5 flex items-center gap-2.5 cursor-default transition-colors ${(s as any).accent ? "bg-[#B50E30]/5" : ""}`}
               >
                 <motion.span
                   whileHover={{ scale: 1.2, rotate: 5 }}
@@ -472,10 +548,10 @@ export default function UserProfilePanel({ onNavigateToMyCourses, onAvatarChange
         </motion.div>
 
         {/* ── Tabs ─────────────────────────────────────────────────────────── */}
-        <div className="bg-white border border-neutral-200 flex overflow-hidden">
+        <div className="bg-white border border-neutral-200 flex overflow-x-auto scrollbar-none">
           {TABS.map((tab) => (
             <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)}
-              className={`relative flex-1 flex items-center justify-center gap-2 py-3.5 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-colors ${
+              className={`relative shrink-0 sm:flex-1 flex items-center justify-center gap-2 py-3.5 px-3 sm:px-4 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-colors whitespace-nowrap ${
                 activeTab === tab.id ? "text-[#B50E30] bg-white" : "text-neutral-400 hover:text-black bg-neutral-50"
               }`}>
               {activeTab === tab.id && <motion.div layoutId="tabIndicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#B50E30]" />}
@@ -570,7 +646,7 @@ export default function UserProfilePanel({ onNavigateToMyCourses, onAvatarChange
                   <div className="space-y-4">
                     <AnimatePresence>
                       {profile.currentSkills.map((s, i) => (
-                        <SkillBar key={s} skill={s} index={i}
+                        <SkillBar key={s} skill={s} index={i} skillLevels={skillLevels}
                           onRemove={() => setProfile((p) => ({ ...p, currentSkills: p.currentSkills.filter((x) => x !== s) }))} />
                       ))}
                     </AnimatePresence>

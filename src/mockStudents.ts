@@ -32,6 +32,11 @@ export const MOCK_STUDENTS_BY_CODE: Record<string, MockStudent> = {
     semester: 7,
     code: "U22223419",
     hasCv: false,
+    email: "adrian.quispe@utp.edu.pe",
+    phone: "+51 987 654 300",
+    linkedin: "linkedin.com/in/adrianquispe",
+    targetRole: "Backend Developer Trainee",
+    interests: ["Backend", "Desarrollo Web"],
   },
   U20198765: {
     name: "Camila Ríos",
@@ -39,6 +44,11 @@ export const MOCK_STUDENTS_BY_CODE: Record<string, MockStudent> = {
     semester: 6,
     code: "U20198765",
     hasCv: false,
+    email: "camila.rios@utp.edu.pe",
+    phone: "+51 987 654 301",
+    linkedin: "linkedin.com/in/camilaríos",
+    targetRole: "Asistente de Marketing Digital",
+    interests: ["Marketing Digital", "Investigación de Mercados"],
   },
   U20204567: {
     name: "Diego Mendoza",

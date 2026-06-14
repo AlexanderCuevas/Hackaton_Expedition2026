@@ -334,7 +334,7 @@ function Modal({
       setCodeErr("El código de estudiante es obligatorio.");
       err = true;
     } else if (!student) {
-      setCodeErr("Código no encontrado. Prueba U20213456, U22223419 o U20198765.");
+      setCodeErr("Código no encontrado. Prueba U22223419, U20198765 o U20245678.");
       err = true;
     } else setCodeErr("");
     if (!password) { setPwErr("La contraseña es obligatoria."); err = true; }
@@ -408,7 +408,7 @@ function Modal({
               <label className="text-sm font-bold text-slate-900 tracking-tight block">Código o correo UTP</label>
               <input type="text" autoFocus value={studentCode} onChange={(e) => { setStudentCode(e.target.value); clearErr(); }} onKeyDown={handleKeyDown}
                 className={`w-full px-3.5 py-3 bg-white border ${codeErr ? "border-rose-500" : "border-slate-300"} rounded-[4px] text-slate-900 text-base outline-none font-medium transition-colors`}
-                placeholder="Ej. U20213456 o U20213456@utp.edu.pe" />
+                placeholder="Ej. U22223419 o U22223419@utp.edu.pe" />
               {codeErr && (
                 <div className="text-rose-600 text-xs font-semibold flex items-center gap-1.5">
                   <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -441,7 +441,7 @@ function Modal({
             <div className="bg-slate-50 border border-slate-100 p-3.5 rounded-lg">
               <p className="text-xs text-slate-500 leading-normal flex gap-2">
                 <ShieldAlert className="w-4 h-4 text-[#B50E30] shrink-0" />
-                <span>Usa tu <strong>código UTP</strong> o correo institucional (ej. U20213456@utp.edu.pe). El sistema cargará tu nombre, carrera y ciclo académico.</span>
+                <span>Usa tu <strong>código UTP</strong> o correo institucional (ej. U20198765@utp.edu.pe). El sistema cargará tu nombre, carrera y ciclo académico.</span>
               </p>
             </div>
 
@@ -584,7 +584,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
 
         {/* ══ NAVBAR ══════════════════════════════════════════════════════ */}
         <header style={{ transition: "all 0.3s ease" }}
-          className={`fixed top-0 left-0 right-0 z-50 px-6 py-4 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-neutral-100" : "bg-white border-b border-neutral-100"}`}>
+          className={`fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-3 sm:py-4 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-neutral-100" : "bg-white border-b border-neutral-100"}`}>
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <Logo />
             <nav className="hidden md:flex items-center gap-8" />
@@ -597,8 +597,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
         </header>
 
         {/* ══ HERO ════════════════════════════════════════════════════════ */}
-        <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center pt-24 pb-16 px-6 bg-cover overflow-hidden"
-          style={{ backgroundImage: `url(${principalImg})`, backgroundPosition: "center right -80px" }}>
+        <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center pt-20 sm:pt-24 pb-12 sm:pb-16 px-4 sm:px-6 bg-cover overflow-hidden"
+          style={{ backgroundImage: `url(${principalImg})`, backgroundPosition: "center center" }}>
           {/* Dark overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/55 to-black/65 pointer-events-none" />
           {/* Decorative blobs */}

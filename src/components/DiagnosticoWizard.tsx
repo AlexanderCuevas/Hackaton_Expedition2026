@@ -14,9 +14,11 @@ import {
   Trash2,
   Sparkles,
   Loader2,
+  ScrollText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import UvpIcon from "./ui/UvpIcon";
+import { Logo } from "./ui/logo";
 import {
   extractTextFromPdf,
   buildHarvardCvText,
@@ -410,13 +412,10 @@ export default function DiagnosticoWizard({
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
-          <div className="font-black text-sm tracking-tight">
-            <span className="text-black">SkillPath </span>
-            <span className="text-[#B50E30]">AI</span>
-          </div>
-          <div className="flex-1 max-w-xs mx-4">
+      <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <Logo />
+          <div className="flex-1 w-full sm:max-w-xs sm:mx-4 order-3 sm:order-none">
             <div className="flex items-center gap-1">
               {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((n) => (
                 <div
@@ -432,30 +431,30 @@ export default function DiagnosticoWizard({
               Paso {step} de {TOTAL_STEPS}
             </p>
           </div>
-          <span className="text-xs font-semibold text-neutral-600 bg-gray-100 px-3 py-1.5 rounded-full">
+          <span className="text-xs font-semibold text-neutral-600 bg-gray-100 px-3 py-1.5 rounded-full self-start sm:self-auto shrink-0">
             Hola, {name.split(" ")[0]}
           </span>
         </div>
       </header>
 
-      <main className="flex-1 flex items-start justify-center px-4 py-10">
-        <div className="w-full max-w-2xl">
+      <main className="flex-1 flex items-start justify-center px-4 sm:px-6 py-10">
+        <div className="w-full max-w-5xl">
           <AnimatePresence mode="wait">
             <motion.div
               key={`step-${step}`}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
-              className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6"
+              className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-8 md:p-10 space-y-6"
             >
               {step === 1 && (
                 <div className="space-y-5">
                   <div>
-                    <h2 className="heading-lg text-black flex items-center gap-2">
-                      <UvpIcon name="plantillas-cv" size={20} className="text-[#B50E30]" />
+                    <h2 className="heading-lg text-black flex items-center gap-2.5">
+                      <ScrollText className="h-6 w-6 text-[#B50E30] shrink-0" />
                       Tu currículum vitae
                     </h2>
-                    <p className="text-sm text-neutral-500 mt-1">
+                    <p className="text-[15px] text-neutral-500 mt-1.5 leading-relaxed">
                       Si ya tienes un CV actualizado, súbelo. Si es tu primera vez, completa la plantilla Harvard.
                     </p>
                   </div>
@@ -508,11 +507,11 @@ export default function DiagnosticoWizard({
 
                       {/* Contacto — visible en ambos modos, aquí en upload */}
                       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-                        <h3 className="text-sm font-black text-black flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-[#B50E30]" />
+                        <h3 className="text-base font-black text-black flex items-center gap-2">
+                          <Mail className="h-5 w-5 text-[#B50E30]" />
                           Información de contacto
                         </h3>
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-neutral-500 leading-relaxed">
                           Tus datos de contacto. El correo se completa automáticamente con tu código UTP.
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -527,7 +526,10 @@ export default function DiagnosticoWizard({
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Teléfono</label>
+                            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider flex items-center gap-1">
+                              <Phone className="h-3 w-3 text-neutral-400" />
+                              Teléfono
+                            </label>
                             <input
                               type="tel"
                               value={contactPhone}
@@ -578,11 +580,11 @@ export default function DiagnosticoWizard({
                       </button>
 
                       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-                        <h3 className="text-sm font-black text-black flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-[#B50E30]" />
+                        <h3 className="text-base font-black text-black flex items-center gap-2">
+                          <Mail className="h-5 w-5 text-[#B50E30]" />
                           Información de contacto
                         </h3>
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-neutral-500 leading-relaxed">
                           Tus datos de contacto. El correo se completa automáticamente con tu código UTP.
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -597,7 +599,10 @@ export default function DiagnosticoWizard({
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Teléfono</label>
+                            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider flex items-center gap-1">
+                              <Phone className="h-3 w-3 text-neutral-400" />
+                              Teléfono
+                            </label>
                             <input
                               type="tel"
                               value={contactPhone}
@@ -625,9 +630,12 @@ export default function DiagnosticoWizard({
                         <button
                           type="button"
                           onClick={() => setHarvardOpen((p) => ({ ...p, resumen: !p.resumen }))}
-                          className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 text-left"
+                          className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-50 text-left"
                         >
-                          <span className="text-sm font-bold text-black">Resumen Profesional</span>
+                          <span className="text-base font-black text-black flex items-center gap-2.5">
+                            <UvpIcon name="orientacion-profesional" size={18} className="text-[#B50E30]" />
+                            Resumen Profesional
+                          </span>
                           <motion.span animate={{ rotate: harvardOpen.resumen ? 180 : 0 }} transition={{ duration: 0.2 }}>
                             <ChevronDown className="h-4 w-4" />
                           </motion.span>
@@ -669,9 +677,12 @@ export default function DiagnosticoWizard({
                         <button
                           type="button"
                           onClick={() => setHarvardOpen((p) => ({ ...p, formacion: !p.formacion }))}
-                          className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 text-left"
+                          className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-50 text-left"
                         >
-                          <span className="text-sm font-bold text-black">Formación Académica</span>
+                          <span className="text-base font-black text-black flex items-center gap-2.5">
+                            <UvpIcon name="capacitacion-talleres" size={18} className="text-[#B50E30]" />
+                            Formación Académica
+                          </span>
                           <motion.span animate={{ rotate: harvardOpen.formacion ? 180 : 0 }} transition={{ duration: 0.2 }}>
                             <ChevronDown className="h-4 w-4" />
                           </motion.span>
@@ -751,9 +762,12 @@ export default function DiagnosticoWizard({
                         <button
                           type="button"
                           onClick={() => setHarvardOpen((p) => ({ ...p, experiencia: !p.experiencia }))}
-                          className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 text-left"
+                          className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-50 text-left"
                         >
-                          <span className="text-sm font-bold text-black">Experiencia Profesional</span>
+                          <span className="text-base font-black text-black flex items-center gap-2.5">
+                            <UvpIcon name="bolsa-trabajo" size={18} className="text-[#B50E30]" />
+                            Experiencia Profesional
+                          </span>
                           <motion.span animate={{ rotate: harvardOpen.experiencia ? 180 : 0 }} transition={{ duration: 0.2 }}>
                             <ChevronDown className="h-4 w-4" />
                           </motion.span>
@@ -774,8 +788,8 @@ export default function DiagnosticoWizard({
                             {experiencias.map((exp, idx) => (
                               <div key={idx} className="p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-xs font-bold text-black flex items-center gap-1.5">
-                                    <UvpIcon name="desarrollo-competencias" size={14} className="text-[#B50E30]" />
+                                  <span className="text-sm font-bold text-black flex items-center gap-2">
+                                    <UvpIcon name="bolsa-trabajo" size={14} className="text-[#B50E30]" />
                                     Experiencia #{idx + 1}
                                   </span>
                                   {experiencias.length > 1 && (
@@ -831,7 +845,7 @@ export default function DiagnosticoWizard({
                                       className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#B50E30]"
                                     />
                                   </div>
-                                  <div className="grid grid-cols-2 gap-2">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     <div>
                                       <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Inicio</label>
                                       <MySelect
@@ -904,9 +918,12 @@ export default function DiagnosticoWizard({
                         <button
                           type="button"
                           onClick={() => setHarvardOpen((p) => ({ ...p, proyectos: !p.proyectos }))}
-                          className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 text-left"
+                          className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-50 text-left"
                         >
-                          <span className="text-sm font-bold text-black">Proyectos Destacados</span>
+                          <span className="text-base font-black text-black flex items-center gap-2.5">
+                            <UvpIcon name="creatividad-innovacion" size={18} className="text-[#B50E30]" />
+                            Proyectos Destacados
+                          </span>
                           <motion.span animate={{ rotate: harvardOpen.proyectos ? 180 : 0 }} transition={{ duration: 0.2 }}>
                             <ChevronDown className="h-4 w-4" />
                           </motion.span>
@@ -927,7 +944,10 @@ export default function DiagnosticoWizard({
                             {proyectos.map((proy, idx) => (
                               <div key={proy.id} className="p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-xs font-bold text-black">Proyecto #{idx + 1}</span>
+                                  <span className="text-sm font-bold text-black flex items-center gap-2">
+                                    <UvpIcon name="creatividad-innovacion" size={14} className="text-[#B50E30]" />
+                                    Proyecto #{idx + 1}
+                                  </span>
                                   {proyectos.length > 1 && (
                                     <button
                                       type="button"
@@ -952,7 +972,7 @@ export default function DiagnosticoWizard({
                                     className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#B50E30]"
                                   />
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   <div>
                                     <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Mes y año inicio</label>
                                     <MySelect
@@ -1042,7 +1062,7 @@ export default function DiagnosticoWizard({
                       <UvpIcon name="desarrollo-competencias" size={20} className="text-[#B50E30]" />
                       Nivel de experiencia
                     </h2>
-                    <p className="text-sm text-neutral-500 mt-1">
+                    <p className="text-[15px] text-neutral-500 mt-1.5 leading-relaxed">
                       Considerando que estás en el{" "}
                       <strong className="text-black">{semester}° ciclo</strong> de{" "}
                       <strong className="text-black">{career}</strong>, ¿cuál es tu nivel de experiencia práctica?
@@ -1112,7 +1132,7 @@ export default function DiagnosticoWizard({
                       <UvpIcon name="metas-profesionales" size={20} className="text-[#B50E30]" />
                       Áreas de especialización
                     </h2>
-                    <p className="text-sm text-neutral-500 mt-1">
+                    <p className="text-[15px] text-neutral-500 mt-1.5 leading-relaxed">
                       ¿En qué áreas de <strong className="text-black">{career}</strong> te gustaría especializarte?
                       Selecciona varias o escribe una nueva.
                     </p>
@@ -1185,7 +1205,7 @@ export default function DiagnosticoWizard({
                       <UvpIcon name="habilidades-blandas" size={20} className="text-[#B50E30]" />
                       Revisa tus habilidades
                     </h2>
-                    <p className="text-sm text-neutral-500 mt-1">
+                    <p className="text-[15px] text-neutral-500 mt-1.5 leading-relaxed">
                       Extraídas de tu CV. Ajústalas a tu realidad: quita, añade o confirma.
                     </p>
                   </div>
@@ -1193,8 +1213,8 @@ export default function DiagnosticoWizard({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {/* Técnicas */}
                     <div className="space-y-3 p-4 border border-gray-200 rounded-xl">
-                      <h3 className="text-sm font-black flex items-center gap-2">
-                        <UvpIcon name="aprendizaje-continuo" size={16} className="text-[#B50E30]" />
+                      <h3 className="text-base font-black flex items-center gap-2">
+                        <UvpIcon name="habilidades-tecnicas" size={16} className="text-[#B50E30]" />
                         Habilidades técnicas
                       </h3>
                       <div className="flex flex-wrap gap-1.5 min-h-[60px]">
@@ -1311,11 +1331,11 @@ export default function DiagnosticoWizard({
               {step === 5 && (
                 <div className="space-y-5">
                   <div>
-                    <h2 className="text-xl font-black text-black flex items-center gap-2">
+                    <h2 className="heading-lg text-black flex items-center gap-2">
                       <UvpIcon name="test-evaluaciones" size={20} className="text-[#B50E30]" />
                       Resume tu perfil
                     </h2>
-                    <p className="text-sm text-neutral-500 mt-1">
+                    <p className="text-[15px] text-neutral-500 mt-1.5 leading-relaxed">
                       Revisa que todo esté correcto antes de continuar. Luego generarás tu CV y pasarás al análisis ATS.
                     </p>
                   </div>
@@ -1323,6 +1343,10 @@ export default function DiagnosticoWizard({
                   <div className="space-y-3">
                     {/* Tarjeta de datos personales */}
                     <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                      <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <UvpIcon name="perfil" size={14} className="text-[#B50E30]" />
+                        Datos personales
+                      </p>
                       <div className="flex items-center gap-3 mb-3">
                         <div className="h-10 w-10 bg-black text-white flex items-center justify-center rounded-xl text-sm font-black">
                           {name.charAt(0)}
@@ -1332,7 +1356,7 @@ export default function DiagnosticoWizard({
                           <p className="text-xs text-neutral-500">{career} · {semester}° Ciclo</p>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                         {contactEmail && <div><span className="font-bold text-neutral-400">Email:</span> <span className="text-black">{contactEmail}</span></div>}
                         {contactPhone && <div><span className="font-bold text-neutral-400">Tel:</span> <span className="text-black">{contactPhone}</span></div>}
                         {contactLinkedin && <div className="col-span-2"><span className="font-bold text-neutral-400">LinkedIn:</span> <span className="text-black">{contactLinkedin}</span></div>}
@@ -1342,8 +1366,11 @@ export default function DiagnosticoWizard({
                     {/* Experiencia */}
                     <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between">
                       <div>
-                        <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Nivel de experiencia</p>
-                        <p className="text-sm font-bold text-black mt-0.5">
+                        <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-2">
+                          <UvpIcon name="desarrollo-competencias" size={14} className="text-[#B50E30]" />
+                          Nivel de experiencia
+                        </p>
+                        <p className="text-[15px] font-bold text-black mt-1">
                           {EXPERIENCE_OPTIONS.find((o) => o.id === experienceLevel)?.title ?? experienceLevel}
                         </p>
                       </div>
@@ -1353,7 +1380,10 @@ export default function DiagnosticoWizard({
                     {/* Experiencia Profesional estructurada */}
                     {experiencias.some(e => e.rol) && (
                       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
-                        <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Experiencia Profesional</p>
+                        <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-2">
+                          <UvpIcon name="bolsa-trabajo" size={14} className="text-[#B50E30]" />
+                          Experiencia Profesional
+                        </p>
                         {experiencias.filter(e => e.rol).map((exp, i) => (
                           <div key={i} className="text-xs text-black">
                             <p className="font-bold">{exp.rol}{exp.descripcion ? ` — ${exp.descripcion}` : ""}</p>
@@ -1372,7 +1402,10 @@ export default function DiagnosticoWizard({
 
                     {/* Especializaciones */}
                     <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-2">Áreas de especialización</p>
+                      <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <UvpIcon name="metas-profesionales" size={14} className="text-[#B50E30]" />
+                        Áreas de especialización
+                      </p>
                       <div className="flex flex-wrap gap-1.5">
                         {specializations.map((s) => (
                           <span key={s} className="px-2.5 py-1 bg-[#B50E30] text-white text-xs font-bold rounded-full">{s}</span>
@@ -1382,7 +1415,10 @@ export default function DiagnosticoWizard({
 
                     {/* Habilidades */}
                     <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-2">Habilidades</p>
+                      <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <UvpIcon name="habilidades-tecnicas" size={14} className="text-[#B50E30]" />
+                        Habilidades
+                      </p>
                       <div className="flex flex-wrap gap-1.5">
                         {hardSkills.map((s) => (
                           <span key={s} className="px-2.5 py-1 bg-black text-white text-xs font-bold rounded-full">{s}</span>
@@ -1420,7 +1456,7 @@ export default function DiagnosticoWizard({
                       Nuestra IA identificará oportunidades para mejorar tu empleabilidad.
                     </p>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-sm mx-auto w-full">
                     <div className="bg-neutral-50 rounded-xl p-3 text-center">
                       <p className="text-lg font-black text-black">{hardSkills.length}</p>
                       <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Habilidades</p>

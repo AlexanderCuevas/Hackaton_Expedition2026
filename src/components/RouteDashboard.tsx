@@ -23,6 +23,42 @@ interface RouteDashboardProps {
 
 type NodeStatus = "completado" | "disponible" | "bloqueado";
 
+function RouteWalker({ walking, facingRight = true }: { walking: boolean; facingRight?: boolean }) {
+  return (
+    <motion.div
+      className="relative pointer-events-none select-none"
+      animate={walking ? { y: [0, -3, 0, -3, 0] } : { y: 0 }}
+      transition={walking ? { duration: 0.45, repeat: Infinity, ease: "easeInOut" } : { duration: 0.2 }}
+      style={{ scaleX: facingRight ? 1 : -1 }}
+    >
+      <svg width="36" height="48" viewBox="0 0 36 48" fill="none" aria-hidden="true">
+        <ellipse cx="18" cy="44" rx="10" ry="2.5" fill="rgba(0,0,0,0.12)" />
+        <circle cx="18" cy="9" r="7.5" fill="#B50E30" stroke="#85061B" strokeWidth="1.2" />
+        <circle cx="15.5" cy="8" r="1.2" fill="white" />
+        <circle cx="20.5" cy="8" r="1.2" fill="white" />
+        <path d="M15 11.5 Q18 13.5 21 11.5" stroke="white" strokeWidth="1" strokeLinecap="round" fill="none" />
+        <rect x="12" y="16" width="12" height="13" rx="3" fill="#B50E30" stroke="#85061B" strokeWidth="1" />
+        <motion.line
+          x1="15" y1="29" x2="13" y2="40"
+          stroke="#85061B" strokeWidth="3" strokeLinecap="round"
+          animate={walking ? { rotate: [18, -12, 18] } : { rotate: 4 }}
+          transition={walking ? { duration: 0.35, repeat: Infinity, ease: "easeInOut" } : { duration: 0.2 }}
+          style={{ originX: "15px", originY: "29px" }}
+        />
+        <motion.line
+          x1="21" y1="29" x2="23" y2="40"
+          stroke="#85061B" strokeWidth="3" strokeLinecap="round"
+          animate={walking ? { rotate: [-18, 12, -18] } : { rotate: -4 }}
+          transition={walking ? { duration: 0.35, repeat: Infinity, ease: "easeInOut" } : { duration: 0.2 }}
+          style={{ originX: "21px", originY: "29px" }}
+        />
+        <line x1="12" y1="20" x2="7" y2="26" stroke="#B50E30" strokeWidth="2.5" strokeLinecap="round" />
+        <line x1="24" y1="20" x2="29" y2="26" stroke="#B50E30" strokeWidth="2.5" strokeLinecap="round" />
+      </svg>
+    </motion.div>
+  );
+}
+
 function getMissionIcon(type: CareerMission["type"]) {
   switch (type) {
     case "documento":
@@ -64,13 +100,49 @@ export default function RouteDashboard({
 }: RouteDashboardProps) {
   const [selectedMissionId, setSelectedMissionId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isWalkerMoving, setIsWalkerMoving] = useState(false);
+  const [walkerFacingRight, setWalkerFacingRight] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false });
+  const prevWalkerNodeIdRef = useRef<string | null>(null);
 
   const { nodes: networkNodes, edges: networkEdges, canvasWidth } = useMemo(
     () => buildNetworkFromMissions(missions),
     [missions]
   );
+
+  const walkerNode = useMemo(() => {
+    const missionNodes = networkNodes.filter((n) => n.missionId);
+    const available = missionNodes.find((n) => {
+      const mission = missions.find((m) => m.id === n.missionId);
+      return mission?.status === "disponible";
+    });
+    if (available) return available;
+
+    const allDone =
+      missionNodes.length > 0 &&
+      missionNodes.every((n) => {
+        const mission = missions.find((m) => m.id === n.missionId);
+        return mission?.status === "completado";
+      });
+    if (allDone) return missionNodes[missionNodes.length - 1];
+
+    const firstMission = missionNodes[0];
+    if (firstMission) return firstMission;
+
+    return networkNodes[networkNodes.length - 1] ?? networkNodes[0];
+  }, [networkNodes, missions]);
+
+  useEffect(() => {
+    if (!walkerNode) return;
+    const prevId = prevWalkerNodeIdRef.current;
+    if (prevId && prevId !== walkerNode.id) {
+      const prevNode = networkNodes.find((n) => n.id === prevId);
+      if (prevNode) setWalkerFacingRight(walkerNode.x >= prevNode.x);
+      setIsWalkerMoving(true);
+    }
+    prevWalkerNodeIdRef.current = walkerNode.id;
+  }, [walkerNode, networkNodes]);
 
   useEffect(() => {
     const activeNode = networkNodes.find((node) => {
@@ -344,7 +416,8 @@ export default function RouteDashboard({
               const isActivePath =
                 fromStatus === "completado" ||
                 fromStatus === "disponible" ||
-                toStatus === "disponible";
+                toStatus === "disponible" ||
+                toStatus === "completado";
 
               return (
                 <line
@@ -355,18 +428,37 @@ export default function RouteDashboard({
                   y2={to.y}
                   stroke={isActivePath ? "#B50E30" : "#D4D4D4"}
                   strokeWidth={isActivePath ? 2.5 : 1.5}
-                  strokeDasharray={isActivePath ? "8 5" : "none"}
-                  opacity={isActivePath ? 0.75 : 0.45}
+                  strokeDasharray={isActivePath ? "9 6" : "4 6"}
+                  opacity={isActivePath ? 0.85 : 0.35}
                 />
               );
             })}
           </svg>
+
+          {walkerNode && (
+            <motion.div
+              className="absolute z-20 pointer-events-none -translate-x-1/2"
+              initial={false}
+              animate={{
+                left: walkerNode.x,
+                top: walkerNode.y - 52,
+              }}
+              transition={{
+                duration: isWalkerMoving ? 1.1 : 0,
+                ease: [0.42, 0, 0.22, 1],
+              }}
+              onAnimationComplete={() => setIsWalkerMoving(false)}
+            >
+              <RouteWalker walking={isWalkerMoving} facingRight={walkerFacingRight} />
+            </motion.div>
+          )}
 
           {networkNodes.map((node) => {
             const status = getNodeStatus(node);
             const isCompleted = status === "completado";
             const isAvailable = status === "disponible";
             const isLocked = status === "bloqueado";
+            const isCurrent = walkerNode?.id === node.id && !isWalkerMoving;
             const isClickable = isAvailable || isCompleted;
             const mission = node.missionId
               ? missions.find((m) => m.id === node.missionId)
@@ -381,7 +473,7 @@ export default function RouteDashboard({
                 disabled={!isClickable}
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={() => handleNodeClick(node)}
-                className={`absolute flex flex-col items-center gap-2 -translate-x-1/2 -translate-y-1/2 transition-transform z-10 ${
+                className={`absolute flex flex-col items-center gap-1.5 -translate-x-1/2 -translate-y-1/2 transition-transform z-10 ${
                   isClickable
                     ? "pointer-events-auto cursor-pointer hover:scale-105"
                     : "pointer-events-none"
@@ -389,16 +481,16 @@ export default function RouteDashboard({
                 style={{ left: `${node.x}px`, top: `${node.y}px` }}
               >
                 <div
-                  className={`relative h-14 w-14 rounded-full flex items-center justify-center border-2 transition-all duration-300 shrink-0 ${
+                  className={`relative h-14 w-14 rounded-full flex items-center justify-center border-[2.5px] transition-all duration-300 shrink-0 ${
                     isCompleted
-                      ? "bg-black text-white border-black"
+                      ? "bg-emerald-600 text-white border-emerald-600 shadow-[0_4px_14px_rgba(22,163,74,0.35)]"
                       : isAvailable
-                        ? "bg-white text-[#B50E30] border-[#B50E30] shadow-[0_0_20px_rgba(181,14,48,0.35)]"
-                        : "bg-white text-neutral-300 border-neutral-200"
-                  }`}
+                        ? "bg-white text-[#B50E30] border-[#B50E30] shadow-[0_0_22px_rgba(181,14,48,0.4)]"
+                        : "bg-neutral-100 text-neutral-300 border-neutral-200 opacity-60"
+                  } ${isCurrent && isAvailable ? "ring-4 ring-[#B50E30]/20" : ""}`}
                 >
-                  {isAvailable && (
-                    <span className="absolute inset-0 rounded-full border-2 border-[#B50E30] animate-ping opacity-30" />
+                  {(isAvailable || isCurrent) && (
+                    <span className="absolute inset-0 rounded-full border-2 border-[#B50E30] animate-ping opacity-25" />
                   )}
                   {isCompleted ? (
                     <Check className="h-5 w-5 stroke-[3]" />
@@ -408,12 +500,17 @@ export default function RouteDashboard({
                     <NodeIcon className="h-5 w-5" />
                   )}
                 </div>
+                {isCompleted && node.missionId && (
+                  <span className="text-[8px] font-black uppercase tracking-wider text-emerald-600">
+                    Completado ✓
+                  </span>
+                )}
                 <span
                   className={`block w-[180px] text-[9px] font-black uppercase tracking-tight text-center leading-snug whitespace-normal break-words ${
                     isAvailable
                       ? "text-[#B50E30]"
                       : isCompleted
-                        ? "text-black"
+                        ? "text-neutral-700"
                         : "text-neutral-400"
                   }`}
                 >
@@ -466,9 +563,9 @@ export default function RouteDashboard({
           </p>
         </div>
 
-        <div className="flex items-center gap-6 divide-x divide-utp-border bg-neutral-50 p-4 border border-utp-border rounded-none self-start md:self-center relative z-10 shadow-none">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 bg-neutral-50 p-4 border border-utp-border rounded-none self-stretch md:self-center relative z-10 shadow-none">
           <div className="flex items-center gap-3">
-            <div className="bg-black text-white p-2.5 rounded-none flex items-center justify-center">
+            <div className="bg-black text-white p-2.5 rounded-none flex items-center justify-center shrink-0">
               <UvpIcon name="metas-profesionales" size={20} className="text-[#B50E30]" />
             </div>
             <div>
@@ -478,7 +575,7 @@ export default function RouteDashboard({
               <div className="text-base font-black text-black uppercase">LVL {profile.level}</div>
             </div>
           </div>
-          <div className="pl-6 flex items-center gap-3">
+          <div className="sm:pl-6 sm:border-l sm:border-utp-border flex items-center gap-3">
             <div className="bg-[#B50E30] text-white p-2.5 rounded-none flex items-center justify-center">
               <UvpIcon name="crecimiento-personal" size={20} />
             </div>
@@ -497,7 +594,7 @@ export default function RouteDashboard({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-none border border-utp-border p-6">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-utp-border">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-utp-border">
               <div>
                 <h3 className="heading-md text-black tracking-widest flex items-center gap-2">
                   <Zap className="h-5 w-5 text-[#B50E30] fill-[#B50E30]" />

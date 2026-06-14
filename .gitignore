@@ -9,3 +9,4 @@ coverage/
 //Ignorar el archivo de agente
 AGENTS.md
 .agents 
+CLAUDE.md

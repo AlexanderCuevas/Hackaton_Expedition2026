@@ -69,6 +69,7 @@ export default function CourseFilters({
     triggerLabel: string,
     options: { value: string; label: string; active: boolean }[],
     onSelect: (v: string) => void,
+    alignRight?: boolean,
   ) => (
     <div className="relative">
       <Button
@@ -87,15 +88,15 @@ export default function CourseFilters({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.96 }}
             transition={{ duration: 0.12 }}
-            className="absolute top-full mt-1 left-0 z-50"
+            className={`absolute top-full mt-1 z-50 ${alignRight ? "right-0" : "left-0"}`}
           >
-            <Card className="p-1.5 shadow-lg border-neutral-200 overflow-visible w-max">
+            <Card className={`p-0 shadow-lg border-neutral-200 overflow-visible ${id === "event" ? "w-[200px]" : "w-max"} ${id === "event" ? "px-1" : ""}`}>
               {options.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   onClick={() => { onSelect(opt.value); setOpenDropdown(null); }}
-                  className={`w-full text-left px-3 py-2 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition cursor-pointer ${
+                  className={`w-full text-left px-1.5 ${id === "event" ? "py-0.5" : "py-1.5"} text-[${id === "event" ? "9" : "10"}px] font-bold uppercase tracking-wider whitespace-nowrap transition cursor-pointer ${
                     opt.active
                       ? "bg-[#B50E30] text-white"
                       : "text-neutral-600 hover:bg-neutral-100 hover:text-black"
@@ -227,6 +228,7 @@ export default function CourseFilters({
           eventFilter === "todas" ? "Tipo" : eventFilter,
           eventOptions,
           setEventFilter,
+          true,
         )}
 
         {/* Clear button */}

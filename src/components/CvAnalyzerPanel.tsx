@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { CvAnalysis, SkillGap, CvMeta } from "../types";
+import { CvAnalysis, SkillGap, CvMeta, UserProfile } from "../types";
 import {
   FileText, Sparkles, AlertCircle, CheckCircle,
   BookOpen, AlertTriangle, TrendingUp, ChevronRight, X,
   ArrowRight, Check, Shield, ThumbsUp, ThumbsDown, Copy, Save,
-  RefreshCw
+  RefreshCw, Printer
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { buildHtmlCv, buildPlainTextCv, copyPlainTextToClipboard, triggerPrintCv } from "../utils/cvGenerator";
 
 /* ============================================================
    Simulated data for MVP — no file upload, no API calls
@@ -103,6 +104,7 @@ interface CvAnalyzerPanelProps {
   gaps?: SkillGap[];
   currentSkills?: string[];
   onNavigateToDiagnostico?: () => void;
+  profile?: UserProfile;
 }
 
 /* ============================================================
@@ -117,7 +119,8 @@ export default function CvAnalyzerPanel({
   cvText: incomingCvText,
   gaps: incomingGaps,
   currentSkills: incomingSkills,
-  onNavigateToDiagnostico
+  onNavigateToDiagnostico,
+  profile
 }: CvAnalyzerPanelProps) {
   const analysis = savedAnalysis ?? SIMULATED_ANALYSIS;
   const displayInfo = cvInfo ?? {
@@ -140,6 +143,35 @@ export default function CvAnalyzerPanel({
   const [copiedExtract, setCopiedExtract] = useState(false);
   const [copiedExtractShort, setCopiedExtractShort] = useState(false);
   const [evidenceSaved, setEvidenceSaved] = useState(false);
+  const [cvCopied, setCvCopied] = useState(false);
+
+  const getCvData = () => ({
+    name: profile?.name || "Estudiante UTP",
+    career: profile?.career || "",
+    email: profile?.email,
+    phone: profile?.phone,
+    linkedin: profile?.linkedin,
+    hardSkills: incomingSkills,
+    softSkills: profile?.softSkills,
+    experienceLevel: profile?.experienceLevel,
+    targetRole: targetRole,
+  });
+
+  const getOrBuildCvHtml = () => {
+    return localStorage.getItem("sp_cv_html") || buildHtmlCv(getCvData());
+  };
+
+  const handlePrintCv = () => {
+    const html = getOrBuildCvHtml();
+    triggerPrintCv(html);
+  };
+
+  const handleCopyCvText = () => {
+    const plainText = buildPlainTextCv(getCvData());
+    copyPlainTextToClipboard(plainText);
+    setCvCopied(true);
+    setTimeout(() => setCvCopied(false), 2500);
+  };
 
   /* ================ RENDER ================ */
 
@@ -170,40 +202,47 @@ export default function CvAnalyzerPanel({
         <div className="lg:col-span-2 space-y-6">
 
           {/* -------- 1. CV current card -------- */}
-          <div className="bg-white rounded-none border border-utp-border p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-4 min-w-0">
-                <div className="h-12 w-12 bg-black flex items-center justify-center shrink-0">
-                  <FileText className="h-6 w-6 text-white" />
-                </div>
-                <div className="min-w-0 space-y-0.5">
-                  <p className="text-xs font-black text-black uppercase tracking-wider flex items-center gap-2">
-                    CV actual cargado
-                    <CheckCircle className="h-3.5 w-3.5 text-[#B50E30]" />
-                  </p>
-                  <p className="text-[11px] font-extrabold text-black truncate">
-                    {displayInfo.fileName}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[9px] font-semibold text-neutral-500 uppercase tracking-wider">
-                    <span>{displayInfo.format}</span>
-                    <span className="w-1 h-1 bg-neutral-300" />
-                    <span>Fuente: {displayInfo.source}</span>
-                    <span className="w-1 h-1 bg-neutral-300" />
-                    <span>Estado: {displayInfo.status}</span>
-                    <span className="w-1 h-1 bg-neutral-300" />
-                    <span>Vacante: {displayInfo.targetRole || targetRole}</span>
-                    <span className="w-1 h-1 bg-neutral-300" />
-                    <span>Análisis: {displayInfo.analysisDate}</span>
-                  </div>
+          <div className="bg-white rounded-none border border-utp-border p-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="h-10 w-10 bg-black flex items-center justify-center shrink-0">
+                <FileText className="h-5 w-5 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-black text-black uppercase tracking-wider flex items-center gap-1.5">
+                  CV actual cargado
+                  <CheckCircle className="h-3 w-3 text-[#B50E30]" />
+                </p>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0 text-[9px] font-semibold text-neutral-500">
+                  <span className="font-extrabold text-black">{displayInfo.fileName}</span>
+                  <span className="w-0.5 h-0.5 bg-neutral-300 rounded-full" />
+                  <span>{displayInfo.format}</span>
+                  <span className="w-0.5 h-0.5 bg-neutral-300 rounded-full" />
+                  <span>{displayInfo.source}</span>
+                  <span className="w-0.5 h-0.5 bg-neutral-300 rounded-full" />
+                  <span>{displayInfo.status}</span>
+                  <span className="w-0.5 h-0.5 bg-neutral-300 rounded-full" />
+                  <span>Score: {analysis.score}%</span>
                 </div>
               </div>
-              <button
-                type="button"
-                className="px-3 py-2 border border-black hover:bg-neutral-50 text-black font-black uppercase tracking-wider rounded-none text-[10px] flex items-center gap-1.5 transition cursor-pointer shrink-0"
-              >
-                <RefreshCw className="h-3 w-3" />
-                Actualizar desde Mi Perfil
-              </button>
+              <div className="flex flex-wrap items-center gap-1.5 shrink-0 no-print">
+                <button
+                  type="button"
+                  onClick={handlePrintCv}
+                  className="px-3 py-1.5 bg-black hover:bg-neutral-800 text-white font-black uppercase tracking-wider rounded-none text-[10px] flex items-center gap-1.5 transition cursor-pointer"
+                  title="Imprimir o guardar como PDF"
+                >
+                  <Printer className="h-3.5 w-3.5" />
+                  PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyCvText}
+                  className="px-3 py-1.5 border border-black hover:bg-neutral-50 text-black font-black uppercase tracking-wider rounded-none text-[10px] flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  {cvCopied ? "Copiado" : "Texto"}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -527,10 +566,10 @@ export default function CvAnalyzerPanel({
 
             {incomingSkills && incomingSkills.length > 0 && (
               <div className="mb-4">
-                <p className="text-[9px] font-black text-neutral-400 uppercase tracking-widest mb-2">Tus habilidades actuales</p>
-                <div className="flex flex-wrap gap-1.5">
+                <p className="text-[11px] font-black text-neutral-500 uppercase tracking-widest mb-2">Tus habilidades actuales</p>
+                <div className="flex flex-wrap gap-2">
                   {incomingSkills.map((skill) => (
-                    <span key={skill} className="bg-black text-white text-[9px] font-bold px-2 py-1 uppercase tracking-tight">
+                    <span key={skill} className="bg-black text-white text-[11px] font-bold px-3 py-1.5 uppercase tracking-tight">
                       {skill}
                     </span>
                   ))}

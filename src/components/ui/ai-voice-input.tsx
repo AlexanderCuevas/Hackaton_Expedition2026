@@ -1,84 +1,98 @@
-import { Mic, MicOff } from "lucide-react"
-import { cn } from "@/src/lib/utils"
-import { useSpeechRecognition } from "@/src/hooks/use-speech-recognition"
+import React, { useState, useEffect, useRef } from 'react';
+import { Mic, Square } from 'lucide-react';
 
 interface AIVoiceInputProps {
-  onInterimTranscript?: (text: string) => void
-  onFinalTranscript?: (text: string) => void
-  disabled?: boolean
-  className?: string
-  compact?: boolean
+  compact?: boolean;
+  onTranscriptReceived: (transcript: string) => void;
+  onStart?: () => void;
+  onStop?: (duration: number) => void;
+  disabled?: boolean;
 }
 
-export function AIVoiceInput({
-  onInterimTranscript,
-  onFinalTranscript,
-  disabled = false,
-  className,
-  compact = false,
+export function AIVoiceInput({ 
+  compact, 
+  onTranscriptReceived, 
+  onStart, 
+  onStop,
+  disabled = false
 }: AIVoiceInputProps) {
-  const { isListening, startListening, stopListening, isSupported, error } =
-    useSpeechRecognition(onInterimTranscript, onFinalTranscript)
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const startTimeRef = useRef<number>(0);
 
-  const handleClick = () => {
-    if (disabled) return
-    if (isListening) stopListening()
-    else startListening()
-  }
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'es-ES';
 
-  if (compact) {
-    return (
-      <button
-        type="button"
-        onClick={handleClick}
-        disabled={disabled || !isSupported}
-        title={
-          !isSupported
-            ? "Reconocimiento de voz no disponible. Usa Chrome."
-            : isListening
-              ? "Detener"
-              : "Hablar"
-        }
-        className={cn(
-          "h-10 w-10 flex items-center justify-center rounded-none transition shrink-0 border cursor-pointer",
-          isListening
-            ? "bg-[#B50E30] text-white border-[#B50E30] animate-pulse"
-            : "bg-white text-black border-utp-border hover:border-black",
-          disabled && "opacity-50 cursor-not-allowed",
-          className,
-        )}
-      >
-        {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-      </button>
-    )
-  }
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        onTranscriptReceived(transcript);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+        const duration = Date.now() - startTimeRef.current;
+        if (onStop) onStop(duration);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error("Error en el micrófono:", event.error);
+        setIsRecording(false);
+      };
+    } else {
+      console.warn("Tu navegador no soporta el reconocimiento de voz nativo.");
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
+  }, [onTranscriptReceived, onStop]);
+
+  const toggleRecording = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    if (!recognitionRef.current) {
+      alert("Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.");
+      return;
+    }
+
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      startTimeRef.current = Date.now();
+      if (onStart) onStart();
+      recognitionRef.current.start();
+      setIsRecording(true);
+    }
+  };
 
   return (
-    <div className={cn("w-full py-4", className)}>
-      <div className="relative max-w-xl w-full mx-auto flex items-center flex-col gap-2">
-        <button
-          type="button"
-          onClick={handleClick}
-          disabled={disabled || !isSupported}
-          className={cn(
-            "w-16 h-16 rounded-xl flex items-center justify-center transition-colors cursor-pointer",
-            isListening
-              ? "bg-[#B50E30] text-white animate-pulse"
-              : "bg-black/5 hover:bg-black/10 text-black/70",
-            disabled && "opacity-50 cursor-not-allowed",
-          )}
-        >
-          {isListening ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-        </button>
-
-        {!isSupported && (
-          <p className="text-xs text-red-500 font-medium">
-            Tu navegador no soporta reconocimiento de voz. Usa Chrome.
-          </p>
-        )}
-
-        {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
-      </div>
-    </div>
-  )
+    <button
+      type="button"
+      onClick={toggleRecording}
+      disabled={disabled || !recognitionRef.current}
+      className={`flex items-center justify-center transition-colors border ${
+        isRecording 
+          ? 'bg-red-500 hover:bg-red-600 text-white border-red-500 animate-pulse' 
+          : 'bg-neutral-100 hover:bg-neutral-200 text-black border-neutral-300'
+      } ${compact ? 'h-10 w-10 rounded-none' : 'px-4 py-2 rounded-none'} ${
+        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+      }`}
+      title={isRecording ? "Detener grabación" : "Hablar por micrófono"}
+    >
+      {isRecording ? (
+        <Square className="h-4 w-4 fill-current" />
+      ) : (
+        <Mic className="h-4 w-4" />
+      )}
+    </button>
+  );
 }

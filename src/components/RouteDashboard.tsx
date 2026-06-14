@@ -10,7 +10,6 @@ import { CERTIFICATIONS_AND_COURSES, UNIVERSITY_EVENTS } from "../data";
 import { BentoGrid, type BentoItem } from "./ui/bento-grid";
 import UvpIcon from "./ui/UvpIcon";
 import { buildNetworkFromMissions, RouteNetworkNode, ROUTE_NETWORK_CANVAS_HEIGHT } from "../utils/courseMatcher";
-import virusGif from "./assets/oiaoioaia_virus.gif";
 
 interface RouteDashboardProps {
   profile: UserProfile;
@@ -461,8 +460,6 @@ export default function RouteDashboard({
           <h2 className="heading-xl text-black">
             {profile.targetRole || "Diagnóstico Pendiente"}
           </h2>
-          <img src={virusGif} style={{ width: '170px', height: '170px' }} alt="Adrian traera el chicarron" />
-          <p className="text-neutral-600 text-xs max-w-xl font-medium leading-relaxed">Adrian no esta trabajando pero traera el chicarron</p>
           <p className="text-neutral-600 text-xs max-w-xl font-medium leading-relaxed">
             Tu mentor digital ha estructurado esta ruta interactiva basada en perfiles reales
             contratados en empresas líderes y egresados de la UTP.

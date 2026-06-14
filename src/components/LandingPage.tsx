@@ -13,6 +13,7 @@ import sofiaImg from "./assets/Sofia.jpeg";
 import juanImg from "./assets/Juan.jpeg";
 import { ImageGallery, ImageGalleryHandle } from "./ui/carousel-circular-image-gallery";
 import { UserProfile } from "../types";
+import UvpIcon from "./ui/UvpIcon";
 import { findStudentByCode } from "../mockStudents";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────
@@ -91,19 +92,19 @@ const STORIES = [
 ];
 
 const STEPS = [
-  { n: "01", title: "Diagnóstico IA", desc: "Mapeamos tus competencias en 8 dimensiones y detectamos tus brechas frente al mercado laboral real.", icon: <Sparkles className="h-5 w-5" /> },
-  { n: "02", title: "Ruta Personalizada", desc: "Plan gamificado con misiones, simulacros de entrevista y proyectos reales adaptados a tu carrera.", icon: <Target className="h-5 w-5" /> },
-  { n: "03", title: "Portafolio Verificado", desc: "Proyectos completados generan badges avalados por mentores que los empleadores reconocen y confían.", icon: <Award className="h-5 w-5" /> },
-  { n: "04", title: "Conexión Laboral", desc: "Accede a +20 empresas aliadas que contratan perfiles verificados UTP directamente desde la plataforma.", icon: <Briefcase className="h-5 w-5" /> },
+  { n: "01", title: "Diagnóstico IA", desc: "Mapeamos tus competencias en 8 dimensiones y detectamos tus brechas frente al mercado laboral real.", icon: <UvpIcon name="test-evaluaciones" size={20} /> },
+  { n: "02", title: "Ruta Personalizada", desc: "Plan gamificado con misiones, simulacros de entrevista y proyectos reales adaptados a tu carrera.", icon: <UvpIcon name="metas-profesionales" size={20} /> },
+  { n: "03", title: "Portafolio Verificado", desc: "Proyectos completados generan badges avalados por mentores que los empleadores reconocen y confían.", icon: <UvpIcon name="crecimiento-personal" size={20} /> },
+  { n: "04", title: "Conexión Laboral", desc: "Accede a +20 empresas aliadas que contratan perfiles verificados UTP directamente desde la plataforma.", icon: <UvpIcon name="oportunidades-para-ti" size={20} /> },
 ];
 
 const FEATURES = [
-  { icon: <Sparkles className="h-6 w-6" />, title: "Diagnóstico IA", desc: "Escaneo inmediato de tu perfil. Identifica vacíos en código, metodologías ágiles y habilidades blandas." },
-  { icon: <FileText className="h-6 w-6" />, title: "CV ATS Optimizer", desc: "Optimiza tu currículum para superar los filtros automáticos de las grandes empresas del Perú." },
-  { icon: <Zap className="h-6 w-6" />, title: "Simulador de Entrevistas", desc: "Practica con escenarios reales. Feedback instantáneo con IA entrenada por reclutadores expertos." },
-  { icon: <Target className="h-6 w-6" />, title: "Ruta STAR Gamificada", desc: "Misiones, XP y niveles que convierten tu desarrollo profesional en un juego que sí importa." },
-  { icon: <Award className="h-6 w-6" />, title: "Portafolio Verificado", desc: "Credenciales avaladas por mentores reales. Diferénciate con evidencia, no con promesas." },
-  { icon: <Shield className="h-6 w-6" />, title: "Match de Vacantes", desc: "Tu perfil verificado conecta directamente con empresas que ya confían en el sistema UTP." },
+  { icon: <UvpIcon name="test-evaluaciones" size={24} />, title: "Diagnóstico IA", desc: "Escaneo inmediato de tu perfil. Identifica vacíos en código, metodologías ágiles y habilidades blandas." },
+  { icon: <UvpIcon name="plantillas-cv" size={24} />, title: "CV ATS Optimizer", desc: "Optimiza tu currículum para superar los filtros automáticos de las grandes empresas del Perú." },
+  { icon: <UvpIcon name="habilidades-blandas" size={24} />, title: "Simulador de Entrevistas", desc: "Practica con escenarios reales. Feedback instantáneo con IA entrenada por reclutadores expertos." },
+  { icon: <UvpIcon name="decisiones-proposito" size={24} />, title: "Ruta STAR Gamificada", desc: "Misiones, XP y niveles que convierten tu desarrollo profesional en un juego que sí importa." },
+  { icon: <UvpIcon name="logros-inspiran" size={24} />, title: "Portafolio Verificado", desc: "Credenciales avaladas por mentores reales. Diferénciate con evidencia, no con promesas." },
+  { icon: <UvpIcon name="conexion-empresas" size={24} />, title: "Match de Vacantes", desc: "Tu perfil verificado conecta directamente con empresas que ya confían en el sistema UTP." },
 ];
 
 // ─── ANIMATED SECTION WRAPPER ──────────────────────────────────────────────

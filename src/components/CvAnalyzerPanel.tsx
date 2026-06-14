@@ -9,10 +9,6 @@ import {
 import ReactMarkdown from "react-markdown";
 import { buildHtmlCv, buildPlainTextCv, copyPlainTextToClipboard, triggerPrintCv } from "../utils/cvGenerator";
 
-/* ============================================================
-   Simulated data — MVP without file upload or API calls
-   ============================================================ */
-
 const SIMULATED_CV = {
   fileName: "CV_Aaron_Silva.pdf",
   format: "PDF",
@@ -65,10 +61,6 @@ const SIMULATED_GAPS: SkillGap[] = [
 ];
 
 const SIMULATED_SKILLS = ["HTML/CSS", "JavaScript", "SQL Server", "TypeScript", "Python"];
-
-/* ============================================================
-   Subcomponents
-   ============================================================ */
 
 function ScoreCircleAnimated({ score, label, color }: { score: number; label: string; color: string }) {
   const [current, setCurrent] = useState(0);
@@ -136,10 +128,6 @@ function DeltaBadge({ value }: { value: number }) {
   return <>{current}</>;
 }
 
-/* ============================================================
-   Helpers
-   ============================================================ */
-
 const getRouteImpactData = (score: number, optimizedScore: number) => {
   const impact = optimizedScore - score;
   return {
@@ -150,10 +138,6 @@ const getRouteImpactData = (score: number, optimizedScore: number) => {
     nextMission: "Simular entrevista técnico-comportamental"
   };
 };
-
-/* ============================================================
-   Props
-   ============================================================ */
 
 interface CvAnalyzerPanelProps {
   targetRole: string;
@@ -166,10 +150,6 @@ interface CvAnalyzerPanelProps {
   onNavigateToDiagnostico?: () => void;
   profile?: UserProfile;
 }
-
-/* ============================================================
-   Component
-   ============================================================ */
 
 export default function CvAnalyzerPanel({
   targetRole,
@@ -259,7 +239,6 @@ export default function CvAnalyzerPanel({
 
   return (
     <div className="space-y-6">
-      {/* ==================== HEADER ==================== */}
       <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
         <div className="absolute right-0 top-0 w-32 h-full utp-diagonal-pattern opacity-20 pointer-events-none" />
         <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#B50E30]" />
@@ -277,10 +256,8 @@ export default function CvAnalyzerPanel({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* ==================== LEFT COLUMN (2/3) ==================== */}
         <div className="lg:col-span-2 space-y-6">
 
-          {/* -------- 1. CV current card -------- */}
           <div className="bg-white rounded-none border border-utp-border p-4">
             <div className="flex flex-wrap items-center gap-3">
               <div className="h-10 w-10 bg-black flex items-center justify-center shrink-0">
@@ -325,7 +302,6 @@ export default function CvAnalyzerPanel({
             </div>
           </div>
 
-          {/* -------- 3-STEP GUIDE -------- */}
           <div className="bg-white rounded-none border border-utp-border p-5">
             <div className="flex items-center justify-between gap-2">
               {[
@@ -346,7 +322,6 @@ export default function CvAnalyzerPanel({
             </div>
           </div>
 
-          {/* -------- CARD: ANÁLISIS IA DEL CV -------- */}
           <div className="bg-white rounded-none border border-utp-border p-6 relative overflow-hidden">
             <div className="absolute right-0 top-0 w-24 h-full utp-diagonal-pattern opacity-10 pointer-events-none" />
             <div className="relative z-10">
@@ -356,7 +331,6 @@ export default function CvAnalyzerPanel({
               </h3>
 
               <div className="flex flex-col sm:flex-row items-stretch gap-6 pt-5">
-                {/* Left: score rings */}
                 <div className="flex items-center gap-5 shrink-0">
                   <ScoreCircleAnimated score={analysis.score} label="actual" color="stroke-[#B50E30]" />
                   <div className="flex flex-col items-center">
@@ -368,7 +342,6 @@ export default function CvAnalyzerPanel({
                   <ScoreCircleAnimated score={optimizedScore} label="óptimo" color="stroke-black" />
                 </div>
 
-                {/* Right: status + problem + next step */}
                 <div className="flex-1 space-y-3">
                   <div className="flex items-center justify-between border-b border-utp-border pb-2">
                     <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Estado</span>
@@ -406,11 +379,8 @@ export default function CvAnalyzerPanel({
             </div>
           </div>
 
-          {/* -------- HAZ ESTO PRIMERO (CARRUSEL) -------- */}
           <div className="relative group">
-            {/* Depth layer behind card */}
             <div className="absolute inset-0 translate-y-1.5 bg-black/5 rounded-none pointer-events-none" />
-            {/* Main card */}
             <div className="relative bg-black text-white rounded-none p-7 border border-neutral-800 shadow-[0_4px_20px_-6px_rgba(0,0,0,0.35)] transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.5)]">
               <div className="flex items-start gap-5">
                 <div className="h-11 w-11 bg-[#B50E30] flex items-center justify-center shrink-0">
@@ -468,9 +438,7 @@ export default function CvAnalyzerPanel({
             </div>
           </div>
 
-          {/* -------- TAB SYSTEM -------- */}
           <div className="bg-white rounded-none border border-utp-border">
-            {/* Tab bar */}
             <div className="flex border-b border-utp-border">
               {tabs.map((tab) => (
                 <button
@@ -488,14 +456,11 @@ export default function CvAnalyzerPanel({
               ))}
             </div>
 
-            {/* Tab content */}
             <div className="p-6">
-              {/* ============ TAB: RESUMEN IA ============ */}
               {activeTab === "resumen" && (
                 <div className="space-y-6">
                   <p className="text-xs text-neutral-500 font-semibold border-b border-utp-border pb-3 -mt-2">Lo bueno y lo que debes corregir.</p>
 
-                  {/* Fortalezas */}
                   <div>
                     <span className="text-[11px] font-black text-green-600 uppercase tracking-wider flex items-center gap-1 mb-2">
                       <ThumbsUp className="h-4 w-4 text-green-600" />
@@ -511,7 +476,6 @@ export default function CvAnalyzerPanel({
                     </ul>
                   </div>
 
-                  {/* Alertas */}
                   <div className="border-t border-utp-border pt-4">
                     <span className="text-[11px] font-black text-amber-600 uppercase tracking-wider flex items-center gap-1 mb-2">
                       <AlertTriangle className="h-4 w-4 text-amber-600" />
@@ -527,7 +491,6 @@ export default function CvAnalyzerPanel({
                     </ul>
                   </div>
 
-                  {/* Extracto optimizado */}
                   <div className="bg-black text-white rounded-none p-5 border border-neutral-900">
                     <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
                       <div className="flex items-center gap-2">
@@ -573,7 +536,6 @@ export default function CvAnalyzerPanel({
                 </div>
               )}
 
-              {/* ============ TAB: MEJORAS ============ */}
               {activeTab === "mejoras" && (
                 <div className="space-y-6">
                   <p className="text-xs text-neutral-500 font-semibold border-b border-utp-border pb-3 -mt-2">Tus acciones prioritarias.</p>
@@ -604,7 +566,6 @@ export default function CvAnalyzerPanel({
                     ))}
                   </div>
 
-                  {/* Estructura Harvard */}
                   <div className="border-t border-utp-border pt-5">
                     <h4 className="heading-xs text-black flex items-center gap-2 mb-3">
                       <BookOpen className="h-4 w-4 text-[#B50E30]" />
@@ -636,7 +597,6 @@ export default function CvAnalyzerPanel({
                 </div>
               )}
 
-              {/* ============ TAB: KEYWORDS ============ */}
               {activeTab === "keywords" && (
                 <div className="space-y-4">
                   <p className="text-xs text-neutral-500 font-semibold border-b border-utp-border pb-3 -mt-2">Palabras que ayudan a pasar filtros ATS.</p>
@@ -678,7 +638,6 @@ export default function CvAnalyzerPanel({
                 </div>
               )}
 
-              {/* ============ TAB: INFORME ============ */}
               {activeTab === "informe" && (
                 <div className="space-y-4 text-xs font-semibold text-neutral-700 leading-relaxed">
                   <p className="text-xs text-neutral-500 font-semibold border-b border-utp-border pb-3 -mt-2">Detalle completo para revisar con calma.</p>
@@ -719,7 +678,6 @@ export default function CvAnalyzerPanel({
           </div>
         </div>
 
-        {/* ==================== RIGHT COLUMN (1/3) ==================== */}
         <div className="space-y-4">
           {/* -------- Skills & Brechas -------- */}
           <div className="bg-white rounded-none border border-utp-border p-6">
@@ -801,7 +759,6 @@ export default function CvAnalyzerPanel({
             )}
           </div>
 
-          {/* -------- Impacto en tu Ruta -------- */}
           {routeImpact && (
             <div className="bg-white rounded-none border border-utp-border p-6 space-y-3">
               <div className="flex items-center gap-1.5 pb-2 border-b border-utp-border">
@@ -842,7 +799,6 @@ export default function CvAnalyzerPanel({
             </div>
           )}
 
-          {/* -------- ¿Qué evalúa la IA? -------- */}
           <div className="bg-neutral-50 rounded-none border border-utp-border p-6 space-y-3">
             <h4 className="text-[11px] font-black text-black uppercase tracking-wider">¿Qué evalúa la IA?</h4>
             <ul className="space-y-2 text-black text-xs font-semibold">

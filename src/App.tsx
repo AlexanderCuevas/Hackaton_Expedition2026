@@ -6,6 +6,8 @@ import {
   Menu, X, Sparkles, LogOut, CheckSquare, Bell, Calendar, User
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { Avatar, AvatarImage, AvatarFallback } from "./components/ui/avatar";
+import avatarImg from "./components/assets/usuario.png";
 
 // Components
 import RouteDashboard from "./components/RouteDashboard";
@@ -28,7 +30,7 @@ import { Logo } from "./components/ui/logo";
 import { INITIAL_VACANCIES, CERTIFICATIONS_AND_COURSES, UNIVERSITY_EVENTS } from "./data";
 import { integrateRouteWithCourses, syncMissionsWithEnrollments, unlockSequentialMissions } from "./utils/courseMatcher";
 import { MockStudent } from "./mockStudents";
-import { buildHtmlCv } from "./utils/cvGenerator";
+
 
 // Preloaded state for Hackathon demo so that it's highly populated instantly
 const MOCK_INITIAL_PROFILE: UserProfile = {
@@ -153,6 +155,7 @@ export default function App() {
   const [cvAnalysis, setCvAnalysis] = useState<CvAnalysis | null>(null);
   const [cvMeta, setCvMeta] = useState<CvMeta | null>(null);
   const [cvText, setCvText] = useState<string>("");
+  const [currentStudentCode, setCurrentStudentCode] = useState<string | null>(null);
 
   const catalogLogos: Record<string, string> = {
     "Google": "https://e7.pngegg.com/pngimages/704/688/png-clipart-google-google-thumbnail.png",
@@ -534,18 +537,18 @@ export default function App() {
     localStorage.setItem("sp_authenticated", "true");
     setIsAuthenticated(true);
 
-    // ── Caso 1: Usuario con CV ya cargado (hasCv = true) ──
+    // ── Caso 1: Usuario con CV ya cargado (hasCv = true) — va al wizard con datos simulados ──
     if (hasCv && student) {
-      const completeProfile: UserProfile = {
+      const studentProfile: UserProfile = {
         name: student.name,
         career: student.career,
         semester: student.semester,
-        experienceLevel: student.experienceLevel || "",
+        experienceLevel: "",
         targetRole: student.targetRole || "",
-        currentSkills: student.hardSkills || [],
-        softSkills: student.softSkills || [],
+        currentSkills: [],
+        softSkills: [],
         interests: student.interests || [],
-        employabilityScore: 45,
+        employabilityScore: 0,
         xp: 0,
         level: 1,
         progressToNextLevel: 0,
@@ -555,37 +558,28 @@ export default function App() {
         github: student.github,
       };
 
-      const cvHtml = buildHtmlCv({
-        name: student.name,
-        career: student.career,
-        email: student.email,
-        phone: student.phone,
-        linkedin: student.linkedin,
-        cvResumen: student.cvResumen,
-        formacionCarrera: student.career,
-        formacionCiclo: `${student.semester}° ciclo`,
-        hardSkills: student.hardSkills,
-        softSkills: student.softSkills,
-        experienceLevel: student.experienceLevel,
-        targetRole: student.targetRole,
-      });
-
-      setProfile(completeProfile);
+      setProfile(studentProfile);
+      setCurrentStudentCode(student.code);
       setGaps([]);
       setMissions([]);
       setEnrolledCourses([]);
-      setDiagnosisCompleted(true);
+      setDiagnosisCompleted(false);
+      setCvAnalysis(null);
+      setCvMeta(null);
+      setCvText("");
 
-      localStorage.setItem("sp_profile", JSON.stringify(completeProfile));
+      localStorage.setItem("sp_profile", JSON.stringify(studentProfile));
       localStorage.setItem("sp_gaps", JSON.stringify([]));
       localStorage.setItem("sp_missions", JSON.stringify([]));
       localStorage.setItem("sp_enrolled_courses", JSON.stringify([]));
-      localStorage.setItem("sp_diagnosis_completed", "true");
-      localStorage.setItem("sp_cv_html", cvHtml);
+      localStorage.removeItem("sp_diagnosis_completed");
+      localStorage.removeItem("sp_cv_analysis");
+      localStorage.removeItem("sp_cv_meta");
+      localStorage.removeItem("sp_cv_text");
 
-      setView("dashboard");
+      setView("diagnostico");
       triggerNotification(
-        `🚀 ¡Bienvenido, ${student.name}! Tu CV está listo. Explora tu ruta de empleabilidad.`
+        `👋 ¡Bienvenido, ${student.name}! Usa "Extraer con IA" para cargar tus datos simulados.`
       );
       return;
     }
@@ -612,6 +606,7 @@ export default function App() {
 
     if (isNewUser) {
       setProfile(studentProfile);
+      setCurrentStudentCode(student?.code || null);
       setGaps([]);
       setMissions([]);
       setEnrolledCourses([]);
@@ -640,6 +635,7 @@ export default function App() {
       ? { ...JSON.parse(savedProfile), name: studentProfile.name, career: studentProfile.career, semester: studentProfile.semester }
       : studentProfile;
     setProfile({ ...MOCK_INITIAL_PROFILE, ...merged });
+    setCurrentStudentCode(student?.code || null);
 
     const diagnosisDone = localStorage.getItem("sp_diagnosis_completed") === "true";
     setDiagnosisCompleted(diagnosisDone);
@@ -687,6 +683,7 @@ export default function App() {
         <DiagnosticoWizard
           currentProfile={profile}
           onComplete={handleDiagnosisComplete}
+          studentCode={currentStudentCode ?? undefined}
         />
       </>
     );
@@ -820,10 +817,14 @@ export default function App() {
               <NotificationBell onClick={() => setNotifDrawerOpen(true)} />
               <button
                 type="button"
+                key={profile.avatarUrl || 'default'}
                 onClick={() => setView("profile")}
-                className="h-8 w-8 flex items-center justify-center bg-neutral-100 hover:bg-[#B50E30] hover:text-white transition cursor-pointer"
+                className="size-8 overflow-hidden cursor-pointer border border-neutral-200 hover:border-[#B50E30] transition rounded-full"
               >
-                <User className="h-4 w-4" />
+                <Avatar className="size-full rounded-none">
+                  <AvatarImage src={profile.avatarUrl || avatarImg} />
+                  <AvatarFallback>{profile.name?.charAt(0) || "U"}</AvatarFallback>
+                </Avatar>
               </button>
             </div>
           </header>
@@ -880,6 +881,13 @@ export default function App() {
                 >
                   <UserProfilePanel
                     onNavigateToMyCourses={() => setView("mycourses")}
+                    onAvatarChange={(url) => {
+                      setProfile((p) => {
+                        const updated = { ...p, avatarUrl: url };
+                        localStorage.setItem("sp_profile", JSON.stringify(updated));
+                        return updated;
+                      });
+                    }}
                   />
                 </motion.div>
               )}
@@ -898,6 +906,7 @@ export default function App() {
                     currentSkills={profile.currentSkills}
                     savedAnalysis={cvAnalysis ?? undefined}
                     onNavigateToDiagnostico={() => setView("diagnostico")}
+                    onNavigateToRuta={() => setView("dashboard")}
                     onAnalysisResult={(res) => {
                       setCvAnalysis(res);
                       localStorage.setItem("sp_cv_analysis", JSON.stringify(res));

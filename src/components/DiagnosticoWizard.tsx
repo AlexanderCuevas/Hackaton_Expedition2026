@@ -12,6 +12,8 @@ import {
   Phone,
   Calendar,
   Trash2,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import UvpIcon from "./ui/UvpIcon";
@@ -20,14 +22,13 @@ import {
   buildHarvardCvText,
   extractProfileHintsFromCv,
 } from "../utils/cvParser";
-import { buildHtmlCv } from "../utils/cvGenerator";
 import {
   CAREER_TYPICAL_SKILLS,
   CAREER_SPECIALIZATION_TAGS,
   GENERIC_SOFT_SKILLS,
 } from "../data";
+import { getCvMockData } from "../cvMockData";
 
-/* ───────── Month / Year dropdowns ───────── */
 const MONTHS = [
   { v: "01", l: "Enero" }, { v: "02", l: "Febrero" }, { v: "03", l: "Marzo" },
   { v: "04", l: "Abril" }, { v: "05", l: "Mayo" }, { v: "06", l: "Junio" },
@@ -80,31 +81,33 @@ function MySelect({ value, onChange, label }: {
 interface DiagnosticoWizardProps {
   currentProfile: UserProfile;
   onComplete: (profile: UserProfile, cvText: string, cvMeta: CvMeta) => void;
+  studentCode?: string;
 }
 
 const TOTAL_STEPS = 5;
 
 const EXPERIENCE_OPTIONS = [
   {
-    id: "basico",
-    title: "Básico",
-    description: "Busco mis primeras prácticas pre-profesionales. Cero experiencia formal.",
+    id: "primer-empleo",
+    title: "Mi primer empleo",
+    description: "Estoy buscando mi primera oportunidad laboral. Sin experiencia previa.",
   },
   {
-    id: "intermedio",
-    title: "Intermedio",
-    description: "Tengo experiencia en proyectos académicos aplicados o voluntariados.",
+    id: "practicas-pre",
+    title: "Prácticas pre-profesionales",
+    description: "Tengo experiencia en proyectos académicos o voluntariados y busco prácticas.",
   },
   {
-    id: "avanzado",
-    title: "Avanzado",
-    description: "Ya he realizado prácticas o trabajo actualmente.",
+    id: "profesionales",
+    title: "Experiencia profesional",
+    description: "Ya tengo experiencia laboral formal o prácticas profesionales completadas.",
   },
 ];
 
 export default function DiagnosticoWizard({
   currentProfile,
   onComplete,
+  studentCode,
 }: DiagnosticoWizardProps) {
   const [step, setStep] = useState(1);
   const [errorStr, setErrorStr] = useState<string | null>(null);
@@ -117,7 +120,6 @@ export default function DiagnosticoWizard({
   const careerSkills = CAREER_TYPICAL_SKILLS[career] ?? [];
   const specializationPool = CAREER_SPECIALIZATION_TAGS[career] ?? [];
 
-  // Paso 1 — CV
   const [cvMode, setCvMode] = useState<"upload" | "harvard">("upload");
   const [cvFileName, setCvFileName] = useState("");
   const [cvText, setCvText] = useState("");
@@ -132,32 +134,27 @@ export default function DiagnosticoWizard({
     formacionLogros: "",
   });
 
-  // Proyectos (hasta 3)
   const [proyectos, setProyectos] = useState([
     { id: 1, nombre: "", fechaInicio: "", fechaFin: "", descripcion: "", logros: [""] },
   ]);
   const nextProyectoId = useRef(2);
 
   const [completed, setCompleted] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  // Experiencia Profesional (hasta 2)
   const [experiencias, setExperiencias] = useState<CvExperiencia[]>([
     { rol: "", descripcion: "", ubicacion: "", fechaInicio: "", fechaFin: "", logros: [""] },
   ]);
 
-  // Contacto
   const [contactEmail, setContactEmail] = useState(currentProfile.email || "");
   const [contactPhone, setContactPhone] = useState(currentProfile.phone || "");
   const [contactLinkedin, setContactLinkedin] = useState(currentProfile.linkedin || "");
 
-  // Paso 2 — Experiencia
   const [experienceLevel, setExperienceLevel] = useState("");
 
-  // Paso 3 — Especialización (multi-select)
   const [specializations, setSpecializations] = useState<string[]>([]);
   const [specInput, setSpecInput] = useState("");
 
-  // Paso 4 — Habilidades
   const [hardSkills, setHardSkills] = useState<string[]>([]);
   const [softSkills, setSoftSkills] = useState<string[]>([]);
   const [hardInput, setHardInput] = useState("");
@@ -199,6 +196,50 @@ export default function DiagnosticoWizard({
     },
     [career, careerSkills, specializationPool]
   );
+
+  const loadMockCvData = useCallback((code: string) => {
+    const data = getCvMockData(code);
+    if (!data) return;
+
+    setContactEmail(data.email);
+    setContactPhone(data.phone);
+    setContactLinkedin(data.linkedin);
+
+    setHarvardForm((prev) => ({
+      ...prev,
+      resumen: data.resumen,
+      formacionFechaInicio: data.formacion.fechaInicio,
+      formacionFechaFin: data.formacion.fechaFin,
+      formacionLogros: data.formacion.logros,
+    }));
+
+    if (data.experiencias.length > 0) {
+      setExperiencias(data.experiencias);
+    }
+
+    if (data.proyectos.length > 0) {
+      setProyectos(
+        data.proyectos.map((p, i) => ({
+          id: i + 1,
+          nombre: p.nombre,
+          fechaInicio: p.fechaInicio,
+          fechaFin: p.fechaFin,
+          descripcion: p.descripcion,
+          logros: [...p.logros],
+        }))
+      );
+    }
+
+    setHardSkills([...data.hardSkills]);
+    setSoftSkills([...data.softSkills]);
+    setSpecializations([...data.specializations]);
+    setExperienceLevel(data.experienceLevel);
+
+    setCvMode("harvard");
+    setCvFileName("");
+    setCvText("");
+    setErrorStr(null);
+  }, []);
 
   const handleCvFile = async (file: File) => {
     if (file.type !== "application/pdf") {
@@ -282,6 +323,10 @@ export default function DiagnosticoWizard({
 
   const handleFinish = () => {
     if (!validateStep(5)) return;
+    if (isGenerating) return;
+
+    setIsGenerating(true);
+
     const finalCvText = resolveCvText();
     const experienceLabel =
       EXPERIENCE_OPTIONS.find((o) => o.id === experienceLevel)?.title ?? experienceLevel;
@@ -333,40 +378,38 @@ export default function DiagnosticoWizard({
       }),
     };
 
-    const cvHtml = buildHtmlCv({
-      name,
-      career,
-      email: contactEmail,
-      phone: contactPhone,
-      linkedin: contactLinkedin,
+    // Build structured data before the delay
+    const cvStructured = {
       cvResumen: harvardForm.resumen,
-      formacionUniversidad: "Universidad Tecnológica del Perú (UTP)",
-      formacionCarrera: harvardForm.formacionCarrera,
-      formacionCiclo: harvardForm.formacionCiclo,
-      formacionFechaInicio: harvardForm.formacionFechaInicio,
-      formacionFechaFin: harvardForm.formacionFechaFin,
-      formacionLogros: harvardForm.formacionLogros,
+      formacion: {
+        universidad: "Universidad Tecnológica del Perú (UTP)",
+        carrera: harvardForm.formacionCarrera,
+        ciclo: harvardForm.formacionCiclo,
+        fechaInicio: harvardForm.formacionFechaInicio,
+        fechaFin: harvardForm.formacionFechaFin,
+        logros: harvardForm.formacionLogros,
+      },
       experiencia: expTexto,
       proyectos: proysTexto,
       hardSkills,
       softSkills,
-      experienceLevel,
-      targetRole,
-    });
+    };
 
-    localStorage.setItem("sp_cv_html", cvHtml);
-
-    // Store the data so the completion screen can reference it
-    localStorage.setItem("sp_profile", JSON.stringify(updatedProfile));
-    localStorage.setItem("sp_cv_text", finalCvText);
-    localStorage.setItem("sp_cv_meta", JSON.stringify(cvMeta));
-    localStorage.setItem("sp_diagnosis_completed", "true");
-    setCompleted(true);
+    // Simulate generation delay
+    setTimeout(() => {
+      localStorage.setItem("sp_profile", JSON.stringify(updatedProfile));
+      localStorage.setItem("sp_cv_text", finalCvText);
+      localStorage.setItem("sp_cv_meta", JSON.stringify(cvMeta));
+      localStorage.setItem("sp_cv_structured", JSON.stringify(cvStructured));
+      localStorage.setItem("sp_diagnosis_completed", "true");
+      setCompleted(true);
+      setIsGenerating(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 1200);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header fijo */}
       <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
           <div className="font-black text-sm tracking-tight">
@@ -405,7 +448,6 @@ export default function DiagnosticoWizard({
               exit={{ opacity: 0, y: -12 }}
               className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6"
             >
-              {/* PASO 1: CV */}
               {step === 1 && (
                 <div className="space-y-5">
                   <div>
@@ -452,6 +494,17 @@ export default function DiagnosticoWizard({
                           </div>
                         )}
                       </div>
+
+                      {studentCode && getCvMockData(studentCode) && (
+                        <button
+                          type="button"
+                          onClick={() => loadMockCvData(studentCode)}
+                          className="w-full py-3.5 bg-gradient-to-r from-[#B50E30] to-[#85061B] text-white text-sm font-bold rounded-xl hover:opacity-90 transition flex items-center justify-center gap-2"
+                        >
+                          <Sparkles className="h-5 w-5" />
+                          Extraer datos con IA
+                        </button>
+                      )}
 
                       {/* Contacto — visible en ambos modos, aquí en upload */}
                       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
@@ -524,7 +577,6 @@ export default function DiagnosticoWizard({
                         ← Volver a subir PDF
                       </button>
 
-                      {/* Contacto también en modo Harvard */}
                       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
                         <h3 className="text-sm font-black text-black flex items-center gap-2">
                           <Mail className="h-4 w-4 text-[#B50E30]" />
@@ -569,7 +621,6 @@ export default function DiagnosticoWizard({
                         </div>
                       </div>
 
-                      {/* Resumen Profesional */}
                       <div className="border border-gray-200 rounded-xl overflow-hidden">
                         <button
                           type="button"
@@ -577,10 +628,20 @@ export default function DiagnosticoWizard({
                           className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 text-left"
                         >
                           <span className="text-sm font-bold text-black">Resumen Profesional</span>
-                          <ChevronDown className={`h-4 w-4 transition ${harvardOpen.resumen ? "rotate-180" : ""}`} />
+                          <motion.span animate={{ rotate: harvardOpen.resumen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                            <ChevronDown className="h-4 w-4" />
+                          </motion.span>
                         </button>
-                        {harvardOpen.resumen && (
-                          <div className="p-3 border-t border-gray-200 space-y-2">
+                        <AnimatePresence initial={false}>
+                          {harvardOpen.resumen && (
+                            <motion.div
+                              key="resumen-content"
+                              initial={{ opacity: 0, y: -6 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -6 }}
+                              transition={{ duration: 0.15, ease: "easeOut" }}
+                            >
+                            <div className="p-3 border-t border-gray-200 space-y-2">
                             <div className="text-[11px] text-neutral-500 font-medium space-y-1">
                               <p>Escribe 3-4 líneas que resuman <strong>quién eres, qué buscas y qué ofreces</strong>. Esto será lo primero que lea un reclutador.</p>
                               <ul className="list-disc pl-4 text-[10.5px]">
@@ -599,10 +660,11 @@ export default function DiagnosticoWizard({
                               className="w-full px-3 py-2.5 text-sm outline-none resize-none border border-gray-200 rounded-lg focus:border-[#B50E30]"
                             />
                           </div>
-                        )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
 
-                      {/* Formación Académica */}
                       <div className="border border-gray-200 rounded-xl overflow-hidden">
                         <button
                           type="button"
@@ -610,10 +672,20 @@ export default function DiagnosticoWizard({
                           className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 text-left"
                         >
                           <span className="text-sm font-bold text-black">Formación Académica</span>
-                          <ChevronDown className={`h-4 w-4 transition ${harvardOpen.formacion ? "rotate-180" : ""}`} />
+                          <motion.span animate={{ rotate: harvardOpen.formacion ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                            <ChevronDown className="h-4 w-4" />
+                          </motion.span>
                         </button>
-                        {harvardOpen.formacion && (
-                          <div className="p-3 border-t border-gray-200 space-y-3">
+                        <AnimatePresence initial={false}>
+                          {harvardOpen.formacion && (
+                            <motion.div
+                              key="formacion-content"
+                              initial={{ opacity: 0, y: -6 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -6 }}
+                              transition={{ duration: 0.15, ease: "easeOut" }}
+                            >
+                            <div className="p-3 border-t border-gray-200 space-y-3">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div>
                                 <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Universidad</label>
@@ -670,10 +742,11 @@ export default function DiagnosticoWizard({
                               />
                             </div>
                           </div>
-                        )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
 
-                      {/* Experiencia Profesional */}
                       <div className="border border-gray-200 rounded-xl overflow-hidden">
                         <button
                           type="button"
@@ -681,10 +754,20 @@ export default function DiagnosticoWizard({
                           className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 text-left"
                         >
                           <span className="text-sm font-bold text-black">Experiencia Profesional</span>
-                          <ChevronDown className={`h-4 w-4 transition ${harvardOpen.experiencia ? "rotate-180" : ""}`} />
+                          <motion.span animate={{ rotate: harvardOpen.experiencia ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                            <ChevronDown className="h-4 w-4" />
+                          </motion.span>
                         </button>
-                        {harvardOpen.experiencia && (
-                          <div className="p-3 border-t border-gray-200 space-y-4">
+                        <AnimatePresence initial={false}>
+                          {harvardOpen.experiencia && (
+                            <motion.div
+                              key="experiencia-content"
+                              initial={{ opacity: 0, y: -6 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -6 }}
+                              transition={{ duration: 0.15, ease: "easeOut" }}
+                            >
+                            <div className="p-3 border-t border-gray-200 space-y-4">
                             <p className="text-[11px] text-neutral-500 font-medium">
                               Agrega hasta 2 experiencias: prácticas, trabajos, voluntariados o proyectos relevantes.
                             </p>
@@ -811,7 +894,9 @@ export default function DiagnosticoWizard({
                               </button>
                             )}
                           </div>
-                        )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
 
                       {/* Proyectos Destacados */}
@@ -822,10 +907,20 @@ export default function DiagnosticoWizard({
                           className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 text-left"
                         >
                           <span className="text-sm font-bold text-black">Proyectos Destacados</span>
-                          <ChevronDown className={`h-4 w-4 transition ${harvardOpen.proyectos ? "rotate-180" : ""}`} />
+                          <motion.span animate={{ rotate: harvardOpen.proyectos ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                            <ChevronDown className="h-4 w-4" />
+                          </motion.span>
                         </button>
-                        {harvardOpen.proyectos && (
-                          <div className="p-3 border-t border-gray-200 space-y-4">
+                        <AnimatePresence initial={false}>
+                          {harvardOpen.proyectos && (
+                            <motion.div
+                              key="proyectos-content"
+                              initial={{ opacity: 0, y: -6 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -6 }}
+                              transition={{ duration: 0.15, ease: "easeOut" }}
+                            >
+                            <div className="p-3 border-t border-gray-200 space-y-4">
                             <p className="text-[11px] text-neutral-500 font-medium">
                               Agrega hasta 3 proyectos académicos, personales o voluntariados.
                             </p>
@@ -930,7 +1025,9 @@ export default function DiagnosticoWizard({
                               </button>
                             )}
                           </div>
-                        )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </div>
                   )}
@@ -964,12 +1061,24 @@ export default function DiagnosticoWizard({
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <motion.div
+                    className="space-y-3"
+                    variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+                    initial="hidden"
+                    animate="visible"
+                  >
                     {EXPERIENCE_OPTIONS.map((opt) => (
-                      <button
+                      <motion.button
                         key={opt.id}
                         type="button"
                         onClick={() => setExperienceLevel(opt.id)}
+                        variants={{
+                          hidden: { opacity: 0, x: -24 },
+                          visible: { opacity: 1, x: 0 },
+                        }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
                         className={`w-full p-4 rounded-xl border-2 text-left transition ${
                           experienceLevel === opt.id
                             ? "border-[#B50E30] bg-[#B50E30]/5"
@@ -979,13 +1088,19 @@ export default function DiagnosticoWizard({
                         <div className="flex items-center justify-between">
                           <span className="font-black text-black">{opt.title}</span>
                           {experienceLevel === opt.id && (
-                            <Check className="h-5 w-5 text-[#B50E30]" />
+                            <motion.span
+                              initial={{ scale: 0, rotate: -90 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                            >
+                              <Check className="h-5 w-5 text-[#B50E30]" />
+                            </motion.span>
                           )}
                         </div>
                         <p className="text-sm text-neutral-500 mt-1">{opt.description}</p>
-                      </button>
+                      </motion.button>
                     ))}
-                  </div>
+                  </motion.div>
                 </div>
               )}
 
@@ -1322,6 +1437,7 @@ export default function DiagnosticoWizard({
                   <button
                     type="button"
                     onClick={() => {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
                       const updatedProfile: UserProfile = {
                         ...currentProfile,
                         experienceLevel,
@@ -1382,15 +1498,30 @@ export default function DiagnosticoWizard({
                     <UvpIcon name="buscar" size={16} className="text-white" />
                   </button>
                 ) : (
-                  <button
+                  <motion.button
                     type="button"
                     onClick={handleFinish}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#B50E30] text-white text-sm font-black rounded-xl hover:bg-[#85061B] transition"
+                    disabled={isGenerating}
+                    whileTap={isGenerating ? {} : { scale: 0.97 }}
+                    className={`flex items-center gap-2 px-6 py-3 text-sm font-black rounded-xl transition ${
+                      isGenerating
+                        ? "bg-[#B50E30]/70 text-white/80 cursor-not-allowed"
+                        : "bg-[#B50E30] text-white hover:bg-[#85061B]"
+                    }`}
                   >
-                    <UvpIcon name="crecimiento-personal" size={16} className="text-white" />
-                    Generar CV y continuar
-                    <UvpIcon name="buscar" size={16} className="text-white" />
-                  </button>
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Generando CV...
+                      </>
+                    ) : (
+                      <>
+                        <UvpIcon name="crecimiento-personal" size={16} className="text-white" />
+                        Generar CV y continuar
+                        <UvpIcon name="buscar" size={16} className="text-white" />
+                      </>
+                    )}
+                  </motion.button>
                 )}
               </div>
               </>

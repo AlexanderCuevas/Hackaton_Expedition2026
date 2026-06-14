@@ -55,18 +55,13 @@ export default function InterviewPanel({
     setEvaluation(undefined);
 
     try {
-      const response = await fetch("/api/interview/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roleName: role, messages: [] })
-      });
-
-      if (!response.ok) {
-        throw new Error("Fallo en la comunicación con la plataforma.");
-      }
-
-      const data = await response.json();
-      setMessages([{ role: "assistant", content: data.reply }]);
+      // Compose an initial prompt for the mentor AI
+      const prompt = `Eres un entrevistador profesional. Inicia una entrevista para el cargo: ${role}. Saluda brevemente y pide un resumen de proyectos relevantes, experiencias y motivación para postular.`;
+      // dynamic import to avoid hoisting issues and keep file edits minimal
+      const mod = await import('../api/ai');
+      const data = await mod.queryAi(prompt, { max_words: 200 });
+      const reply = (data && (data.text as string)) || `Hola, empecemos. Cuéntame sobre tus proyectos más relevantes y por qué aplicas a ${role}.`;
+      setMessages([{ role: "assistant", content: reply }]);
     } catch (err: any) {
       console.error(err);
       setMessages([{ 
@@ -91,18 +86,14 @@ export default function InterviewPanel({
     setErrorStr(null);
 
     try {
-      const response = await fetch("/api/interview/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roleName: role, messages: updatedMessages })
-      });
-
-      if (!response.ok) {
-        throw new Error("Fallo al obtener respuesta de la IA.");
-      }
-
-      const data = await response.json();
-      setMessages([...updatedMessages, { role: "assistant", content: data.reply }]);
+      // Build a compact conversation prompt for the mentor AI
+      const conversation = [...updatedMessages, { role: 'user', content: inputText }];
+      const convoText = conversation.map(m => `${m.role === 'user' ? 'Candidate' : 'Interviewer'}: ${m.content}`).join('\n');
+      const prompt = `Eres un entrevistador. Contexto: puesto=${role}. Conversación:\n${convoText}\n\nComo entrevistador, responde con la siguiente pregunta o un feedback corto, manteniendo tono profesional.`;
+      const mod = await import('../api/ai');
+      const data = await mod.queryAi(prompt, { max_words: 200 });
+      const reply = (data && (data.text as string)) || 'Gracias por compartir. ¿Puedes ampliar ese punto con más detalle?';
+      setMessages([...updatedMessages, { role: "assistant", content: reply }]);
     } catch (err: any) {
       console.error(err);
       setErrorStr("Fallo en la comunicación con Gemini. Por favor re-envía el mensaje.");

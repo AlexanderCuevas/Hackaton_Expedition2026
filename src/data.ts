@@ -32,8 +32,7 @@ const BASE_CERTIFICATIONS: CourseCatalogItem[] = [
     speaker: "Rodolfo Junior Miranda Saldaña",
     modules: [
       {
-        id: "sql_m1",
-        title: "Fundamentos de Bases de Datos",
+        id: "sql_m1", title: "Fundamentos de Bases de Datos",
         lessons: [
           { id: "sql_l1", title: "Introducción al modelamiento relacional", duration: "25 min" },
           { id: "sql_l2", title: "Tipos de datos y restricciones", duration: "30 min" },
@@ -41,8 +40,7 @@ const BASE_CERTIFICATIONS: CourseCatalogItem[] = [
         ],
       },
       {
-        id: "sql_m2",
-        title: "Consultas y Joins",
+        id: "sql_m2", title: "Consultas y Joins",
         lessons: [
           { id: "sql_l4", title: "SELECT, WHERE y ORDER BY", duration: "40 min" },
           { id: "sql_l5", title: "INNER y LEFT JOIN multi-tabla", duration: "45 min" },
@@ -69,16 +67,14 @@ const BASE_CERTIFICATIONS: CourseCatalogItem[] = [
     speaker: "Google Career Staff",
     modules: [
       {
-        id: "aws_m1",
-        title: "Cloud Concepts",
+        id: "aws_m1", title: "Cloud Concepts",
         lessons: [
           { id: "aws_l1", title: "¿Qué es la computación en la nube?", duration: "20 min" },
           { id: "aws_l2", title: "Modelos IaaS, PaaS y SaaS", duration: "25 min" },
         ],
       },
       {
-        id: "aws_m2",
-        title: "Servicios AWS Core",
+        id: "aws_m2", title: "Servicios AWS Core",
         lessons: [
           { id: "aws_l3", title: "EC2, S3 y RDS en producción", duration: "55 min" },
           { id: "aws_l4", title: "IAM y seguridad básica", duration: "40 min" },
@@ -96,45 +92,151 @@ const BASE_CERTIFICATIONS: CourseCatalogItem[] = [
     cost: "Gratuito - Beca UTP+",
     url: "#",
     source: "partner",
-    description: "Aprende investigación de usuarios, wireframes y prototipos de alta fidelidad con estándares de la industria.",
+    description: "Conceptos fundamentales de Azure: computación, almacenamiento, redes y seguridad en la nube de Microsoft.",
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgutvMMFvRtDpuIo854Kan2v9B1x8t9RHziktMRA1QhuqTV-liPhRa5BrK&s=10",
     code: "M-1090",
     modality: "Virtual",
     speaker: "Marta Gómez (Microsoft MVP)",
     modules: [
       {
-        id: "fig_m1",
-        title: "Research & Wireframing",
+        id: "az_m1", title: "Fundamentos Azure",
         lessons: [
-          { id: "fig_l1", title: "Entrevistas de usuario", duration: "30 min" },
-          { id: "fig_l2", title: "Wireframes de baja fidelidad", duration: "35 min" },
+          { id: "az_l1", title: "Introducción a Azure", duration: "30 min" },
+          { id: "az_l2", title: "Servicios core de Azure", duration: "35 min" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "course_english_business",
+    title: "Inglés Comercial Avanzado (B2/C1)",
+    provider: "UTP",
+    badge: "Certificación Internacional",
+    duration: "16 Semanas",
+    pointsAwarded: 300,
+    cost: "Gratis con UTP Account",
+    url: "#",
+    source: "internal",
+    linkedGap: "Inglés comercial certificado (B2/C1)",
+    description: "Preparación intensiva para certificación TOEFL/IELTS con enfoque en vocabulario comercial, negociaciones en inglés y redacción de documentos internacionales.",
+    image: "https://www.mercadonegro.pe/wp-content/uploads/2020/10/cursos-online-consejos-1.jpg",
+    code: "44605",
+    modality: "Híbrido",
+    speaker: "Mg. Ana María Torres",
+    modules: [
+      {
+        id: "eng_m1", title: "Business English Fundamentals",
+        lessons: [
+          { id: "eng_l1", title: "Vocabulario comercial y de aduanas", duration: "30 min" },
+          { id: "eng_l2", title: "Redacción de correos y documentos internacionales", duration: "35 min" },
+          { id: "eng_l3", title: "Presentaciones de negocios en inglés", duration: "40 min" },
+        ],
+      },
+      {
+        id: "eng_m2", title: "Negociación y Certificación",
+        lessons: [
+          { id: "eng_l4", title: "Técnicas de negociación en inglés", duration: "45 min" },
+          { id: "eng_l5", title: "Simulación de reuniones comerciales", duration: "40 min" },
+          { id: "eng_l6", title: "Preparación TOEFL/IELTS", duration: "50 min" },
         ],
       },
     ],
   },
   {
     id: "course_scrum_01",
-    title: "Inteligencia Artificial Aplicada",
+    title: "Metodologías Ágiles y Scrum",
     provider: "UTP",
     badge: "Taller Práctico",
-    duration: "12 Semanas",
-    pointsAwarded: 100,
+    duration: "6 Semanas",
+    pointsAwarded: 150,
     cost: "100% de beca activa",
     url: "#",
     source: "internal",
     linkedGap: "Metodologías Ágiles (Scrum)",
-    description: "Desarrolla habilidades de comunicación ejecutiva y storytelling para entrevistas y presentaciones de proyectos.",
+    description: "Aplica Scrum, Kanban y metodologías ágiles en proyectos de desarrollo, marketing o logística para mejorar la eficiencia de tu equipo.",
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLlaXZxhrDiHRqs0Dn5NXijE7BQIKOkcUbqtVGqid36RytaR53NeDNm3E&s=10",
     code: "30291",
-    modality: "Híbrido",
-    speaker: "Dra. Maria Elena Ruiz",
+    modality: "Virtual",
+    speaker: "Ing. Patricia Vargas",
     modules: [
       {
-        id: "comm_m1",
-        title: "Comunicación Profesional",
+        id: "agile_m1", title: "Fundamentos Ágiles",
         lessons: [
-          { id: "comm_l1", title: "Estructura STAR para entrevistas", duration: "20 min" },
-          { id: "comm_l2", title: "Storytelling con datos", duration: "25 min" },
+          { id: "agile_l1", title: "Principios del manifiesto ágil", duration: "25 min" },
+          { id: "agile_l2", title: "Sprint planning y daily standups", duration: "30 min" },
+        ],
+      },
+      {
+        id: "agile_m2", title: "Scrum y Kanban",
+        lessons: [
+          { id: "agile_l3", title: "Roles y ceremonias Scrum", duration: "35 min" },
+          { id: "agile_l4", title: "Tablero Kanban para gestión visual", duration: "20 min" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "course_comex_01",
+    title: "Comercio Exterior y Gestión Aduanera",
+    provider: "UTP",
+    badge: "Certificación Profesional",
+    duration: "8 Semanas",
+    pointsAwarded: 250,
+    cost: "Gratis con UTP Account",
+    url: "#",
+    source: "internal",
+    linkedGap: "Incoterms 2020 y normativa aduanera",
+    description: "Domina los Incoterms 2020, documentación de importación/exportación y procedimientos aduaneros peruanos para destacar en vacantes COMEX.",
+    image: "https://www.mercadonegro.pe/wp-content/uploads/2020/10/cursos-online-consejos-1.jpg",
+    code: "44720",
+    modality: "Virtual",
+    speaker: "Mg. Ricardo Luna",
+    modules: [
+      {
+        id: "comex_m1", title: "Fundamentos del Comercio Exterior",
+        lessons: [
+          { id: "comex_l1", title: "Introducción al comercio internacional", duration: "30 min" },
+          { id: "comex_l2", title: "Actores y documentos en comercio exterior", duration: "35 min" },
+        ],
+      },
+      {
+        id: "comex_m2", title: "Incoterms 2020 y Aduanas",
+        lessons: [
+          { id: "comex_l3", title: "Incoterms 2020: FOB, CIF, EXW y más", duration: "45 min" },
+          { id: "comex_l4", title: "Procedimientos de despacho aduanero", duration: "40 min" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "course_logistics_01",
+    title: "Logística 4.0 y Supply Chain Digital",
+    provider: "UTP",
+    badge: "Especialización",
+    duration: "10 Semanas",
+    pointsAwarded: 200,
+    cost: "100% de beca activa",
+    url: "#",
+    source: "internal",
+    linkedGap: "Supply Chain Digital y ERP logístico",
+    description: "Aprende sobre trazabilidad digital, ERP logísticos (SAP/Odoo), pronóstico de demanda y optimización de la cadena de suministro.",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLlaXZxhrDiHRqs0Dn5NXijE7BQIKOkcUbqtVGqid36RytaR53NeDNm3E&s=10",
+    code: "44830",
+    modality: "Híbrido",
+    speaker: "Ing. Patricia Vargas",
+    modules: [
+      {
+        id: "log_m1", title: "Fundamentos de Supply Chain",
+        lessons: [
+          { id: "log_l1", title: "Cadena de suministro: conceptos clave", duration: "25 min" },
+          { id: "log_l2", title: "Indicadores logísticos (KPI)", duration: "30 min" },
+        ],
+      },
+      {
+        id: "log_m2", title: "ERP y Transformación Digital",
+        lessons: [
+          { id: "log_l3", title: "Introducción a SAP/Odoo logístico", duration: "40 min" },
+          { id: "log_l4", title: "Automatización de procesos logísticos", duration: "35 min" },
         ],
       },
     ],
@@ -147,6 +249,55 @@ export const CERTIFICATIONS_AND_COURSES: CourseCatalogItem[] = [
 ];
 
 export const EXTERNAL_COURSE_SUGGESTIONS: ExternalCourseSuggestion[] = EXTERNAL_COURSE_SUGGESTIONS_STATIC;
+
+export const COURSE_CAREER_MAP: Record<string, string[]> = {
+  "Ingeniería de Sistemas": [
+    "course_sql_01", "course_aws_01", "course_figma_01",
+    "course_k8s_01", "course_itil_01", "course_scrum_01",
+    "course_english_business",
+  ],
+  "Ingeniería de Software": [
+    "course_sql_01", "course_aws_01", "course_figma_01",
+    "course_k8s_01", "course_itil_01", "course_scrum_01",
+    "course_english_business",
+  ],
+  "Marketing": [
+    "course_mkt_ga4", "course_mkt_meta", "course_scrum_01",
+    "course_english_business",
+  ],
+  "Negocios Internacionales": [
+    "course_english_business", "course_comex_01", "course_logistics_01",
+    "course_scrum_01", "course_negotiation", "course_digital_trade",
+  ],
+  "Administración": [
+    "course_scrum_01", "course_english_business",
+  ],
+};
+
+export const EXTERNAL_COURSE_CAREER_MAP: Record<string, string[]> = {
+  "Ingeniería de Sistemas": [
+    "ext_udemy_git",
+  ],
+  "Ingeniería de Software": [
+    "ext_udemy_git",
+  ],
+  "Marketing": [
+    "ext_meta_ads", "ext_ga4", "ext_hubspot_email",
+  ],
+  "Negocios Internacionales": [
+    "ext_udemy_comex", "ext_edx_supplychain", "ext_linkedin_logistics",
+    "ext_coursera_negotiation", "ext_udemy_english",
+    "ext_coursera_export", "ext_linkedin_leadership",
+  ],
+};
+
+export function getRelevantCourseIds(career: string): string[] {
+  return COURSE_CAREER_MAP[career] || ["course_scrum_01", "course_english_business"];
+}
+
+export function getRelevantExternalCourseIds(career: string): string[] {
+  return EXTERNAL_COURSE_CAREER_MAP[career] || [];
+}
 
 export const UTP_CAREERS = [
   "Ingeniería de Sistemas",

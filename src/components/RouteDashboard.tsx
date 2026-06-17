@@ -290,7 +290,7 @@ export default function RouteDashboard({
           )}
 
           {isCompleted && (
-            <div className="mt-3 pt-3 border-t border-green-100/40 flex items-center gap-1.5 text-[11px] text-[#009F5A] font-extrabold">
+            <div className="mt-3 pt-3 border-t border-green-100/40 flex items-center gap-1.5 text-[11px] text-[#00B86B] font-extrabold">
               <CheckCircle className="h-3.5 w-3.5" />
               Misión Completada (+{mission.xpValue} XP)
             </div>
@@ -313,9 +313,9 @@ export default function RouteDashboard({
     const width = total > 0 ? (total - 1) * NODE_GAP + PADDING_X * 2 + NODE_R * 2 : 400;
     const currentIdx = currentMissionIdx;
 
-    const completadoMain = "#009F5A";
-    const completadoBg = "#E9FFF4";
-    const completadoBorder = "#B8F5D2";
+    const completadoMain = "#00B86B";
+    const completadoBg = "#E6FFF2";
+    const completadoBorder = "#A8EDC8";
 
     const statusColors: Record<string, string> = {
       completado: completadoMain,
@@ -328,7 +328,7 @@ export default function RouteDashboard({
       const mission = sorted[idx];
       if (!mission) return { type: "bloqueado" as const, bg: "bg-neutral-100", border: "border-neutral-300", textColor: "text-neutral-400", badgeColor: "bg-neutral-50 text-neutral-500 border border-neutral-200", badge: "Bloqueado", icon: "lock", isInteractive: false, numBg: "bg-neutral-100", numBorder: "border-neutral-200", numText: "text-neutral-300" };
       const status = mission.status;
-      if (status === "completado") return { type: "completado" as const, bg: "bg-[#009F5A]", border: "border-[#009F5A]", textColor: "text-[#009F5A]", badgeColor: "bg-[#E9FFF4] text-[#009F5A] border border-[#B8F5D2]", badge: "Completado", icon: "check", isInteractive: true, numBg: "bg-[#E9FFF4]", numBorder: "border-[#B8F5D2]", numText: "text-[#009F5A]" };
+      if (status === "completado") return { type: "completado" as const, bg: "bg-[#00B86B]", border: "border-[#00B86B]", textColor: "text-[#00B86B]", badgeColor: "bg-[#E6FFF2] text-[#00B86B] border border-[#A8EDC8]", badge: "Completado", icon: "check", isInteractive: true, numBg: "bg-[#E6FFF2]", numBorder: "border-[#A8EDC8]", numText: "text-[#00B86B]" };
       if (status === "disponible") return { type: "disponible" as const, bg: "bg-[#B50E30]", border: "border-[#B50E30]", textColor: "text-[#B50E30]", badgeColor: "bg-red-50 text-[#B50E30] border border-red-200", badge: "En curso", icon: "mission", isInteractive: true, isCurrent: true as const, numBg: "bg-red-50", numBorder: "border-red-200", numText: "text-[#B50E30]" };
       const isNext = currentIdx >= 0 && idx === currentIdx + 1;
       if (isNext) return { type: "siguiente" as const, bg: "bg-indigo-500", border: "border-indigo-500", textColor: "text-indigo-600", badgeColor: "bg-indigo-50 text-indigo-600 border border-indigo-200", badge: "Siguiente", icon: "lock", isInteractive: false, numBg: "bg-indigo-50", numBorder: "border-indigo-200", numText: "text-indigo-600" };

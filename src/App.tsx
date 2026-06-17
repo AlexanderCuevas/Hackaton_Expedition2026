@@ -4,11 +4,12 @@ import { UserProfile, SkillGap, CareerMission, CvAnalysis, InterviewSession, Enr
 import { 
   Trophy, Award, BookOpen, AlertCircle, ArrowRight, CheckCircle, Lock, Play, Zap,
   Briefcase, GraduationCap, FileText, MessageSquare, Users, PhoneCall, ChevronRight, ChevronLeft,
-  Menu, X, Sparkles, LogOut, CheckSquare, Bell, Calendar, User
+  Menu, X, Sparkles, LogOut, CheckSquare, Bell, Calendar, User, ChevronDown
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Avatar, AvatarImage, AvatarFallback } from "./components/ui/avatar";
 import avatarImg from "./components/assets/usuario.png";
+import sidebarImg from "./components/assets/Img.png";
 
 // Components
 import RouteDashboard from "./components/RouteDashboard";
@@ -69,6 +70,7 @@ export default function App() {
   const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [showLogoutMenu, setShowLogoutMenu] = useState(false);
   const [diagnosisCompleted, setDiagnosisCompleted] = useState(false);
   const [routeGenerated, setRouteGenerated] = useState(false);
   const [cvAnalysis, setCvAnalysis] = useState<CvAnalysis | null>(MOCK_CV_ANALYSIS);
@@ -160,6 +162,7 @@ export default function App() {
 
   useEffect(() => {
     setMobileNavOpen(false);
+    setShowLogoutMenu(false);
   }, [view]);
 
   // Save changes to state
@@ -782,20 +785,20 @@ export default function App() {
       {/* Main Framework Wrapper */}
       <div className="flex min-h-screen">
         {/* Sidebar Container - Fixed, full height */}
-        <div className={`${sidebarOpen ? 'w-64' : 'w-16'} fixed left-0 top-0 h-screen bg-[#26262b] text-neutral-300 border-r border-white/5 flex flex-col justify-between p-4 hidden md:flex transition-all duration-300 z-40 group shadow-[2px_0_20px_rgba(0,0,0,0.18)]`}>
+        <div className={`${sidebarOpen ? 'w-64' : 'w-16'} fixed left-0 top-0 h-screen bg-[#1C1C1F] text-[#F2F2F2] border-r border-[#222226] flex flex-col justify-between p-4 hidden md:flex transition-all duration-300 z-40 group shadow-[2px_0_20px_rgba(0,0,0,0.18)]`}>
           <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#B50E30]" aria-hidden />
 
           <button
             type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 h-7 w-7 bg-[#B50E30] text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer z-10 shadow-md hover:scale-105 hover:bg-[#85061B]"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 h-7 w-7 bg-[#B50E30] text-[#F2F2F2] rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer z-10 shadow-md hover:scale-105 hover:bg-[#85061B]"
           >
             {sidebarOpen ? <ChevronLeft className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
           </button>
 
           <div className="flex flex-col flex-1 min-h-0 gap-4">
             {/* Brand */}
-            <div className={`shrink-0 pb-4 border-b border-white/10 ${sidebarOpen ? 'pl-1' : 'flex justify-center'}`}>
+            <div className={`shrink-0 pb-4 border-b border-[#222226] ${sidebarOpen ? 'pl-1' : 'flex justify-center'}`}>
               <Logo variant="sidebar" showText={sidebarOpen} />
             </div>
 
@@ -817,10 +820,10 @@ export default function App() {
                       title={isLocked ? "Genera tu ruta en Análisis para desbloquear" : undefined}
                       className={`w-full flex items-center ${sidebarOpen ? 'gap-3 px-3' : 'justify-center px-1'} py-2.5 rounded-xl text-[11px] font-bold font-sans uppercase tracking-wider transition-all duration-200 select-none ${
                         isLocked
-                          ? "opacity-35 cursor-not-allowed text-neutral-500"
+                          ? "opacity-35 cursor-not-allowed text-[#A3A3A3]"
                           : isActive
-                            ? "bg-[#B50E30] text-white shadow-md cursor-pointer"
-                            : "text-neutral-400 hover:bg-white/8 hover:text-white cursor-pointer"
+                            ? "bg-[#B50E30] text-[#F2F2F2] shadow-md cursor-pointer"
+                            : "text-[#A3A3A3] hover:bg-[#222226] hover:text-[#F2F2F2] cursor-pointer"
                       }`}
                     >
                       {isLocked ? (
@@ -835,38 +838,13 @@ export default function App() {
             </nav>
           </div>
 
-          {/* User footer */}
-          <div className={`shrink-0 rounded-xl bg-white/5 border border-white/8 p-3 space-y-3 ${sidebarOpen ? 'ml-1' : ''}`}>
-            <div className={`flex items-center gap-2 ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
-              <div className={`text-xs font-extrabold text-white max-w-[130px] truncate ${sidebarOpen ? 'block' : 'hidden'}`}>
-                {profile.name}
-              </div>
-              <span className="bg-[#B50E30] text-white font-black text-[9px] px-2.5 py-0.5 rounded-full uppercase shrink-0">
-                LVL {profile.level}
-              </span>
-            </div>
-
-            <div className={`space-y-1.5 ${sidebarOpen ? 'block' : 'hidden'}`}>
-              <div className="flex items-center justify-between text-[9px] text-neutral-400 uppercase font-bold tracking-wider">
-                <span>XP: {profile.xp}</span>
-                <span>{profile.progressToNextLevel}%</span>
-              </div>
-              <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-[#B50E30] h-full rounded-full transition-all duration-300"
-                  style={{ width: `${profile.progressToNextLevel}%` }}
-                />
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleLogout}
-              className={`flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-neutral-500 hover:text-white transition cursor-pointer py-1 ${sidebarOpen ? 'justify-start' : 'justify-center w-full'}`}
-            >
-              <LogOut className="h-3.5 w-3.5 shrink-0" />
-              <span className={sidebarOpen ? 'inline' : 'hidden'}>Cerrar sesión</span>
-            </button>
+          {/* Video footer */}
+          <div className={`shrink-0 ${sidebarOpen ? 'block' : 'hidden'}`}>
+            <img
+              src={sidebarImg}
+              alt="Sidebar"
+              className="w-full object-contain"
+            />
           </div>
         </div>
 
@@ -886,16 +864,16 @@ export default function App() {
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                className="fixed inset-y-0 left-0 z-[51] w-[min(280px,85vw)] bg-[#26262b] text-neutral-300 border-r border-white/5 flex flex-col justify-between p-4 md:hidden shadow-2xl"
+                className="fixed inset-y-0 left-0 z-[51] w-[min(280px,85vw)] bg-[#1C1C1F] text-[#F2F2F2] border-r border-[#222226] flex flex-col justify-between p-4 md:hidden shadow-2xl"
               >
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#B50E30]" aria-hidden />
                 <div className="flex flex-col flex-1 min-h-0 gap-4">
-                  <div className="shrink-0 pb-4 border-b border-white/10 pl-1 flex items-center justify-between">
+                  <div className="shrink-0 pb-4 border-b border-[#222226] pl-1 flex items-center justify-between">
                     <Logo variant="sidebar" showText />
                     <button
                       type="button"
                       onClick={() => setMobileNavOpen(false)}
-                      className="p-1.5 text-neutral-400 hover:text-white cursor-pointer"
+                      className="p-1.5 text-[#A3A3A3] hover:text-[#F2F2F2] cursor-pointer"
                       aria-label="Cerrar menú"
                     >
                       <X className="h-5 w-5" />
@@ -918,10 +896,10 @@ export default function App() {
                           }}
                           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[11px] font-bold font-sans uppercase tracking-wider transition-all duration-200 select-none ${
                             isLocked
-                              ? "opacity-35 cursor-not-allowed text-neutral-500"
+                              ? "opacity-35 cursor-not-allowed text-[#A3A3A3]"
                               : isActive
-                                ? "bg-[#B50E30] text-white shadow-md cursor-pointer"
-                                : "text-neutral-400 hover:bg-white/8 hover:text-white cursor-pointer"
+                                ? "bg-[#B50E30] text-[#F2F2F2] shadow-md cursor-pointer"
+                                : "text-[#A3A3A3] hover:bg-[#222226] hover:text-[#F2F2F2] cursor-pointer"
                           }`}
                         >
                           {isLocked ? (
@@ -934,39 +912,6 @@ export default function App() {
                       );
                     })}
                   </nav>
-                </div>
-                <div className="shrink-0 rounded-xl bg-white/5 border border-white/8 p-3 space-y-3 ml-1">
-                  <div className="flex items-center gap-2 justify-between">
-                    <div className="text-xs font-extrabold text-white max-w-[130px] truncate">
-                      {profile.name}
-                    </div>
-                    <span className="bg-[#B50E30] text-white font-black text-[9px] px-2.5 py-0.5 rounded-full uppercase shrink-0">
-                      LVL {profile.level}
-                    </span>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-[9px] text-neutral-400 uppercase font-bold tracking-wider">
-                      <span>XP: {profile.xp}</span>
-                      <span>{profile.progressToNextLevel}%</span>
-                    </div>
-                    <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                      <div
-                        className="bg-[#B50E30] h-full rounded-full transition-all duration-300"
-                        style={{ width: `${profile.progressToNextLevel}%` }}
-                      />
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileNavOpen(false);
-                      handleLogout();
-                    }}
-                    className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-neutral-500 hover:text-white transition cursor-pointer py-1 justify-start"
-                  >
-                    <LogOut className="h-3.5 w-3.5 shrink-0" />
-                    <span>Cerrar sesión</span>
-                  </button>
                 </div>
               </motion.aside>
             </>
@@ -998,20 +943,52 @@ export default function App() {
               </div>
             </div>
 
-            {/* Right side — notification bell & profile */}
+            {/* Right side — notification bell & avatar dropdown */}
             <div className="flex items-center gap-2">
               <NotificationBell onClick={() => setNotifDrawerOpen(true)} />
-              <button
-                type="button"
-                key={profile.avatarUrl || 'default'}
-                onClick={() => setView("profile")}
-                className="size-8 overflow-hidden cursor-pointer border border-neutral-200 hover:border-[#B50E30] transition rounded-full"
-              >
-                <Avatar className="size-full rounded-none">
-                  <AvatarImage src={profile.avatarUrl || avatarImg} />
-                  <AvatarFallback>{profile.name?.charAt(0) || "U"}</AvatarFallback>
-                </Avatar>
-              </button>
+              <div className="w-px h-6 bg-black hidden sm:block" />
+              <div className="relative flex items-center gap-2">
+                <div className="hidden sm:block text-right">
+                  <p className="text-xs font-bold text-black leading-tight">{profile.name}</p>
+                  <p className="text-[10px] text-neutral-500 leading-tight">LVL {profile.level} · {profile.xp} XP</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutMenu(!showLogoutMenu)}
+                  className="flex items-center gap-1 cursor-pointer"
+                >
+                  <div className="size-8 overflow-hidden border border-neutral-200 hover:border-[#B50E30] transition rounded-full">
+                    <Avatar className="size-full rounded-none">
+                      <AvatarImage src={profile.avatarUrl || avatarImg} />
+                      <AvatarFallback>{profile.name?.charAt(0) || "U"}</AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <ChevronDown className={`h-3.5 w-3.5 text-neutral-500 transition-transform duration-200 ${showLogoutMenu ? 'rotate-180' : ''}`} />
+                </button>
+                {showLogoutMenu && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowLogoutMenu(false)} />
+                    <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-neutral-200 shadow-xl min-w-[160px]">
+                      <button
+                        type="button"
+                        onClick={() => { setShowLogoutMenu(false); setView("profile"); }}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-neutral-600 hover:text-[#B50E30] hover:bg-neutral-50 transition cursor-pointer"
+                      >
+                        <User className="h-3.5 w-3.5" />
+                        Mi Perfil
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-neutral-600 hover:text-[#B50E30] hover:bg-neutral-50 transition cursor-pointer"
+                      >
+                        <LogOut className="h-3.5 w-3.5" />
+                        Cerrar sesión
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </header>
 

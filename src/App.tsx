@@ -28,7 +28,7 @@ import CourseFilters from "./components/CourseFilters";
 import { Logo } from "./components/ui/logo";
 
 // Mock Data
-import { CERTIFICATIONS_AND_COURSES, INITIAL_VACANCIES, UNIVERSITY_EVENTS } from "./data";
+import { CERTIFICATIONS_AND_COURSES, INITIAL_VACANCIES, UNIVERSITY_EVENTS, CAREER_SUGGESTED_ROLES, getRelevantCourseIds } from "./data";
 import { integrateRouteWithCourses, syncMissionsWithEnrollments, unlockSequentialMissions } from "./utils/courseMatcher";
 import { MockStudent } from "./mockStudents";
 import { getStudentCareerBundle } from "./cvMockData";
@@ -89,7 +89,9 @@ export default function App() {
     return Array.from(companies).sort();
   }, []);
 
+  const relevantCourseIds = getRelevantCourseIds(profile.career || "");
   const filteredCerts = CERTIFICATIONS_AND_COURSES
+    .filter((cert) => relevantCourseIds.includes(cert.id))
     .filter((cert) => {
       if (catalogCompanyFilter !== "todas" && cert.provider !== catalogCompanyFilter) return false;
       if (catalogSearchTerm) {
@@ -104,6 +106,27 @@ export default function App() {
         ? a.pointsAwarded - b.pointsAwarded
         : b.pointsAwarded - a.pointsAwarded
     );
+
+  const studentSkills = profile.currentSkills || [];
+  const filteredVacancies = useMemo(() => {
+    const relevantRoles = CAREER_SUGGESTED_ROLES[profile.career || ""] || [];
+    const filtered = INITIAL_VACANCIES.filter(v =>
+      relevantRoles.some(role =>
+        v.role.toLowerCase().includes(role.toLowerCase().split(" ").slice(0, 2).join(" ")) ||
+        role.toLowerCase().includes(v.role.toLowerCase().split(" ").slice(0, 2).join(" "))
+      )
+    );
+    const scored = filtered.length > 0 ? filtered : INITIAL_VACANCIES;
+    return scored.map(v => {
+      const matchingSkills = v.skillsRequired.filter(s =>
+        studentSkills.some(ss => ss.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(ss.toLowerCase()))
+      );
+      const matchScore = v.skillsRequired.length > 0
+        ? Math.round((matchingSkills.length / v.skillsRequired.length) * 100)
+        : v.matchScore;
+      return { ...v, matchScore: Math.min(100, Math.max(30, matchScore)) };
+    }).sort((a, b) => b.matchScore - a.matchScore);
+  }, [profile.career, studentSkills]);
 
   useEffect(() => {
     const savedProfile = localStorage.getItem("sp_profile");
@@ -713,9 +736,19 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("sp_student_code");
-    localStorage.removeItem("sp_authenticated");
+    const spKeys = Object.keys(localStorage).filter(k => k.startsWith("sp_"));
+    spKeys.forEach(k => localStorage.removeItem(k));
     setIsAuthenticated(false);
+    setProfile(MOCK_INITIAL_PROFILE);
+    setGaps([]);
+    setMissions([]);
+    setEnrolledCourses([]);
+    setCvAnalysis(null);
+    setCvMeta(null);
+    setDiagnosisCompleted(false);
+    setRouteGenerated(false);
+    setCurrentStudentCode(null);
+    setCvText("");
     setView("dashboard");
   };
 
@@ -1141,7 +1174,7 @@ export default function App() {
 
               {view === "jobs" && (
                 <VacanciesPanel
-                  vacancies={INITIAL_VACANCIES}
+                  vacancies={filteredVacancies}
                   career={profile.career || "Sistemas"}
                   onApply={handleApplicationCompleted}
                 />
@@ -1293,7 +1326,7 @@ export default function App() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  <SocialHub />
+                  <SocialHub career={profile.career} interests={profile.interests} />
                 </motion.div>
               )}
 

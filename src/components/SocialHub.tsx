@@ -98,13 +98,93 @@ const COMMUNITY_USER_PROFILES: Record<string, any> = {
     level: 3,
     xp: 520,
     type: "Alumni Junior"
+  },
+  "Carlos Gutiérrez": {
+    name: "Carlos Gutiérrez",
+    career: "Negocios Internacionales (Alumni)",
+    semester: 10,
+    avatarColor: "bg-black text-white border-black",
+    targetRole: "Supply Chain Manager @ Alicorp",
+    bio: "Más de 10 años liderando operaciones de cadena de suministro en Alicorp. Apasionado por la transformación digital logística y la mentoría de nuevos talentos.",
+    skills: ["Supply Chain Management", "SAP ERP", "Logística Internacional", "Negociación", "Power BI", "Liderazgo"],
+    level: 8,
+    xp: 4200,
+    type: "Mentor Destacado"
+  },
+  "Mariana López": {
+    name: "Mariana López",
+    career: "Psicología Organizacional",
+    semester: 10,
+    avatarColor: "bg-[#B50E30] text-white border-[#B50E30]",
+    targetRole: "Talent Acquisition Logistics @ DHL",
+    bio: "Especialista en reclutamiento de perfiles logísticos y comercio exterior. Buscando talento joven con visión internacional.",
+    skills: ["Reclutamiento Especializado", "LinkedIn Recruiting", "Evaluación por Competencias", "Logística"],
+    level: 6,
+    xp: 2800,
+    type: "Reclutador Corporativo"
+  },
+  "Fernando Rivas": {
+    name: "Fernando Rivas",
+    career: "Negocios Internacionales (Alumni)",
+    semester: 10,
+    avatarColor: "bg-black text-[#B50E30] border-black",
+    targetRole: "Director de Comercio Exterior @ CCL",
+    bio: "15+ años impulsando la internacionalización de empresas peruanas. Mentor UTP+ apasionado por formar a la próxima generación de líderes COMEX.",
+    skills: ["Comercio Exterior", "Negociación Internacional", "Incoterms", "Gestión Aduanera", "Inglés Avanzado", "Mentoría"],
+    level: 9,
+    xp: 5100,
+    type: "Mentor Destacado"
+  },
+  "Lucía Fernández": {
+    name: "Lucía Fernández",
+    career: "Negocios Internacionales",
+    semester: 10,
+    avatarColor: "bg-[#B50E30] text-white border-[#B50E30]",
+    targetRole: "Jefa de Exportaciones @ AgroPerú Export",
+    bio: "Liderando el equipo de exportaciones de AgroPerú. Comprometida con el desarrollo del comercio exterior peruano y la formación de nuevos talentos.",
+    skills: ["Exportaciones", "Gestión Aduanera", "Documentación Internacional", "Negociación", "Logística"],
+    level: 7,
+    xp: 3500,
+    type: "Alumni Senior"
   }
 };
 
-export default function SocialHub() {
+interface SocialHubProps {
+  career?: string;
+  interests?: string[];
+}
+
+const CAREER_KEYWORDS: Record<string, string[]> = {
+  "Negocios Internacionales": ["COMEX", "Comercio Exterior", "Logística", "Supply Chain", "Aduana", "Exportación", "Alicorp", "DHL", "Cámara de Comercio", "AgroPerú"],
+  "Ingeniería de Sistemas": ["Backend", "Sistemas", "Developer", "Tech Lead", "DevOps", "Globant", "BBVA"],
+  "Ingeniería de Software": ["Developer", "Software", "Frontend", "Full Stack", "Mobile", "CTO"],
+  "Marketing": ["Marketing", "Growth", "Rappi", "GA4", "Publicidad"],
+};
+
+function sortContactsByRelevance(contacts: NetworkingContact[], career?: string, interests?: string[]): NetworkingContact[] {
+  if (!career && !interests?.length) return contacts;
+
+  const relevantKeywords = [
+    ...(CAREER_KEYWORDS[career || ""] || []),
+    ...(interests?.map(i => i.toLowerCase()) || []),
+  ];
+
+  if (relevantKeywords.length === 0) return contacts;
+
+  return [...contacts].sort((a, b) => {
+    const textA = `${a.role} ${a.company} ${a.compatibilityText} ${a.bio}`.toLowerCase();
+    const textB = `${b.role} ${b.company} ${b.compatibilityText} ${b.bio}`.toLowerCase();
+    const scoreA = relevantKeywords.filter(k => textA.includes(k.toLowerCase())).length;
+    const scoreB = relevantKeywords.filter(k => textB.includes(k.toLowerCase())).length;
+    return scoreB - scoreA;
+  });
+}
+
+export default function SocialHub({ career, interests }: SocialHubProps) {
   const { addNotification } = useNotification();
   const [posts, setPosts] = useState<SocialPost[]>(INITIAL_COMMUNITY_POSTS);
-  const [contacts, setContacts] = useState<NetworkingContact[]>(INITIAL_NETWORKING_CONTACTS);
+  const sortedContacts = sortContactsByRelevance(INITIAL_NETWORKING_CONTACTS, career, interests);
+  const [contacts, setContacts] = useState<NetworkingContact[]>(sortedContacts);
   
   const [selectedUserProfile, setSelectedUserProfile] = useState<any | null>(null);
   
@@ -255,9 +335,18 @@ export default function SocialHub() {
     }
   };
 
+  const postsByCareer = career
+    ? posts.filter(p => {
+        const careerMatch = p.authorCareer?.toLowerCase().includes(career.toLowerCase());
+        const generalPost = ["Empleabilidad", "General", ""].includes(p.authorCareer || "");
+        return careerMatch || generalPost;
+      })
+    : posts;
+  const hasCareerPosts = career && postsByCareer.length >= 2;
+  const displayPosts = hasCareerPosts ? postsByCareer : posts;
   const filteredPosts = activeCategory === "todo" 
-    ? posts 
-    : posts.filter(p => p.category === activeCategory);
+    ? displayPosts 
+    : displayPosts.filter(p => p.category === activeCategory);
 
   /* ─── Profile Modal Content ─── */
   function ProfileModalContent({

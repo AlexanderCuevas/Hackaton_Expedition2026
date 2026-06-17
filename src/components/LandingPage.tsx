@@ -33,6 +33,20 @@ function useInView(threshold = 0.15) {
 }
 
 // ─── HOOK: animated counter ────────────────────────────────────────────────
+function smoothScrollTo(targetY: number, duration: number) {
+  const start = window.scrollY;
+  const diff = targetY - start;
+  const startTime = performance.now();
+  function tick(now: number) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    window.scrollTo(0, start + diff * ease);
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
 function useCounter(target: number, duration = 1800, active = false) {
   const [val, setVal] = useState(0);
   useEffect(() => {
@@ -50,7 +64,15 @@ function useCounter(target: number, duration = 1800, active = false) {
 }
 
 // ─── DATA ──────────────────────────────────────────────────────────────────
-const COMPANIES = ["Interbank", "BCP", "BBVA", "Rimac", "Scotiabank", "Repsol", "Telefónica", "Belcorp", "Gloria", "Alicorp", "Intercorp", "Falabella", "Cencosud", "Inkafarma"];
+const COMPANIES = [
+  "INTERCORP", "INTERBANK", "INTERSEGURO", "INTERFONDOS", "INTELIGO", "INTELIGO BANK",
+  "INTELIGO SAB", "FINANCIERA OH", "IZIPAY", "EXPRESS NET", "INRETAIL", "PLAZA VEA",
+  "VIVANDA", "MAKRO", "REAL PLAZA", "OECHSLE", "PROMART", "SUPERMERCADOS PERUANOS",
+  "SUPERMERCADOS ERBI", "INMOBILIARIA MILENIA", "INKAFARMA", "MIFARMA", "QUICORP",
+  "QUÍMICA SUIZA", "CLÍNICA AVIVA", "VANTTIVE", "INNOVA SCHOOLS", "IDAT", "ZEGEL IPAE",
+  "CENTRO DE LA IMAGEN", "CINEPLANET", "CASA ANDINA", "URBI", "DOMUS", "INDIGITAL XP",
+  "OSLO", "SUPER FOOD HOLDING",
+];
 
 const STORY_CARDS = [
   {
@@ -132,46 +154,25 @@ function TitleDecorator() {
 
 function AchievementBadge({ lines, color }: { lines: readonly string[]; color: string }) {
   return (
-    <div className="relative flex h-[104px] w-[104px] shrink-0 items-center justify-center sm:h-[112px] sm:w-[112px]">
+    <div className="relative flex h-[100px] w-[100px] shrink-0 items-center justify-center sm:h-[114px] sm:w-[114px]">
       <svg viewBox="0 0 112 112" className="absolute inset-0 h-full w-full" fill="none" aria-hidden>
-        <path
-          d="M34 78 C24 66 20 50 26 36 C30 26 36 18 42 12"
-          stroke={color}
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M78 78 C88 66 92 50 86 36 C82 26 76 18 70 12"
-          stroke={color}
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M28 58 C22 48 20 38 24 28 M84 58 C90 48 92 38 88 28"
-          stroke={color}
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          opacity="0.85"
-        />
-        <path
-          d="M46 18 L56 8 L66 18"
-          stroke={color}
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M34 86 Q56 98 78 86"
-          stroke={color}
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
+        {/* Outer dashed ring */}
+        <circle cx="56" cy="56" r="48" stroke={color} strokeWidth="0.6" strokeDasharray="3 4" opacity="0.35" />
+        {/* Main continuous ring */}
+        <circle cx="56" cy="56" r="43" stroke={color} strokeWidth="1.6" opacity="0.7" />
+        {/* Fine inner ring */}
+        <circle cx="56" cy="56" r="38.5" stroke={color} strokeWidth="0.5" opacity="0.25" />
+        {/* Star at top */}
+        <path d="M56 15 L58.5 22.5 L66.5 22.5 L60.5 28 L63 35.5 L56 30.5 L49 35.5 L51.5 28 L45.5 22.5 L53.5 22.5 Z" fill={color} opacity="0.85" />
+        {/* Ribbon bottom */}
+        <path d="M36 86 Q56 96 76 86" stroke={color} strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+        <path d="M40 90.5 Q56 98 72 90.5" stroke={color} strokeWidth="0.7" strokeLinecap="round" opacity="0.3" />
       </svg>
-      <div className="relative z-10 flex max-w-[72px] flex-col items-center justify-center rounded-md bg-white/90 px-1 py-0.5 text-center">
+      <div className="relative z-10 flex max-w-[66px] flex-col items-center justify-center text-center">
         {lines.map((line) => (
           <span
             key={line}
-            className="block text-[8px] font-black uppercase leading-[1.2] tracking-wide sm:text-[9px]"
+            className="block text-[7px] font-black uppercase leading-[1.15] tracking-wider sm:text-[8px]"
             style={{ color }}
           >
             {line}
@@ -183,51 +184,83 @@ function AchievementBadge({ lines, color }: { lines: readonly string[]; color: s
 }
 
 function StoryCard({ story }: { story: (typeof STORY_CARDS)[number] }) {
+  const firstName = story.name.split(" ")[0];
+  const imgPos = story.name.includes("Juan") ? "48% 55%" : "44% 55%";
+
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-      <div className="flex flex-1 flex-col gap-5 p-6 sm:flex-row sm:items-start sm:gap-5 sm:p-7">
-        <div className="relative mx-auto h-44 w-32 shrink-0 sm:mx-0 sm:h-48 sm:w-36">
-          <div
-            className="absolute bottom-2 left-1/2 h-[7.5rem] w-[7.5rem] -translate-x-1/2 rounded-full sm:h-[8.5rem] sm:w-[8.5rem]"
-            style={{ backgroundColor: story.accent }}
-          />
-          <img
-            src={story.photo}
-            alt={story.name}
-            className="relative z-10 h-full w-full object-contain object-bottom"
-          />
+    <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-lg">
+      {/* Main content */}
+      <div className="flex flex-1 flex-col sm:flex-row">
+        {/* LEFT: Photo */}
+        <div className="relative flex h-56 overflow-hidden rounded-3xl sm:h-[440px] sm:w-[250px] sm:self-center sm:shrink-0">
+          <div className="flex h-full w-full items-center px-3 py-3 sm:px-4 sm:py-4">
+            <img
+              src={story.photo}
+              alt={story.name}
+              className="h-full w-full rounded-2xl object-cover"
+              style={{ objectPosition: imgPos }}
+            />
+          </div>
         </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="mb-4 flex items-start justify-between gap-4">
-            <h3 className="min-w-0 flex-1 text-base font-black uppercase leading-tight tracking-tight text-black sm:text-lg">
-              {story.name}
-            </h3>
+        {/* RIGHT: Content */}
+        <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-7">
+          {/* Top row: name + badge */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <span
+                className="mb-1 inline-block text-[10px] font-black uppercase tracking-[0.25em]"
+                style={{ color: story.accent, opacity: 0.7 }}
+              >
+                {firstName}
+              </span>
+              <h3 className="text-2xl font-black uppercase leading-tight tracking-tight text-gray-900 sm:text-3xl">
+                {story.name}
+              </h3>
+            </div>
             <AchievementBadge lines={story.achievementLines} color={story.accent} />
           </div>
 
+          {/* Role pill */}
           <span
-            className="mb-4 inline-block rounded-full px-3.5 py-2 text-[10px] font-bold uppercase leading-snug tracking-wide text-white sm:text-[11px]"
+            className="mt-4 inline-flex self-start rounded-full px-4 py-1.5 text-[10px] font-bold uppercase leading-snug tracking-wider text-white sm:text-[11px]"
             style={{ backgroundColor: story.accent }}
           >
             {story.roleTag}
           </span>
 
-          <p className="font-sans text-sm font-normal leading-relaxed text-[#4B5563] sm:text-[15px]">{story.description}</p>
+          {/* Testimonial with opening quote */}
+          <div className="mt-5 flex gap-3">
+            <span
+              className="mt-[-6px] text-[42px] font-black leading-none select-none sm:text-[50px]"
+              style={{ color: story.accent, opacity: 0.22 }}
+            >
+              &ldquo;
+            </span>
+            <p className="text-sm font-normal leading-relaxed text-gray-600 sm:text-[15px]">
+              {story.description}
+            </p>
+          </div>
+
+          {/* Spacer */}
+          <div className="min-h-4 flex-1" />
         </div>
       </div>
 
+      {/* Footer */}
       <div
-        className="flex items-center gap-3 px-6 py-3.5 sm:px-7"
+        className="flex items-center gap-3 border-t border-gray-100 px-6 py-4 sm:px-8"
         style={{ backgroundColor: story.accentLight }}
       >
         <span
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
           style={{ backgroundColor: story.accent }}
         >
-          <ArrowRight className="h-3.5 w-3.5" />
+          <ArrowRight className="h-4 w-4 text-white" />
         </span>
-        <p className="text-xs font-semibold leading-snug text-neutral-800 sm:text-sm">{story.quote}</p>
+        <p className="text-sm font-semibold leading-snug text-gray-700 sm:text-[15px]">
+          {story.quote}
+        </p>
       </div>
     </article>
   );
@@ -626,8 +659,8 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                 </h1>
               </div>
 
-              <p className="hero-text-2 text-neutral-500 text-base sm:text-lg font-medium leading-relaxed max-w-md">
-              Diagnostica tus brechas, optimiza tu CV para pasar filtros y conecta tu perfil verificado con las mejores empresas del Perú.
+              <p className="hero-text-2 text-white/80 text-base sm:text-lg font-medium leading-relaxed max-w-md">
+                Diagnostica tus brechas, optimiza tu CV para pasar filtros y conecta tu perfil verificado con las mejores empresas del Perú.
               </p>
 
               {/* CTAs */}
@@ -637,11 +670,14 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                   Crea tu perfil gratis
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </button>
-                <a href="#historias"
-                  className="group border-2 border-white/30 hover:border-white text-white text-sm font-black uppercase tracking-widest px-8 py-4 rounded-2xl flex items-center justify-center gap-2 transition-all">
+                <button type="button" onClick={() => {
+                  const el = document.getElementById("historias");
+                  if (el) smoothScrollTo(el.getBoundingClientRect().top + window.scrollY, 1500);
+                }}
+                  className="group border-2 border-white/30 hover:border-white text-white text-sm font-black uppercase tracking-widest px-8 py-4 rounded-2xl flex items-center justify-center gap-2 transition-all cursor-pointer">
                   Ver historias
                   <ChevronDown className="h-4 w-4 transition-transform group-hover:translate-y-1" />
-                </a>
+                </button>
               </div>
 
               {/* Mini stats */}

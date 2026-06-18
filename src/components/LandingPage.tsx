@@ -152,27 +152,34 @@ function TitleDecorator() {
   );
 }
 
-function AchievementBadge({ lines, color }: { lines: readonly string[]; color: string }) {
+function AchievementBadge({
+  lines,
+  color,
+  size = "md",
+}: {
+  lines: readonly string[];
+  color: string;
+  size?: "sm" | "md";
+}) {
+  const dim = size === "sm" ? "h-[72px] w-[72px] sm:h-[80px] sm:w-[80px]" : "h-[100px] w-[100px] sm:h-[114px] sm:w-[114px]";
+  const textMax = size === "sm" ? "max-w-[52px]" : "max-w-[66px]";
+  const textSize = size === "sm" ? "text-[6px] sm:text-[7px]" : "text-[7px] sm:text-[8px]";
+
   return (
-    <div className="relative flex h-[100px] w-[100px] shrink-0 items-center justify-center sm:h-[114px] sm:w-[114px]">
+    <div className={`relative flex shrink-0 items-center justify-center ${dim}`}>
       <svg viewBox="0 0 112 112" className="absolute inset-0 h-full w-full" fill="none" aria-hidden>
-        {/* Outer dashed ring */}
         <circle cx="56" cy="56" r="48" stroke={color} strokeWidth="0.6" strokeDasharray="3 4" opacity="0.35" />
-        {/* Main continuous ring */}
         <circle cx="56" cy="56" r="43" stroke={color} strokeWidth="1.6" opacity="0.7" />
-        {/* Fine inner ring */}
         <circle cx="56" cy="56" r="38.5" stroke={color} strokeWidth="0.5" opacity="0.25" />
-        {/* Star at top */}
         <path d="M56 15 L58.5 22.5 L66.5 22.5 L60.5 28 L63 35.5 L56 30.5 L49 35.5 L51.5 28 L45.5 22.5 L53.5 22.5 Z" fill={color} opacity="0.85" />
-        {/* Ribbon bottom */}
         <path d="M36 86 Q56 96 76 86" stroke={color} strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
         <path d="M40 90.5 Q56 98 72 90.5" stroke={color} strokeWidth="0.7" strokeLinecap="round" opacity="0.3" />
       </svg>
-      <div className="relative z-10 flex max-w-[66px] flex-col items-center justify-center text-center">
+      <div className={`relative z-10 flex ${textMax} flex-col items-center justify-center text-center`}>
         {lines.map((line) => (
           <span
             key={line}
-            className="block text-[7px] font-black uppercase leading-[1.15] tracking-wider sm:text-[8px]"
+            className={`block font-black uppercase leading-[1.15] tracking-wider ${textSize}`}
             style={{ color }}
           >
             {line}
@@ -183,82 +190,80 @@ function AchievementBadge({ lines, color }: { lines: readonly string[]; color: s
   );
 }
 
+function formatStoryNameLines(name: string): [string, string] {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length <= 2) return [parts.join(" "), ""];
+  const mid = Math.ceil(parts.length / 2);
+  return [parts.slice(0, mid).join(" "), parts.slice(mid).join(" ")];
+}
+
 function StoryCard({ story }: { story: (typeof STORY_CARDS)[number] }) {
-  const firstName = story.name.split(" ")[0];
   const imgPos = story.name.includes("Juan") ? "48% 55%" : "44% 55%";
+  const [nameLine1, nameLine2] = formatStoryNameLines(story.name);
 
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-lg">
-      {/* Main content */}
-      <div className="flex flex-1 flex-col sm:flex-row">
-        {/* LEFT: Photo */}
-        <div className="relative flex h-56 overflow-hidden rounded-3xl sm:h-[440px] sm:w-[250px] sm:self-center sm:shrink-0">
-          <div className="flex h-full w-full items-center px-3 py-3 sm:px-4 sm:py-4">
-            <img
-              src={story.photo}
-              alt={story.name}
-              className="h-full w-full rounded-2xl object-cover"
-              style={{ objectPosition: imgPos }}
-            />
-          </div>
-        </div>
-
-        {/* RIGHT: Content */}
-        <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-7">
-          {/* Top row: name + badge */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <span
-                className="mb-1 inline-block text-[10px] font-black uppercase tracking-[0.25em]"
-                style={{ color: story.accent, opacity: 0.7 }}
-              >
-                {firstName}
+    <article className="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-md">
+      {/* Cabecera: nombre + rol + insignia */}
+      <div className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-0 px-4 pt-4 pb-3 sm:gap-x-4 sm:px-5">
+        <div className="min-w-0">
+          <h3 className="min-w-0">
+            <span
+              className="block text-lg font-black uppercase leading-[1.06] tracking-tight sm:text-[1.35rem]"
+              style={{ color: story.accent }}
+            >
+              {nameLine1}
+            </span>
+            {nameLine2 ? (
+              <span className="mt-0.5 block text-lg font-black uppercase leading-[1.06] tracking-tight text-gray-900 sm:text-[1.35rem]">
+                {nameLine2}
               </span>
-              <h3 className="text-2xl font-black uppercase leading-tight tracking-tight text-gray-900 sm:text-3xl">
-                {story.name}
-              </h3>
-            </div>
-            <AchievementBadge lines={story.achievementLines} color={story.accent} />
-          </div>
-
-          {/* Role pill */}
+            ) : null}
+          </h3>
           <span
-            className="mt-4 inline-flex self-start rounded-full px-4 py-1.5 text-[10px] font-bold uppercase leading-snug tracking-wider text-white sm:text-[11px]"
+            className="mt-2.5 inline-flex max-w-full rounded-full px-3 py-1.5 text-[8px] font-bold uppercase leading-snug tracking-wider text-white sm:text-[9px]"
             style={{ backgroundColor: story.accent }}
           >
             {story.roleTag}
           </span>
+        </div>
+        <AchievementBadge lines={story.achievementLines} color={story.accent} size="sm" />
+      </div>
 
-          {/* Testimonial with opening quote */}
-          <div className="mt-5 flex gap-3">
-            <span
-              className="mt-[-6px] text-[42px] font-black leading-none select-none sm:text-[50px]"
-              style={{ color: story.accent, opacity: 0.22 }}
-            >
-              &ldquo;
-            </span>
-            <p className="text-sm font-normal leading-relaxed text-gray-600 sm:text-[15px]">
-              {story.description}
-            </p>
-          </div>
-
-          {/* Spacer */}
-          <div className="min-h-4 flex-1" />
+      {/* Foto cuadrada | Texto — mitad y mitad */}
+      <div className="grid grid-cols-2 gap-3 px-4 pb-4 sm:gap-4 sm:px-5 sm:pb-5">
+        <div className="aspect-square w-full overflow-hidden rounded-xl bg-neutral-100">
+          <img
+            src={story.photo}
+            alt={story.name}
+            className="h-full w-full object-cover"
+            style={{ objectPosition: imgPos }}
+          />
+        </div>
+        <div className="flex aspect-square w-full flex-col overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50/80 p-3 sm:p-3.5">
+          <span
+            className="mb-1.5 text-2xl font-black leading-none select-none sm:text-3xl"
+            style={{ color: story.accent, opacity: 0.22 }}
+          >
+            &ldquo;
+          </span>
+          <p className="flex-1 overflow-y-auto text-[13px] font-medium leading-relaxed text-gray-600 sm:text-sm">
+            {story.description}
+          </p>
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Pie */}
       <div
-        className="flex items-center gap-3 border-t border-gray-100 px-6 py-4 sm:px-8"
+        className="flex items-center gap-2.5 border-t border-gray-100 px-4 py-3 sm:px-5"
         style={{ backgroundColor: story.accentLight }}
       >
         <span
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8"
           style={{ backgroundColor: story.accent }}
         >
-          <ArrowRight className="h-4 w-4 text-white" />
+          <ArrowRight className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" />
         </span>
-        <p className="text-sm font-semibold leading-snug text-gray-700 sm:text-[15px]">
+        <p className="text-xs font-semibold leading-snug text-gray-700 sm:text-sm">
           {story.quote}
         </p>
       </div>
@@ -296,7 +301,7 @@ function StoriesSection({ onCtaClick }: { onCtaClick?: () => void }) {
         </div>
 
         <div
-          className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8"
+          className="mb-8 grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6"
           style={{ opacity: inView ? 1 : 0, transition: "opacity 0.8s ease 0.15s" }}
         >
           {STORY_CARDS.map((story) => (
@@ -706,7 +711,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
             Empresas que confían en nuestros perfiles verificados
           </p>
           <div className="flex overflow-hidden">
-            <div className="flex gap-14 items-center whitespace-nowrap" style={{ animation: "ticker 28s linear infinite" }}>
+            <div className="flex gap-14 items-center whitespace-nowrap" style={{ animation: "ticker 58s linear infinite" }}>
               {[...COMPANIES, ...COMPANIES].map((c, i) => (
                 <span key={i} className="text-neutral-400 text-sm font-black uppercase tracking-widest hover:text-[#B50E30] transition-colors cursor-default shrink-0">{c}</span>
               ))}

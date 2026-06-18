@@ -624,7 +624,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
             <div className="flex items-center gap-3">
               <button onClick={() => openModal("login")} className="bg-[#B50E30] hover:bg-[#85061B] text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl cursor-pointer border-0 shadow-md shadow-[#B50E30]/20">
                 Iniciar sesión
-              </button>
+              </button> 
             </div>
           </div>
         </header>

@@ -33,6 +33,9 @@ import {
   Settings2,
   Linkedin,
   FileText,
+  Cloud,
+  User,
+  Database,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import UvpIcon from "./ui/UvpIcon";
@@ -50,6 +53,7 @@ import {
 import { getCvMockData } from "../cvMockData";
 import cargarcvImg from "./assets/cargarcv.png";
 import KairosGuide, { getKairosWizardCards } from "./ui/KairosGuide";
+import defaultAvatarImg from "./assets/usuario.png";
 
 const MONTHS = [
   { v: "01", l: "Enero" }, { v: "02", l: "Febrero" }, { v: "03", l: "Marzo" },
@@ -258,10 +262,10 @@ const EXPERIENCE_OPTIONS = [
 ] as const;
 
 const EXPERIENCE_BARS = [
-  { height: "h-[52px] sm:h-[64px]" },
+  { height: "h-[40px] sm:h-[48px]" },
+  { height: "h-[58px] sm:h-[70px]" },
   { height: "h-[76px] sm:h-[92px]" },
-  { height: "h-[100px] sm:h-[120px]" },
-  { height: "h-[124px] sm:h-[148px]" },
+  { height: "h-[96px] sm:h-[112px]" },
 ] as const;
 
 const EXPERIENCE_LEVEL_BAR: Record<string, number> = {
@@ -290,20 +294,20 @@ function ExperienceStairsIllustration({ experienceLevel }: { experienceLevel: st
   const pinIndex = activeIndex ?? 3;
 
   return (
-    <div className="flex-1 flex w-full mt-6 lg:mt-8 min-h-[200px] sm:min-h-[240px]" aria-hidden>
-      <div className="flex-1 flex items-center justify-center rounded-2xl bg-neutral-50 border border-neutral-100 px-4 py-10 sm:px-8 sm:py-12">
-        <div className="flex items-end justify-center gap-3 sm:gap-5 md:gap-6">
+    <div className="flex-1 flex w-full mt-6 lg:mt-8 min-h-[160px] sm:min-h-[190px] overflow-hidden" aria-hidden>
+      <div className="flex-1 flex items-center justify-center rounded-2xl bg-neutral-50 border border-neutral-100 px-3 py-7 sm:px-5 sm:py-9">
+        <div className="flex w-full max-w-[200px] sm:max-w-[230px] items-end justify-center gap-2 sm:gap-3 mx-auto">
           {EXPERIENCE_BARS.map((bar, index) => {
             const isFilled = activeIndex !== null && index <= activeIndex;
             const isCurrent = index === pinIndex;
 
             return (
               <div key={index} className="flex flex-col items-center">
-                <div className="mb-2 sm:mb-3 h-8 sm:h-9 w-8 sm:w-9 flex items-center justify-center">
+                <div className="mb-1.5 sm:mb-2 h-7 sm:h-8 w-7 sm:w-8 flex items-center justify-center">
                   {pinIndex === index && (
                     <motion.div
                       layoutId="experience-pin"
-                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#B50E30] flex items-center justify-center shadow-[0_4px_12px_rgba(181,14,48,0.35)]"
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#B50E30] flex items-center justify-center shadow-[0_4px_12px_rgba(181,14,48,0.35)]"
                       transition={{ type: "spring", stiffness: 380, damping: 28 }}
                     >
                       <motion.div
@@ -314,13 +318,13 @@ function ExperienceStairsIllustration({ experienceLevel }: { experienceLevel: st
                             : { duration: 0 }
                         }
                       >
-                        <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5 text-white stroke-[3]" />
+                        <ChevronUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white stroke-[3]" />
                       </motion.div>
                     </motion.div>
                   )}
                 </div>
                 <motion.div
-                  className={`w-12 sm:w-16 md:w-[72px] lg:w-20 rounded-2xl origin-bottom ${bar.height}`}
+                  className={`w-9 sm:w-11 md:w-12 lg:w-14 rounded-2xl origin-bottom ${bar.height}`}
                   initial={false}
                   animate={{
                     backgroundColor: isFilled ? "#B50E30" : "#D4D4D4",
@@ -346,143 +350,208 @@ function ExperienceStairsIllustration({ experienceLevel }: { experienceLevel: st
   );
 }
 
-function GoalsTargetIllustration({ specializationCount }: { specializationCount: number }) {
-  const prevCountRef = useRef(specializationCount);
-  const [shotKey, setShotKey] = useState(0);
-  const [isHitting, setIsHitting] = useState(false);
+const GOALS_WEB_SLOTS = [
+  { angle: -135, ghost: Cloud },
+  { angle: -50, ghost: Brain },
+  { angle: 48, ghost: Code2 },
+  { angle: 135, ghost: Shield },
+  { angle: 168, ghost: LineChart },
+  { angle: -168, ghost: Settings2 },
+  { angle: 88, ghost: Database },
+  { angle: -88, ghost: Briefcase },
+] as const;
+
+const GOALS_WEB_CENTER = { x: 100, y: 100 };
+const GOALS_WEB_RADIUS = 70;
+
+function goalsWebPolar(angleDeg: number, radius = GOALS_WEB_RADIUS) {
+  const rad = (angleDeg * Math.PI) / 180;
+  return {
+    x: GOALS_WEB_CENTER.x + radius * Math.cos(rad),
+    y: GOALS_WEB_CENTER.y + radius * Math.sin(rad),
+  };
+}
+
+function goalsWebIconForTag(tag: string) {
+  const t = tag.toLowerCase();
+  if (t.includes("cloud")) return Cloud;
+  if (t.includes("ciber") || t.includes("segur")) return Shield;
+  if (t.includes("data") || t.includes("analytic")) return LineChart;
+  if (t.includes("devops")) return Settings2;
+  if (
+    t.includes("web") ||
+    t.includes("back") ||
+    t.includes("front") ||
+    t.includes("full") ||
+    t.includes("mobile") ||
+    t.includes("software") ||
+    t.includes("qa")
+  ) {
+    return Code2;
+  }
+  if (t.includes("ux") || t.includes("ui") || t.includes("diseño") || t.includes("design")) {
+    return Brain;
+  }
+  return Target;
+}
+
+function GoalsWebIllustration({ specializations }: { specializations: string[] }) {
+  const [tagToSlot, setTagToSlot] = useState<Record<string, number>>({});
+  const prevCountRef = useRef(specializations.length);
+  const [pulseHub, setPulseHub] = useState(false);
 
   useEffect(() => {
-    if (specializationCount > prevCountRef.current) {
-      setShotKey((k) => k + 1);
-      setIsHitting(true);
-      const timer = window.setTimeout(() => setIsHitting(false), 720);
-      prevCountRef.current = specializationCount;
+    setTagToSlot((prev) => {
+      const next: Record<string, number> = {};
+      const active = new Set(specializations);
+      const used = new Set<number>();
+
+      for (const tag of specializations) {
+        if (tag in prev && active.has(tag)) {
+          next[tag] = prev[tag];
+          used.add(prev[tag]);
+        }
+      }
+
+      for (const tag of specializations) {
+        if (tag in next) continue;
+        let slot = 0;
+        while (used.has(slot) && slot < GOALS_WEB_SLOTS.length) slot += 1;
+        next[tag] = slot % GOALS_WEB_SLOTS.length;
+        used.add(next[tag]);
+      }
+
+      return next;
+    });
+  }, [specializations]);
+
+  useEffect(() => {
+    if (specializations.length > prevCountRef.current) {
+      setPulseHub(true);
+      const timer = window.setTimeout(() => setPulseHub(false), 520);
+      prevCountRef.current = specializations.length;
       return () => window.clearTimeout(timer);
     }
-    prevCountRef.current = specializationCount;
-  }, [specializationCount]);
+    prevCountRef.current = specializations.length;
+  }, [specializations.length]);
 
-  const activeMarker =
-    specializationCount > 0 ? (specializationCount - 1) % 4 : -1;
-
-  const markers = [
-    { x: 93, y: 10, w: 14, h: 22 },
-    { x: 168, y: 93, w: 22, h: 14 },
-    { x: 93, y: 168, w: 14, h: 22 },
-    { x: 10, y: 93, w: 22, h: 14 },
-  ];
+  const activeSlots = new Set(Object.values(tagToSlot));
+  const branches = specializations
+    .filter((tag) => tag in tagToSlot)
+    .map((tag) => ({ tag, slot: tagToSlot[tag] }));
 
   return (
     <div
       className="flex-1 flex w-full mt-6 lg:mt-8 min-h-[180px] sm:min-h-[220px] items-center justify-center"
       aria-hidden
     >
-      <motion.div
-        className="relative w-[70%] max-w-[220px] sm:max-w-[260px] aspect-square"
-        animate={
-          isHitting
-            ? { x: [0, -3, 3, -2, 2, 0], y: [0, 2, -2, 1, 0] }
-            : { x: 0, y: 0 }
-        }
-        transition={{ duration: 0.45, ease: "easeOut" }}
-      >
-        <svg viewBox="0 0 200 200" className="w-full h-full" fill="none">
-          <circle cx="100" cy="100" r="78" stroke="#E8E8E8" strokeWidth="14" />
-          <circle cx="100" cy="100" r="48" stroke="#E8E8E8" strokeWidth="12" />
-          <motion.circle
-            cx="100"
-            cy="100"
-            r="20"
-            animate={{
-              fill: isHitting ? "#B50E30" : specializationCount > 0 ? "#D4D4D4" : "#E8E8E8",
-              scale: isHitting ? [1, 1.35, 1] : 1,
-            }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
-            style={{ transformOrigin: "100px 100px" }}
-          />
-          {markers.map((m, i) => (
-            <motion.rect
-              key={i}
-              x={m.x}
-              y={m.y}
-              width={m.w}
-              height={m.h}
-              rx={4}
-              fill="#B50E30"
-              animate={{
-                scale: isHitting && activeMarker === i ? [1, 1.4, 1] : 1,
-              }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              style={{ transformOrigin: `${m.x + m.w / 2}px ${m.y + m.h / 2}px` }}
-            />
-          ))}
+      <div className="relative w-[72%] max-w-[230px] sm:max-w-[250px] aspect-square">
+        <svg viewBox="0 0 200 200" className="h-full w-full overflow-visible">
+          {GOALS_WEB_SLOTS.map((slot, i) => {
+            if (activeSlots.has(i)) return null;
+            const end = goalsWebPolar(slot.angle);
+            return (
+              <line
+                key={`ghost-${i}`}
+                x1={GOALS_WEB_CENTER.x}
+                y1={GOALS_WEB_CENTER.y}
+                x2={end.x}
+                y2={end.y}
+                stroke="#ECECEC"
+                strokeWidth={1.2}
+                strokeLinecap="round"
+                opacity={0.55}
+              />
+            );
+          })}
+
+          <AnimatePresence>
+            {branches.map(({ tag, slot }, index) => {
+              const { angle } = GOALS_WEB_SLOTS[slot];
+              const end = goalsWebPolar(angle);
+              return (
+                <motion.g key={tag}>
+                  <motion.line
+                    x1={GOALS_WEB_CENTER.x}
+                    y1={GOALS_WEB_CENTER.y}
+                    initial={{
+                      x2: GOALS_WEB_CENTER.x,
+                      y2: GOALS_WEB_CENTER.y,
+                      opacity: 0,
+                    }}
+                    animate={{ x2: end.x, y2: end.y, opacity: 0.9 }}
+                    exit={{
+                      x2: GOALS_WEB_CENTER.x,
+                      y2: GOALS_WEB_CENTER.y,
+                      opacity: 0,
+                    }}
+                    stroke="#B50E30"
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    transition={{
+                      duration: 0.48,
+                      delay: index * 0.06,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                  />
+                </motion.g>
+              );
+            })}
+          </AnimatePresence>
         </svg>
 
-        <AnimatePresence>
-          {isHitting && (
-            <motion.div
-              key={`shot-${shotKey}`}
-              className="absolute inset-0 pointer-events-none overflow-visible"
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+        {GOALS_WEB_SLOTS.map((slot, i) => {
+          if (activeSlots.has(i)) return null;
+          const pos = goalsWebPolar(slot.angle);
+          const Ghost = slot.ghost;
+          return (
+            <div
+              key={`ghost-node-${i}`}
+              className="absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200 bg-neutral-100/90 sm:h-8 sm:w-8"
+              style={{ left: `${(pos.x / 200) * 100}%`, top: `${(pos.y / 200) * 100}%` }}
             >
-              <motion.div
-                className="absolute left-1/2 top-1/2 z-10"
-                initial={{
-                  x: "-155%",
-                  y: "115%",
-                  opacity: 0,
-                  rotate: -38,
-                  scale: 0.55,
-                }}
-                animate={{
-                  x: ["-155%", "-50%"],
-                  y: ["115%", "-50%"],
-                  opacity: [0, 1, 1],
-                  rotate: -38,
-                  scale: [0.55, 1, 0.92],
-                }}
-                transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <svg width="52" height="14" viewBox="0 0 52 14" fill="none" aria-hidden>
-                  <line x1="2" y1="7" x2="38" y2="7" stroke="#B50E30" strokeWidth="2.5" strokeLinecap="round" />
-                  <path d="M38 7 L32 3 M38 7 L32 11" stroke="#B50E30" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M40 7 L50 7 L40 2 Z" fill="#B50E30" />
-                </svg>
-              </motion.div>
+              <Ghost className="h-3 w-3 text-neutral-300 sm:h-3.5 sm:w-3.5" strokeWidth={2} />
+            </div>
+          );
+        })}
 
+        <AnimatePresence>
+          {branches.map(({ tag, slot }, index) => {
+            const pos = goalsWebPolar(GOALS_WEB_SLOTS[slot].angle);
+            const Icon = goalsWebIconForTag(tag);
+            return (
               <motion.div
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#B50E30]"
-                initial={{ width: 18, height: 18, opacity: 0.85 }}
-                animate={{ width: 110, height: 110, opacity: 0 }}
-                transition={{ duration: 0.5, delay: 0.28, ease: "easeOut" }}
-              />
-              <motion.div
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#B50E30]/20"
-                initial={{ width: 10, height: 10, opacity: 0.9 }}
-                animate={{ width: 44, height: 44, opacity: 0 }}
-                transition={{ duration: 0.35, delay: 0.3, ease: "easeOut" }}
-              />
-            </motion.div>
-          )}
+                key={tag}
+                className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${(pos.x / 200) * 100}%`, top: `${(pos.y / 200) * 100}%` }}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 420,
+                  damping: 22,
+                  delay: index * 0.05 + 0.12,
+                }}
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900 shadow-[0_4px_14px_rgba(0,0,0,0.22)] sm:h-10 sm:w-10">
+                  <Icon className="h-4 w-4 text-white sm:h-[18px] sm:w-[18px]" strokeWidth={2.2} />
+                </div>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
 
-        {specializationCount > 0 && !isHitting && (
-          <motion.div
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 420, damping: 22 }}
-          >
-            <svg width="28" height="10" viewBox="0 0 28 10" fill="none" aria-hidden>
-              <line x1="0" y1="5" x2="18" y2="5" stroke="#85061B" strokeWidth="2" strokeLinecap="round" />
-              <path d="M18 5 L14 2 M18 5 L14 8" stroke="#85061B" strokeWidth="1.5" strokeLinecap="round" />
-              <path d="M19 5 L27 5 L19 1.5 Z" fill="#85061B" />
-            </svg>
-          </motion.div>
-        )}
-      </motion.div>
+        <motion.div
+          className="absolute left-1/2 top-1/2 z-30 -translate-x-1/2 -translate-y-1/2"
+          animate={pulseHub ? { scale: [1, 1.1, 1] } : { scale: 1 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#B50E30] shadow-[0_0_22px_rgba(181,14,48,0.38)] sm:h-[52px] sm:w-[52px]">
+            <User className="h-6 w-6 text-white sm:h-7 sm:w-7" strokeWidth={2.2} />
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }
@@ -497,28 +566,28 @@ function ProfileReviewIllustration() {
 
   return (
     <div
-      className="flex-1 flex w-full mt-6 lg:mt-8 min-h-[200px] sm:min-h-[240px] items-center justify-center"
+      className="flex-1 flex w-full mt-6 lg:mt-8 min-h-[260px] sm:min-h-[320px] items-center justify-center"
       aria-hidden
     >
       <motion.div
-        className="relative w-[72%] max-w-[240px] sm:max-w-[280px]"
-        initial={{ opacity: 0, y: 16 }}
+        className="relative w-[52%] max-w-[200px] sm:max-w-[230px]"
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, ease: "easeOut" }}
       >
         {[
-          { top: "-6%", right: "8%", size: "h-4 w-4", delay: 0 },
-          { top: "12%", right: "-4%", size: "h-3 w-3", delay: 0.4 },
-          { top: "4%", left: "-2%", size: "h-3.5 w-3.5", delay: 0.8 },
+          { top: "-4%", right: "6%", size: "h-4 w-4", delay: 0 },
+          { top: "18%", right: "-8%", size: "h-3.5 w-3.5", delay: 0.4 },
+          { top: "6%", left: "-10%", size: "h-4 w-4", delay: 0.8 },
         ].map((s, i) => (
           <motion.div
             key={i}
-            className={`absolute ${s.size} text-[#B50E30]/70`}
+            className={`absolute z-20 ${s.size} text-[#B50E30]/75`}
             style={{ top: s.top, right: s.right, left: s.left }}
             animate={{
-              opacity: [0.25, 1, 0.25],
-              scale: [0.75, 1.15, 0.75],
-              rotate: [0, 12, 0],
+              opacity: [0.2, 1, 0.2],
+              scale: [0.8, 1.2, 0.8],
+              rotate: [0, 14, 0],
             }}
             transition={{
               duration: 2.4,
@@ -527,58 +596,97 @@ function ProfileReviewIllustration() {
               ease: "easeInOut",
             }}
           >
-            <Sparkles className="w-full h-full" />
+            <Sparkles className="h-full w-full" />
           </motion.div>
         ))}
 
-        <motion.div
-          className="relative bg-white border-2 border-neutral-200 rounded-2xl p-5 sm:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
-          animate={{ y: [0, -5, 0] }}
-          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <div className="space-y-2.5">
-            <motion.div
-              className="h-2.5 bg-neutral-200 rounded-full"
-              style={{ width: "68%" }}
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2.8, repeat: Infinity }}
-            />
-            <div className="h-2 bg-neutral-100 rounded-full w-full" />
-            <div className="h-2 bg-neutral-100 rounded-full w-[92%]" />
-            <div className="h-2 bg-neutral-100 rounded-full w-[78%]" />
-            <div className="pt-1 flex gap-2">
-              <div className="h-2 bg-neutral-100 rounded-full flex-1" />
-              <div className="h-2 bg-neutral-100 rounded-full flex-1" />
-            </div>
-          </div>
+        {/* Sombra de hoja detrás */}
+        <div
+          className="absolute inset-0 translate-x-1.5 translate-y-2 rounded-t-[1.4rem] rounded-b-lg bg-neutral-200/70"
+          style={{ aspectRatio: "3 / 4.35" }}
+        />
 
-          <motion.div
-            key={pulse}
-            className="absolute left-0 right-0 h-px bg-[#B50E30]/30 pointer-events-none"
-            initial={{ top: "28%", opacity: 0 }}
-            animate={{ top: ["28%", "82%"], opacity: [0, 0.7, 0] }}
-            transition={{ duration: 1.1, ease: "easeInOut" }}
-          />
+        <motion.div
+          className="relative w-full"
+          style={{ aspectRatio: "3 / 4.35" }}
+          animate={{ y: [0, -7, 0] }}
+          transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute inset-0 overflow-hidden rounded-t-[1.4rem] rounded-b-lg border-2 border-neutral-200 bg-white shadow-[0_14px_36px_rgba(0,0,0,0.1)]">
+            {/* Esquina doblada */}
+            <div
+              className="absolute top-0 right-0 z-10 h-10 w-10 bg-neutral-100"
+              style={{ clipPath: "polygon(100% 0, 0 0, 100% 100%)" }}
+            />
+            <div
+              className="absolute top-0 right-0 z-10 h-10 w-10 border-b border-l border-neutral-200/80"
+              style={{ clipPath: "polygon(100% 0, 0 0, 100% 100%)" }}
+            />
+
+            {/* Franja CV */}
+            <div className="absolute bottom-0 left-0 top-0 w-2.5 bg-[#B50E30]" />
+
+            <div className="relative flex h-full flex-col px-5 pb-5 pt-7 pl-6">
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-7 w-7 rounded-full bg-neutral-100 border border-neutral-200" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-2 w-[72%] rounded-full bg-neutral-200" />
+                  <div className="h-1.5 w-[48%] rounded-full bg-neutral-100" />
+                </div>
+              </div>
+
+              <div className="space-y-2.5 flex-1">
+                <motion.div
+                  className="h-2 rounded-full bg-neutral-200"
+                  style={{ width: "82%" }}
+                  animate={{ opacity: [0.45, 1, 0.45] }}
+                  transition={{ duration: 2.6, repeat: Infinity }}
+                />
+                <div className="h-1.5 rounded-full bg-neutral-100 w-full" />
+                <div className="h-1.5 rounded-full bg-neutral-100 w-[94%]" />
+                <div className="h-1.5 rounded-full bg-neutral-100 w-[88%]" />
+                <div className="h-1.5 rounded-full bg-neutral-100 w-[76%]" />
+                <div className="h-1.5 rounded-full bg-neutral-100 w-[84%]" />
+                <div className="pt-2 flex gap-2">
+                  <div className="h-1.5 flex-1 rounded-full bg-neutral-100" />
+                  <div className="h-1.5 flex-1 rounded-full bg-neutral-100" />
+                </div>
+              </div>
+
+              <div className="mt-3 border-t border-neutral-100 pt-3 space-y-1.5">
+                <div className="h-1.5 w-[60%] rounded-full bg-[#B50E30]/20" />
+                <div className="h-1.5 w-[70%] rounded-full bg-neutral-100" />
+              </div>
+            </div>
+
+            <motion.div
+              key={pulse}
+              className="pointer-events-none absolute left-3 right-3 z-10 h-0.5 rounded-full bg-[#B50E30]/55 shadow-[0_0_8px_rgba(181,14,48,0.35)]"
+              initial={{ top: "22%", opacity: 0 }}
+              animate={{ top: ["22%", "86%"], opacity: [0, 0.95, 0] }}
+              transition={{ duration: 1.15, ease: "easeInOut" }}
+            />
+          </div>
         </motion.div>
 
         <motion.div
-          className="absolute -bottom-3 -right-2 sm:-right-3 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#B50E30] flex items-center justify-center shadow-[0_6px_20px_rgba(181,14,48,0.4)] z-10"
+          className="absolute -bottom-4 -right-3 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-[#B50E30] shadow-[0_8px_24px_rgba(181,14,48,0.45)] sm:h-16 sm:w-16"
           initial={{ scale: 0, rotate: -20 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: "spring", stiffness: 420, damping: 20, delay: 0.35 }}
         >
           <motion.div
-            animate={{ scale: [1, 1.12, 1] }}
+            animate={{ scale: [1, 1.14, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           >
-            <Check className="h-6 w-6 sm:h-7 sm:w-7 text-white stroke-[3]" />
+            <Check className="h-7 w-7 text-white stroke-[3] sm:h-8 sm:w-8" />
           </motion.div>
         </motion.div>
 
         <motion.div
-          className="absolute -bottom-1 -right-1 sm:right-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-[#B50E30]/25 pointer-events-none"
+          className="pointer-events-none absolute -bottom-2 -right-1 z-10 h-16 w-16 rounded-full border-2 border-[#B50E30]/30 sm:h-[4.5rem] sm:w-[4.5rem]"
           initial={{ scale: 0.6, opacity: 0.6 }}
-          animate={{ scale: [0.6, 1.35, 0.6], opacity: [0.5, 0, 0.5] }}
+          animate={{ scale: [0.6, 1.4, 0.6], opacity: [0.45, 0, 0.45] }}
           transition={{ duration: 2.8, repeat: Infinity, ease: "easeOut", delay: 0.6 }}
         />
       </motion.div>
@@ -1240,9 +1348,21 @@ export default function DiagnosticoWizard({
               Paso {step} de {TOTAL_STEPS}
             </p>
           </div>
-          <span className="text-xs font-semibold text-neutral-600 bg-gray-100 px-3 py-1.5 rounded-full self-start sm:self-auto shrink-0">
-            Hola, {name.split(" ")[0]}
-          </span>
+          <div className="inline-flex items-center gap-2.5 self-start sm:self-auto shrink-0">
+            <div className="min-w-0 text-left">
+              <p className="text-sm font-bold leading-tight text-black whitespace-nowrap">
+                Hola, <span className="text-[#B50E30]">{name.split(" ")[0]}</span>
+              </p>
+              <p className="text-[11px] text-neutral-400 leading-tight mt-0.5">
+                ¡Vamos a lograrlo!
+              </p>
+            </div>
+            <img
+              src={currentProfile.avatarUrl || defaultAvatarImg}
+              alt=""
+              className="h-9 w-9 rounded-full object-cover border border-neutral-200 shrink-0"
+            />
+          </div>
         </div>
       </header>
 
@@ -2015,7 +2135,7 @@ export default function DiagnosticoWizard({
                       basadas en tu carrera o añadir nuevas.
                     </p>
 
-                    <GoalsTargetIllustration specializationCount={specializations.length} />
+                    <GoalsWebIllustration specializations={specializations} />
                   </div>
 
                   <div className="flex flex-col gap-5">

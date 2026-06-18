@@ -744,10 +744,10 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
           <div className="max-w-5xl mx-auto relative z-10">
             <Appear>
               <div className="text-center mb-10">
-                <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.25em] mb-3">Mira cómo funciona</p>
+                <p className="text-[#B50E30] text-[10px] font-black uppercase tracking-[0.25em] mb-3">Referente a la empleabilidad</p>
                 <h2 className="text-4xl sm:text-5xl font-black uppercase text-white tracking-tight leading-[0.95]"
                  >
-                  Ve la plataforma<br /><span className="text-[#B50E30]">en acción.</span>
+                  ¿Que es la <br /><span className="text-[#B50E30]">empleabilidad UTP?</span>
                 </h2>
               </div>
 
@@ -826,7 +826,7 @@ export default function LandingPage({ onStart, currentProfileName }: LandingPage
                 Construye tu<br /><span className="text-[#B50E30]">futuro</span> hoy.
               </h2>
               <p className="text-neutral-500 text-base font-medium max-w-md mx-auto leading-relaxed mb-10">
-                Únete a los estudiantes UTP que consiguen empleo antes de graduarse. Gratis, real, verificado.
+                Únete a los estudiantes UTP que consiguen empleo antes de graduarse. Real y verificado.
               </p>  
             </Appear>
           </div>
